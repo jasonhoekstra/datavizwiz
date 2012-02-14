@@ -1,25 +1,18 @@
 <?php
 
+
 function datavizwiz_theme_registry_alter(&$theme_registry) {
+  // Remove the first path under 'node' which is the one for the
+  // module that created the template
   $template = 'node';
   $originalpath = array_shift($theme_registry[$template]['theme paths']);
+
+  dsm('here!');
+  
+  // Get the path to your module
   $modulepath = drupal_get_path('module', 'datavizwiz');
-  // Stick the original path with the module path back on top
+
+  // Stick the original path and then your module path back on top
   array_unshift($theme_registry[$template]['theme paths'], $originalpath, $modulepath);
-  
-  
-  
-  if (!empty($theme_registry['form_element'])) {
-    $theme_registry['form_element']['function'] = 'datavizwiz_form_element';
-  }
 }
-
-function datavizwiz_form_element($element, $value) {
-  // Here, we provide our customized version of the
-  // theme_form_element function from theme.inc...
-  
-  echo 'helllo!!!';
-  
-}
-
 

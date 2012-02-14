@@ -6,8 +6,6 @@ function datavizwiz_theme_registry_alter(&$theme_registry) {
   // module that created the template
   $template = 'node';
   $originalpath = array_shift($theme_registry[$template]['theme paths']);
-
-  dsm('here!');
   
   // Get the path to your module
   $modulepath = drupal_get_path('module', 'datavizwiz');
@@ -16,3 +14,37 @@ function datavizwiz_theme_registry_alter(&$theme_registry) {
   array_unshift($theme_registry[$template]['theme paths'], $originalpath, $modulepath);
 }
 
+function datavizwiz_theme() {
+  return array(
+      'datavizwiz_displaydata' => array(
+          'arguments' => array('node' => NULL),
+      ),
+  );
+}
+
+function theme_datavizwiz_displaydata($node) {
+  $data_table_name = $node->field_dvw_datatable[0]['value'];
+  
+  $query = db_query("SELECT * FROM {%s}",$data_table_name);
+  
+  $header = NULL;
+  $rows = array();
+  
+  // Loop thhrough all records, stuff records in array
+  while ($row = db_fetch_array($query)) {
+    // If this is our first record, let's fill the $header array with column names
+    if ($header == NULL) {
+      $header = array();
+      foreach($row as $value) {
+        array_push($header, key($row));
+      }
+    }
+    
+    array_push($rows, $row);
+  }
+  
+  $output = theme_table($header, $rows);
+  
+  return $output;
+  
+}

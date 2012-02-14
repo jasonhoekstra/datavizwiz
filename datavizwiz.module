@@ -34,17 +34,12 @@ function theme_datavizwiz_displaydata($node) {
   while ($row = db_fetch_array($query)) {
     // If this is our first record, let's fill the $header array with column names
     if ($header == NULL) {
-      $header = array();
-      foreach($row as $value) {
-        array_push($header, key($row));
-      }
+      $header = array_keys($row);
     }
     
-    array_push($rows, $row);
+       array_push($rows, $row);
   }
-  
+
   $output = theme_table($header, $rows);
-  
   return $output;
-  
 }

@@ -1,0 +1,25 @@
+<?php
+
+function datavizwiz_theme_registry_alter(&$theme_registry) {
+  $template = 'node';
+  $originalpath = array_shift($theme_registry[$template]['theme paths']);
+  $modulepath = drupal_get_path('module', 'datavizwiz');
+  // Stick the original path with the module path back on top
+  array_unshift($theme_registry[$template]['theme paths'], $originalpath, $modulepath);
+  
+  
+  
+  if (!empty($theme_registry['form_element'])) {
+    $theme_registry['form_element']['function'] = 'datavizwiz_form_element';
+  }
+}
+
+function datavizwiz_form_element($element, $value) {
+  // Here, we provide our customized version of the
+  // theme_form_element function from theme.inc...
+  
+  echo 'helllo!!!';
+  
+}
+
+

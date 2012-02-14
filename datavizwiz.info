@@ -1,0 +1,7 @@
+; $Id$
+name = Data Visualization Wizard
+description = Creates an easy way to upload and visualize two-dimensional data.  Supports displaying data in geo-map, summary charts and graphs, searchable listings, downloadable CSV files and detail pages.
+core = 6.x
+dependencies[] = content
+dependencies[] = importer
+package = "Data visualization"

@@ -24,7 +24,6 @@ function datavizwiz_theme() {
 
 function theme_datavizwiz_displaydata($node) {
     drupal_add_js(drupal_get_path('module', 'datavizwiz').'/libraries/mapping/openlayers/OpenLayers.js');
-    _datavizwiz_add_javascript();
   
   $data_table_name = $node->field_dvw_datatable[0]['value'];
   
@@ -33,7 +32,7 @@ function theme_datavizwiz_displaydata($node) {
   $header = NULL;
   $rows = array();
   
-  // Loop thhrough all records, stuff records in array
+  // Loop through all records, stuff records in array
   while ($row = db_fetch_array($query)) {
     // If this is our first record, let's fill the $header array with column names
     if ($header == NULL) {
@@ -41,18 +40,19 @@ function theme_datavizwiz_displaydata($node) {
     }
     
        array_push($rows, $row);
+       
+       $markers .= sprintf("markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(%s,%s),icon.clone()));\n", $row['ApplicantLongitude'], $row['ApplicantLatitude']);
   }
-
-
   
   
+  _datavizwiz_add_javascript($markers);
   
   $output = theme_table($header, $rows);
   return $output;
 }
 
-function _datavizwiz_add_javascript() {
-  $script = "        var map, layer;
+function _datavizwiz_add_javascript($markers) {
+  $script = "        var map, layer, markers;
 
         function mapInit(){
             //OpenLayers.ProxyHost='/proxy/?url=';
@@ -63,17 +63,14 @@ function _datavizwiz_add_javascript() {
             map.addLayer(layer);
             map.setCenter(new OpenLayers.LonLat(0, 0), 0);
 
-            var newl = new OpenLayers.Layer.Text( 'text', { location:'/textfile.txt'} );
-            map.addLayer(newl);
-
-            var markers = new OpenLayers.Layer.Markers('Markers');
+            markers = new OpenLayers.Layer.Markers('Markers');
             map.addLayer(markers);
 
             var size = new OpenLayers.Size(21,25);
             var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
             var icon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png',size,offset);
             markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(0,0),icon));
-
+            ". $markers ."
             var halfIcon = icon.clone();
             markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(0,45),halfIcon));
 

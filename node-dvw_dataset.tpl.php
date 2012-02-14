@@ -64,6 +64,8 @@
     <?php print $content ?>
   </div>
 
+  <div id="datamap" style="height: 250px; width: 100%;"></div>
+
   <div class="datadisplay">
     <?php print theme('datavizwiz_displaydata', $node); ?>
   </div>

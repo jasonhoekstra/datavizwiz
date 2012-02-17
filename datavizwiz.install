@@ -1,0 +1,137 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function datavizwiz_install() {
+  drupal_install_schema('datavizwiz');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function datavizwiz_uninstall() {
+  drupal_uninstall_schema('datavizwiz');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function datavizwiz_schema() {
+  $schema['dvw_summary_views'] = array(
+    'description' => 'Stores metadata for a dataset\'s summary view.',
+    'fields' => array(
+      'svid' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique summary view ID.',
+      ),
+      'nid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The {node}.nid of the data set to this summary view is attached.',
+      ),
+      'type' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Type of summary view',
+      ),
+     'order' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Order in display',
+      ),
+      'options' => array(
+        'type' => 'varchar',
+        'length' => 65535,
+        'not null' => FALSE,
+        'description' => 'Options of the summary view in a JSON array.',
+      )
+    ),
+    'indexes' => array(
+      'nid'    => array('nid'),
+    ),
+    'primary key' => array('svid'),
+  );
+
+  $schema['dvw_field_meta'] = array(
+    'description' => 'Stores metadata for a dataset\'s fields display.',
+    'fields' => array(
+      'fid' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique field ID.',
+      ),
+      'nid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'The {node}.nid of the data set for this field.',
+      ),
+      'field_name' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Field name in data set',
+      ),
+      'display_name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'Description of the field, what the end user will see',
+      ),
+      'sortable' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Boolean if visible in summary',
+      ),  
+     'visible_summary' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Boolean if visible in summary',
+      ),
+     'visible_detail' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Boolean if visible in detail',
+      ),
+     'visible_data' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Boolean if visible in data stream (CSV/XML/JSON)',
+      ),
+     'order_summary' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Order in summary listing',
+      ),
+     'order_detail' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Order in detail listing',
+      ),
+    ),
+    'indexes' => array(
+      'nid'    => array('nid'),
+    ),
+    'primary key' => array('fid'),
+  );  
+
+  return $schema;
+}
+

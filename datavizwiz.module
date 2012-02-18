@@ -107,23 +107,35 @@ function datavizwiz_nodeapi(&$node, $op, $arg = NULL) {
 function _datavizwiz_summary_table($rows, $metadata) {
 
   // Get headers for summary table
-  $header = array();
+  $headers = array();
+  $id_counter = 1;
   foreach($metadata as $field) {
+    $header = array();
     if ($field['visible_summary'] == 1) {
-      array_push($header, $field['field_name']);
+      $header['data'] = $field['field_name'];
+
+      if ($field['sortable'] == 1) {
+        $header['field'] = $field['field_name'];
+        $header['sort'] = 'asc';
+      }
+      
+      $header['id'] = 'dvwcol' . $id_counter;      
+      dsm($field);
+      array_push($headers, $header);
+      $id_counter++;
     }
   }
   
   $tablerows = array();
   foreach($rows as $row) {
     $tablerow = array();
-    foreach($header as $headercol) {
-      $tablerow[$headercol] = $row[$headercol];
+    foreach($headers as $headercol) {
+      $tablerow[$headercol['data']] = $row[$headercol['data']];
     }
     array_push($tablerows, $tablerow);
   }  
       
-  return theme_table($header, $tablerows);
+  return theme_table($headers, $tablerows);
 }
 
 function _datavizwiz_map($rows) {

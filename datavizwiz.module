@@ -32,10 +32,10 @@ function theme_datavizwiz_displaydata($node) {
   $data_table_name = $node->field_dvw_datatable[0]['value'];
   $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid);
 
-  $query = db_query("SELECT * FROM {%s}", $data_table_name);
-  $rows = _datavizwiz_get_rowarray($query);
+  // $query = db_query("SELECT * FROM {%s}", $data_table_name);
+  // $rows = _datavizwiz_get_rowarray($query);
  
-  $output .= _datavizwiz_summary_table($rows, $dataset_metadata);
+  $output .= _datavizwiz_summary_table($dataset_metadata, $data_table_name);
   return $output;
 }
 
@@ -104,7 +104,7 @@ function datavizwiz_nodeapi(&$node, $op, $arg = NULL) {
   }
 }
 
-function _datavizwiz_summary_table($rows, $metadata) {
+function _datavizwiz_summary_table($metadata, $table_name) {
 
   // Get headers for summary table
   $headers = array();
@@ -120,22 +120,29 @@ function _datavizwiz_summary_table($rows, $metadata) {
       }
       
       $header['id'] = 'dvwcol' . $id_counter;      
-      dsm($field);
       array_push($headers, $header);
       $id_counter++;
     }
   }
   
-  $tablerows = array();
-  foreach($rows as $row) {
-    $tablerow = array();
-    foreach($headers as $headercol) {
-      $tablerow[$headercol['data']] = $row[$headercol['data']];
-    }
-    array_push($tablerows, $tablerow);
-  }  
-      
-  return theme_table($headers, $tablerows);
+  $column_names = '';
+  // Get the column names we need
+  foreach ($headers as $header) {
+    $column_names .= $header['data'] . ',';
+  }
+  
+  $column_names = substr($column_names, 0, strlen($column_names)-1);
+  
+  $sql = sprintf("SELECT %s FROM {%s}", $column_names, $table_name);
+  $sql .= tablesort_sql($headers);
+  $query = pager_query($sql, 10);
+  
+  $tablerows = _datavizwiz_get_rowarray($query);
+  
+  $output = theme_table($headers, $tablerows);
+  //$output .= theme_pager($headers, 10);
+  
+  return $output;
 }
 
 function _datavizwiz_map($rows) {

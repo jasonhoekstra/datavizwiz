@@ -1,12 +1,16 @@
 <?php
 
+/**
+ * Comment is published.
+ */
+define('DVW_', 0);
 
 function datavizwiz_theme_registry_alter(&$theme_registry) {
   // Remove the first path under 'node' which is the one for the
   // module that created the template
   $template = 'node';
   $originalpath = array_shift($theme_registry[$template]['theme paths']);
-  
+
   // Get the path to your module
   $modulepath = drupal_get_path('module', 'datavizwiz');
 
@@ -23,31 +27,15 @@ function datavizwiz_theme() {
 }
 
 function theme_datavizwiz_displaydata($node) {
-    drupal_add_js(drupal_get_path('module', 'datavizwiz').'/libraries/mapping/openlayers/OpenLayers.js');
-  
+  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.js');
+
   $data_table_name = $node->field_dvw_datatable[0]['value'];
-  
-  $query = db_query("SELECT * FROM {%s}",$data_table_name);
-  
-  $header = NULL;
-  $rows = array();
-  
-  // Loop through all records, stuff records in array
-  while ($row = db_fetch_array($query)) {
-    // If this is our first record, let's fill the $header array with column names
-    if ($header == NULL) {
-      $header = array_keys($row);
-    }
-    
-       array_push($rows, $row);
-       
-       $markers .= sprintf("markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(%s,%s),icon.clone()));\n", $row['ApplicantLongitude'], $row['ApplicantLatitude']);
-  }
-  
-  
-  _datavizwiz_add_javascript($markers);
-  
-  $output = theme_table($header, $rows);
+  $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid);
+
+  $query = db_query("SELECT * FROM {%s}", $data_table_name);
+  $rows = _datavizwiz_get_rowarray($query);
+ 
+  $output .= _datavizwiz_summary_table($rows, $dataset_metadata);
   return $output;
 }
 
@@ -70,7 +58,7 @@ function _datavizwiz_add_javascript($markers) {
             var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
             var icon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png',size,offset);
             markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(0,0),icon));
-            ". $markers ."
+            " . $markers . "
             var halfIcon = icon.clone();
             markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(0,45),halfIcon));
 
@@ -87,4 +75,101 @@ function _datavizwiz_add_javascript($markers) {
         $(function() { mapInit(); });
 ";
   drupal_add_js($script, 'inline');
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ *
+ * The module will add/modify the datavizwiz tables as nodes are inserted/updated.
+ */
+function datavizwiz_nodeapi(&$node, $op, $arg = NULL) {
+  switch ($op) {
+//    case 'load':
+//      $node->private = db_result(db_query('SELECT private FROM {node_access_example} WHERE nid = %d', $node->nid));
+//      break;
+    case 'insert':
+      if ($node->type == 'dvw_dataset') {
+        $table_name = $node->field_dvw_datatable[0]['value'];
+        $field_set = _datavizwiz_get_columns_in_table($table_name);
+
+        _datavizwiz_add_columns_to_meta_table($node->nid, $field_set);
+      }
+      break;
+//    case 'update':
+//      db_query('UPDATE {node_access_example} SET private = %d WHERE nid = %d', $node->private, $node->nid);
+//      break;
+//    case 'delete':
+//      db_query('DELETE FROM {node_access_example} WHERE nid = %d', $node->nid);
+//      break;
+  }
+}
+
+function _datavizwiz_summary_table($rows, $metadata) {
+
+  // Get headers for summary table
+  $header = array();
+  foreach($metadata as $field) {
+    if ($field['visible_summary'] == 1) {
+      array_push($header, $field['field_name']);
+    }
+  }
+  
+  $tablerows = array();
+  foreach($rows as $row) {
+    $tablerow = array();
+    foreach($header as $headercol) {
+      $tablerow[$headercol] = $row[$headercol];
+    }
+    array_push($tablerows, $tablerow);
+  }  
+      
+  return theme_table($header, $tablerows);
+}
+
+function _datavizwiz_map($rows) {
+  $markers .= sprintf("markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(%s,%s),icon.clone()));\n", $row['ApplicantLongitude'], $row['ApplicantLatitude']);
+  _datavizwiz_add_javascript($markers);
+}
+
+function _datavizwiz_get_dataset_metadata($nid) {
+  $sql = db_query("SELECT * FROM {dvw_field_meta} WHERE nid=%s", $nid);
+  $rows = _datavizwiz_get_rowarray($sql);
+  return $rows;
+}
+
+/**
+ * Helper method to get columns in a table.  drupal_schema_fields_sql won't work as the imported
+ * tables are not part of Drupal's schema.
+ * 
+ * @param type $table_name 
+ */
+function _datavizwiz_get_columns_in_table($table_name) {
+  // Run a query that will return no results to get the column names.
+  $sql = db_query("SELECT column_name,ordinal_position,data_type 
+    FROM {information_schema.columns}
+    WHERE table_schema = 'dataedgov' and table_name like '{%s}'", $table_name);
+
+  return _datavizwiz_get_rowarray($sql);
+}
+
+function _datavizwiz_get_rowarray($sql) {
+  $rows = array();
+
+  while ($row = db_fetch_array($sql)) {
+    array_push($rows, $row);
+  }
+
+  return $rows;
+}
+
+function _datavizwiz_add_columns_to_meta_table($nid, $fields) {
+
+  foreach ($fields as $field) {
+    $data = array(
+        'nid' => $nid,
+        'field_name' => $field['column_name']
+    );
+
+    drupal_write_record('dvw_field_meta', $data);
+  }
 }

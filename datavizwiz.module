@@ -140,6 +140,7 @@ function _datavizwiz_summary_table($metadata, $table_name) {
   $tablerows = _datavizwiz_get_rowarray($query);
   
   $output = theme_table($headers, $tablerows);
+  $output .= theme('pager', NULL, 0);
   //$output .= theme_pager($headers, 10);
   
   return $output;

@@ -60,14 +60,16 @@
   <?php endif;?>
   </div>
 
-  <div class="content">
-    <?php print $content ?>
+  <div class="graph">
+    <?php print datavizwiz_graph(); ?>
   </div>
 
-  <div id="datamap" style="height: 250px; width: 100%;"></div>
+  <div class="content">
+    <?php//  print $content ?>
+  </div>
 
   <div class="datadisplay">
-    <?php print theme('datavizwiz_displaydata', $node); ?>
+    <?php // print theme('datavizwiz_displaydata', $node); ?>
   </div>
 
   <?php print $links; ?>

@@ -5,6 +5,8 @@
  */
 define('DVW_', 0);
 
+// http://localhost/node/24836?sort=asc&order=Applicant
+
 function datavizwiz_theme_registry_alter(&$theme_registry) {
   // Remove the first path under 'node' which is the one for the
   // module that created the template
@@ -28,15 +30,47 @@ function datavizwiz_theme() {
 
 function theme_datavizwiz_displaydata($node) {
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.js');
+  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/js/tabs.js');
+  drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/css/tabs.css');
+
+  _datavizwiz_add_javascript($markers);
+
+  //drupal_add_js("$(function(){ $('#experiment').visualize({type: 'pie', height: '300px', width: '420px'}); });",'inline');
+
+  
 
   $data_table_name = $node->field_dvw_datatable[0]['value'];
   $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid);
-
-  // $query = db_query("SELECT * FROM {%s}", $data_table_name);
-  // $rows = _datavizwiz_get_rowarray($query);
  
+  $output .= _datavizwiz_add_tabhtml();
   $output .= _datavizwiz_summary_table($dataset_metadata, $data_table_name);
   return $output;
+}
+
+function datavizwiz_graph() {
+  return _datavizwiz_experiment_pie_table();
+  
+}
+
+
+function _datavizwiz_add_tabhtml() {
+  return '<div class="tabs">
+        <ul class="tabNavigation">
+            <li><a href="#first">Map</a></li>
+            <li><a href="#second">Pie</a></li>
+            <li><a href="#third">Bar</a></li>
+        </ul>
+        <div id="first">
+          <div id="datamap" style="height: 250px; width: 100%;"></div>
+        </div>
+        <div id="second">' .
+        // . _datavizwiz_experiment_pie_table() .
+        '</div>
+        <div id="third">
+            <h2>Third</h2>
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        </div>
+    </div>';
 }
 
 function _datavizwiz_add_javascript($markers) {
@@ -141,9 +175,55 @@ function _datavizwiz_summary_table($metadata, $table_name) {
   
   $output = theme_table($headers, $tablerows);
   $output .= theme('pager', NULL, 0);
-  //$output .= theme_pager($headers, 10);
   
   return $output;
+}
+
+function _datavizwiz_experiment_pie_table() {
+  $sql = db_query("SELECT ApplicantCategory, Count(*) as SumTotal FROM import_cn_grant_data group by ApplicantCategory");
+  $rows = _datavizwiz_get_rowarray($sql);
+  
+  //drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/js/excanvas.js');
+  //drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/js/visualize2.jQuery.js');  
+  //drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/css/visualize.css');  
+    
+  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.js');  
+    drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.pie.js');  
+    
+    foreach ($rows as $row) {
+      $data .= '{label:"' . $row["ApplicantCategory"] .'", data:' . $row["SumTotal"] . '},';
+    }
+
+    
+  //drupal_add_js("$(function(){ $('#experiment').visualize({type: 'line', height: '300px', width: '600px'}); });",'inline');
+  drupal_add_js('$(function() {
+  $.plot($("#placeholder"), [ '. $data .' ]
+  , {
+  series: { pie: { show: true } },
+  legend: { show: true },
+   grid: {
+            hoverable: true,
+            clickable: true
+        }
+    }
+  );
+  } );
+$("#placeholder").bind("plothover", pieHover);  
+function pieHover(event, pos, obj) 
+{
+	if (!obj)
+                return;
+	percent = parseFloat(obj.series.percent).toFixed(2);
+	$("#hover").html(\'<span style="font-weight: bold; color: \'+obj.series.color+\'">\'+obj.series.label+\' (\'+percent+\'%)</span>\');
+}
+
+','inline');
+  
+  //return theme_table(array('One', 'Two'), $rows, array('id' => 'experiment'));
+  
+  return '<div id="placeholder" style="width:100%;height:300px"></div><div id="hover"></div>
+    <style type="text/css">div.legend table { width: 350px; } </style>';
+  
 }
 
 function _datavizwiz_map($rows) {
@@ -172,10 +252,10 @@ function _datavizwiz_get_columns_in_table($table_name) {
   return _datavizwiz_get_rowarray($sql);
 }
 
-function _datavizwiz_get_rowarray($sql) {
+function _datavizwiz_get_rowarray($dbquery) {
   $rows = array();
 
-  while ($row = db_fetch_array($sql)) {
+  while ($row = db_fetch_array($dbquery)) {
     array_push($rows, $row);
   }
 

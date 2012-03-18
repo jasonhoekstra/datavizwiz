@@ -29,15 +29,11 @@ function datavizwiz_theme() {
 }
 
 function theme_datavizwiz_displaydata($node) {
-  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.js');
-  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/js/tabs.js');
-  drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/css/tabs.css');
+  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.dev.js');
+  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/jquery.tabify-1.5/jquery.tabify.source.js');
+  drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.css');
 
   _datavizwiz_add_javascript($markers);
-
-  //drupal_add_js("$(function(){ $('#experiment').visualize({type: 'pie', height: '300px', width: '420px'}); });",'inline');
-
-  
 
   $data_table_name = $node->field_dvw_datatable[0]['value'];
   $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid);
@@ -48,6 +44,7 @@ function theme_datavizwiz_displaydata($node) {
 }
 
 function datavizwiz_graph() {
+    //return '';
   return _datavizwiz_experiment_pie_table();
   
 }
@@ -55,20 +52,22 @@ function datavizwiz_graph() {
 
 function _datavizwiz_add_tabhtml() {
   return '<div class="tabs">
-        <ul class="tabNavigation">
-            <li><a href="#first">Map</a></li>
+        <ul id="dvwTabs">
+            <li class="active"><a href="#first">Map</a></li>
             <li><a href="#second">Pie</a></li>
             <li><a href="#third">Bar</a></li>
         </ul>
-        <div id="first">
-          <div id="datamap" style="height: 250px; width: 100%;"></div>
-        </div>
-        <div id="second">' .
-        // . _datavizwiz_experiment_pie_table() .
-        '</div>
-        <div id="third">
-            <h2>Third</h2>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        <div id="dvwTabContent">
+            <div id="first" class="dvwTab">
+            <div id="datamap" style="height: 250px; width: 100%;"></div>
+            </div>
+            <div id="second" class="dvwTab">' .
+              _datavizwiz_experiment_pie_table() .
+            '</div>
+            <div id="third" class="dvwTab">
+                <h2>Third</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            </div>
         </div>
     </div>';
 }
@@ -79,11 +78,11 @@ function _datavizwiz_add_javascript($markers) {
         function mapInit(){
             //OpenLayers.ProxyHost='/proxy/?url=';
             map = new OpenLayers.Map('datamap');
-            layer = new OpenLayers.Layer.WMS( 'OpenLayers WMS', 
-                'http://vmap0.tiles.osgeo.org/wms/vmap0', {layers: 'basic'} );
+            
+            layer = new OpenLayers.Layer.OSM( 'MapBox Layer', 'http://a.tiles.mapbox.com/v3/mapbox.world-bright/\${z}/\${x}/\${y}.png'  );
                 
+            
             map.addLayer(layer);
-            map.setCenter(new OpenLayers.LonLat(0, 0), 0);
 
             markers = new OpenLayers.Layer.Markers('Markers');
             map.addLayer(markers);
@@ -91,22 +90,16 @@ function _datavizwiz_add_javascript($markers) {
             var size = new OpenLayers.Size(21,25);
             var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
             var icon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png',size,offset);
-            markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(0,0),icon));
+            markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(-77.35, 39.50),icon));
             " . $markers . "
-            var halfIcon = icon.clone();
-            markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(0,45),halfIcon));
 
-            marker = new OpenLayers.Marker(new OpenLayers.LonLat(90,10),icon.clone());
-            marker.setOpacity(0.2);
-            marker.events.register('mousedown', marker, function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
-            markers.addMarker(marker); 
             map.addControl(new OpenLayers.Control.LayerSwitcher());
-            map.zoomToMaxExtent();
 
-            halfIcon.setOpacity(0.5);
+           map.setCenter(new OpenLayers.LonLat(-98.35, 39.50), 3);
+
         };
 
-        $(function() { mapInit(); });
+        $(function() { mapInit(); $('#dvwTabs').tabify();  });
 ";
   drupal_add_js($script, 'inline');
 }
@@ -127,6 +120,7 @@ function datavizwiz_nodeapi(&$node, $op, $arg = NULL) {
         $field_set = _datavizwiz_get_columns_in_table($table_name);
 
         _datavizwiz_add_columns_to_meta_table($node->nid, $field_set);
+        //drupal_goto('datavizwiz/edit', $node->nid);
       }
       break;
 //    case 'update':
@@ -136,6 +130,57 @@ function datavizwiz_nodeapi(&$node, $op, $arg = NULL) {
 //      db_query('DELETE FROM {node_access_example} WHERE nid = %d', $node->nid);
 //      break;
   }
+}
+
+function datavizwiz_form_alter(&$form, &$form_state, $form_id) {
+  if ($form['#token'] == 'dvw_dataset_node_form' && $form_state['submitted'] == FALSE) {
+
+    $tables = _datavizwiz_get_import_tables();
+    $tablenames = array();
+    foreach ($tables as $table) {
+      array_push($tablenames, array ( $table['table_name'] => $table['table_name']) );
+    }
+    
+    dsm($tablenames);
+    
+    // $form['field_dvw_datatable']['#type'] = 'select';
+    // $form['field_dvw_datatable']['#options'] = $tablenames;
+
+    
+        dsm($form);
+  }
+
+}
+
+function datavizwiz_menu() {
+  
+  
+      $items['admin/datavizwiz/edit/%'] = array(
+        //'access callback' => TRUE,
+        'page callback' => 'datavizwiz_edit_one', 
+        'type' => MENU_CALLBACK,
+        'access arguments' => array('access administration pages'),
+        'page arguments' => array(1),
+    );
+      
+      //TODO:  Assign permission
+      return $items;
+}
+
+function datavizwiz_edit_one($nid) {
+
+  dsm($nid);
+  dsm(_datavizwiz_get_dataset_metadata($nid));
+  $header = array();
+  $tablerows = _datavizwiz_get_dataset_metadata($nid);
+
+  
+  $output = theme_table($headers, $tablerows);
+  $output .= theme('pager', NULL, 0);
+  
+  return $output;
+  
+    return "page one!";
 }
 
 function _datavizwiz_summary_table($metadata, $table_name) {
@@ -166,10 +211,9 @@ function _datavizwiz_summary_table($metadata, $table_name) {
   }
   
   $column_names = substr($column_names, 0, strlen($column_names)-1);
-  
   $sql = sprintf("SELECT %s FROM {%s}", $column_names, $table_name);
   $sql .= tablesort_sql($headers);
-  $query = pager_query($sql, 10);
+  $query = pager_query($sql, 25);
   
   $tablerows = _datavizwiz_get_rowarray($query);
   
@@ -180,22 +224,16 @@ function _datavizwiz_summary_table($metadata, $table_name) {
 }
 
 function _datavizwiz_experiment_pie_table() {
-  $sql = db_query("SELECT ApplicantCategory, Count(*) as SumTotal FROM import_cn_grant_data group by ApplicantCategory");
+  $sql = db_query("SELECT AbsolutePriority, Count(*) as SumTotal FROM import_oii_2011_i3 group by AbsolutePriority");
   $rows = _datavizwiz_get_rowarray($sql);
-  
-  //drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/js/excanvas.js');
-  //drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/js/visualize2.jQuery.js');  
-  //drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/css/visualize.css');  
     
-  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.js');  
-    drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.pie.js');  
+  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.min.js');  
+    drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.pie.min.js');  
     
     foreach ($rows as $row) {
-      $data .= '{label:"' . $row["ApplicantCategory"] .'", data:' . $row["SumTotal"] . '},';
+      $data .= '{label:"' . $row["AbsolutePriority"] .'", data:' . $row["SumTotal"] . '},';
     }
-
     
-  //drupal_add_js("$(function(){ $('#experiment').visualize({type: 'line', height: '300px', width: '600px'}); });",'inline');
   drupal_add_js('$(function() {
   $.plot($("#placeholder"), [ '. $data .' ]
   , {
@@ -208,26 +246,18 @@ function _datavizwiz_experiment_pie_table() {
     }
   );
   } );
-$("#placeholder").bind("plothover", pieHover);  
-function pieHover(event, pos, obj) 
-{
-	if (!obj)
-                return;
-	percent = parseFloat(obj.series.percent).toFixed(2);
-	$("#hover").html(\'<span style="font-weight: bold; color: \'+obj.series.color+\'">\'+obj.series.label+\' (\'+percent+\'%)</span>\');
-}
 
 ','inline');
   
   //return theme_table(array('One', 'Two'), $rows, array('id' => 'experiment'));
   
-  return '<div id="placeholder" style="width:100%;height:300px"></div><div id="hover"></div>
+  return '<div id="placeholder" style="width:100%;height:250px"></div>
     <style type="text/css">div.legend table { width: 350px; } </style>';
   
 }
 
 function _datavizwiz_map($rows) {
-  $markers .= sprintf("markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(%s,%s),icon.clone()));\n", $row['ApplicantLongitude'], $row['ApplicantLatitude']);
+  $markers .= sprintf("markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(%s,%s),icon.clone()));\n", $row['Longitude'], $row['Latitude']);
   _datavizwiz_add_javascript($markers);
 }
 
@@ -247,7 +277,20 @@ function _datavizwiz_get_columns_in_table($table_name) {
   // Run a query that will return no results to get the column names.
   $sql = db_query("SELECT column_name,ordinal_position,data_type 
     FROM {information_schema.columns}
-    WHERE table_schema = 'dataedgov' and table_name like '{%s}'", $table_name);
+    WHERE table_schema = 'acquia_drupal' and table_name like '{%s}'", $table_name);
+  
+  //TODO:  Find the proper table name above.
+
+  return _datavizwiz_get_rowarray($sql);
+}
+
+function _datavizwiz_get_import_tables() {
+  // Run a query that will return no results to get the column names.
+  $sql = db_query("SELECT table_name 
+    FROM {information_schema.tables}
+    WHERE table_schema = 'acquia_drupal' and table_name like 'import\_%'");
+  
+  //TODO:  Find the proper table name above.
 
   return _datavizwiz_get_rowarray($sql);
 }
@@ -263,7 +306,6 @@ function _datavizwiz_get_rowarray($dbquery) {
 }
 
 function _datavizwiz_add_columns_to_meta_table($nid, $fields) {
-
   foreach ($fields as $field) {
     $data = array(
         'nid' => $nid,

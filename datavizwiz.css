@@ -1,0 +1,8 @@
+#dvwTabs { padding: 0; margin: 0; clear: both; float: left; }
+#dvwTabs li { display: inline; cursor: pointer; }
+#dvwTabs li a { background: #ccc; padding: 10px; float:left; border-right: 1px solid #ccc; border-bottom: none; text-decoration: none; color: #000; font-weight: bold;}
+#dvwTabs li.active a { background: #eee; }
+
+#dvwTabContent { clear: both;  }
+
+.dvwTab {    }

@@ -22,16 +22,22 @@
 				return hash;
 			}
 			
+              function showPane(element) {
+                element.show();
+              }
+              
+              function hidePane(element) {
+                element.hide();
+              }
+      
 		 	function setActive(el){
 		 		
 				$(el).addClass('active');
-				$(getHref(el)).show();
-                                                                        //$(getHref(el)).css('visibility','visible');
+                  showPane($(getHref(el)));
                                                                         
 				$(el).siblings('li').each(function(){
 					$(this).removeClass('active');
-                                                                                 $(getHref(this)).hide();
-                                                                                 //$(getHref(this)).css('visibility','hidden');
+                      hidePane($(getHref(this)));
 				});
 			}
 			
@@ -59,11 +65,9 @@
 				
 				$(this).find('li').each(function(){
 					if($(this).hasClass('active')){
-						$(getHref(this)).show();
-                                                                                                            //$(getHref(this)).css('visibility','visible');
+						showPane($(getHref(this)));
 					} else {
-						$(getHref(this)).hide();
-                                                                                                            //$(getHref(this)).css('visibility','hidden');
+						hidePane($(getHref(this)));
 					}
 				});
 				

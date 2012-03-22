@@ -25,7 +25,7 @@ function datavizwiz_theme() {
       'datavizwiz_displaydata' => array(
           'arguments' => array('node' => NULL),
       ),
-      'datavizwiz_theme_summary_form' => array(
+      'datavizwiz_fields_form' => array(
           'arguments' => array('form' => NULL),
 	),
   );

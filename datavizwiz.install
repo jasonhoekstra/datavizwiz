@@ -18,7 +18,7 @@ function datavizwiz_uninstall() {
  * Implementation of hook_schema().
  */
 function datavizwiz_schema() {
-  $schema['dvw_summary_views'] = array(
+  $schema['dvw_summary_view'] = array(
     'description' => 'Stores metadata for a dataset\'s summary view.',
     'fields' => array(
       'svid' => array(
@@ -132,6 +132,58 @@ function datavizwiz_schema() {
     'primary key' => array('fid'),
   );  
 
+    $schema['dvw_dataset'] = array(
+    'description' => 'Stores metadata for a dataset visualiztion.',
+    'fields' => array(
+      'fid' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique field ID.',
+      ),
+      'nid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'The {node}.nid of the data set for this field.',
+      ),
+      'row_limit' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Row limit of the table display',
+       ),
+      'download_csv' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Row limit of the table display',
+       ),
+      'download_json' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Row limit of the table display',
+       ),        
+      'download_xml' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Row limit of the table display',
+       ),     
+    ),
+    'indexes' => array(
+      'nid'    => array('nid'),
+    ),
+    'primary key' => array('fid'),
+  );  
+
+  
+  
+  
+  
+  
   return $schema;
 }
 

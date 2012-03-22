@@ -25,6 +25,9 @@ function datavizwiz_theme() {
       'datavizwiz_displaydata' => array(
           'arguments' => array('node' => NULL),
       ),
+      'datavizwiz_theme_summary_form' => array(
+          'arguments' => array('form' => NULL),
+	),
   );
 }
 
@@ -154,17 +157,26 @@ function datavizwiz_form_alter(&$form, &$form_state, $form_id) {
 
 function datavizwiz_menu() {
   $items['admin/datavizwiz/edit/%'] = array(
-      //'access callback' => TRUE,
-      'page callback' => 'datavizwiz_edit_one',
-      'type' => MENU_DEFAULT_LOCAL_TASK && MENU_LOCAL_TASK,
+      'title' => 'Manage Dataset',
+      'page callback' => 'datavizwiz_edit_two',
       'access arguments' => array('access administration pages'),
       'file' => 'includes/datavizwiz.admin.inc',
+      'type' => MENU_CALLBACK,
+      'page arguments' => array(3),
+  );
+  
+    $items['admin/datavizwiz/edit/%/main'] = array(
+      'title' => 'Dataset',
+      'page callback' => 'datavizwiz_edit_two',
+      'access arguments' => array('access administration pages'),
+      'file' => 'includes/datavizwiz.admin.inc',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
       'page arguments' => array(3),
   );
 
-  $items['admin/datavizwiz/edit/%/summary'] = array(
+  $items['admin/datavizwiz/edit/%/fields'] = array(
       'title' => 'Manage fields',
-      'page callback' => 'datavizwiz_edit_two',
+      'page callback' => 'datavizwiz_tab_manage_fields',
       'page arguments' => array(3),
       'access arguments' => array('access administration pages'),
       'file' => 'includes/datavizwiz.admin.inc',
@@ -172,6 +184,27 @@ function datavizwiz_menu() {
       'weight' => 1,
   );
 
+    $items['admin/datavizwiz/edit/%/sort_summary'] = array(
+      'title' => 'Summary Sort',
+      'page callback' => 'datavizwiz_edit_two',
+      'page arguments' => array(3),
+      'access arguments' => array('access administration pages'),
+      'file' => 'includes/datavizwiz.admin.inc',
+      'type' => MENU_LOCAL_TASK,
+      'weight' => 10,
+  );
+
+    $items['admin/datavizwiz/edit/%/sort_detail'] = array(
+      'title' => 'Detail Sort',
+      'page callback' => 'datavizwiz_edit_two',
+      'page arguments' => array(3),
+      'access arguments' => array('access administration pages'),
+      'file' => 'includes/datavizwiz.admin.inc',
+      'type' => MENU_LOCAL_TASK,
+      'weight' => 20,
+  );
+
+    
   //TODO:  Assign permission
   return $items;
 }

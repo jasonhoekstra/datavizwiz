@@ -3,6 +3,6 @@
 #dvwTabs li a { background: #ccc; padding: 10px; float:left; border-right: 1px solid #ccc; border-bottom: none; text-decoration: none; color: #000; font-weight: bold;}
 #dvwTabs li.active a { background: #eee; }
 
-#dvwTabContent { clear: both;  }
+#dvwTabContent { clear: both;  width: 100%; height: 300px; }
 
-.dvwTab {    }
+.dvwTab {  position: absolute; left: -20000px;  }

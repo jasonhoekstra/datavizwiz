@@ -23,11 +23,14 @@
 			}
 			
               function showPane(element) {
-                element.show();
+                //element.show();
+                element.css('left', '20px');
+                map.updateSize();
               }
               
               function hidePane(element) {
-                element.hide();
+                //element.hide();
+                element.css('left', '-20000px');
               }
       
 		 	function setActive(el){

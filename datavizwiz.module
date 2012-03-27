@@ -80,12 +80,12 @@ function _datavizwiz_add_tabhtml() {
         </ul>
         <div id="dvwTabContent">
             <div id="first" class="dvwTab">
-            <div id="datamap" style="height: 250px; width: 100%;"></div>
+            <div id="datamap" style="height: 300px; width: 600px;"></div>
             </div>
-            <div id="second" class="dvwTab">' .
+            <div id="second" class="dvwTab" style="height: 300px; width: 600px;">' .
           _datavizwiz_experiment_pie_table() .
           '</div>
-            <div id="third" class="dvwTab">
+            <div id="third" class="dvwTab" style="height: 300px; width: 600px;">
                 <h2>Third</h2>
                 <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
             </div>
@@ -328,7 +328,6 @@ function _datavizwiz_experiment_pie_table() {
     series: { pie: { show: true } },
     legend: { show: true },
     grid: {
-    hoverable: true,
     clickable: true
     }
     }
@@ -339,7 +338,7 @@ function _datavizwiz_experiment_pie_table() {
 
   //return theme_table(array('One', 'Two'), $rows, array('id' => 'experiment'));
 
-  return '<div id="placeholder" style="width:100%;height:500px"></div>
+  return '<div id="placeholder" style="width:100%;height:300px"></div>
     <style type="text/css">div.legend table { width: 350px; } </style>
     <div style=”position: absolute; left: -2000px;”>
 <div id=”initialPlaceHolder” style=”width:600px;height:300px”></div>

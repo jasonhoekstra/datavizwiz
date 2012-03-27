@@ -216,6 +216,16 @@ function datavizwiz_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 20,
   );
+    
+    $items['node/%/dataset'] = array(
+    'title' => 'Edit Dataset',
+    'page callback' => 'datavizwiz_tab_dataset',
+    'page arguments' => array(2),
+    'access arguments' => array('access administration pages'),
+    'file' => 'includes/datavizwiz.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 999,
+  );
 
 
   //TODO:  Assign permission

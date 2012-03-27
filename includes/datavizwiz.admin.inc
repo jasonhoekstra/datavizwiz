@@ -6,6 +6,14 @@ define('DVW_SORT_DETAIL', 1);
 // <editor-fold desc="Tabs">
 
 function datavizwiz_tab_dataset($nid) {
+  $path = urldecode(drupal_get_destination());
+  if (substr($path, 12, 4) == 'node') {
+    $bits = explode('/', $path);
+    if (count($bits) == 3 && is_numeric($bits[1])) {
+      drupal_goto(sprintf('admin/datavizwiz/edit/%s', $bits[1]));
+    }
+  }
+  
   return drupal_get_form('datavizwiz_dataset_form', $nid);
 }
 
@@ -27,11 +35,14 @@ function datavizwiz_dataset_form($frm, $nid) {
   
   $node = node_load($nid);
   dsm($node);
-  $path = drupal_lookup_path('alias', 'node/' . $nid);
-  dsm($path . 'reak');
+  $path = drupal_lookup_path('alias', '/node/' . $nid);
+  if ($path == '') { $path =  '/node/' . $nid; }
+  
+  $output = '<a href="' . $path . '">View Dataset</a><br/><br/>';
+  $output .= 'TODO:  Add content and link back to CCK type.';
   
   $form['message'] = array (
-    '#value' => 'TODO:  Add content and link back to CCK type.',
+    '#value' => $output,
     );
   
   return $form;

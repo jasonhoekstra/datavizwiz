@@ -60,10 +60,6 @@
   <?php endif;?>
   </div>
 
-<!--<div class="graph">
-    <?php //  print datavizwiz_graph(); ?>
-  </div>-->
-
   <div class="content">
     <?php print $content ?>
   </div>

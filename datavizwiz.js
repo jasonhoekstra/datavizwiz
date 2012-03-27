@@ -1,24 +1,14 @@
-/* 
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
-function wrapPrepareForFlot(container, parent_section, widthToHeight, call_block) {
-        var parent_originally_hidden = $(parent_section).css("display") == "none";
-        if (parent_originally_hidden) {
-          $(parent_section).show();
-        }
-        $(container).width( $(parent_section).width() );
-        $(container).height( $(parent_section).width() * widthToHeight );
-        if (parent_originally_hidden) {
-          parent_section.addClass("ui-helper-hidden-accessible");
-        }
-
-        call_block(container);
-
-        if (parent_originally_hidden) {
-          $(parent_section).removeClass("ui-helper-hidden-accessible");
-          $(parent_section).hide();
-        }
-    }
+$(document).ready(function(){
+  initTabs();
+});
+ 
+function initTabs() {
+  $('#tabMenu a').bind('click',function(e) {
+    e.preventDefault();
+    var thref = $(this).attr("href").replace(/#/, '');
+    $('#tabMenu a').removeClass('active');
+    $(this).addClass('active');
+    $('#tabContent div.content').removeClass('active');
+    $('#'+thref).addClass('active');
+  });
+}

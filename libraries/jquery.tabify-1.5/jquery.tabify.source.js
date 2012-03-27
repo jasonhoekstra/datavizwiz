@@ -25,7 +25,6 @@
               function showPane(element) {
                 //element.show();
                 element.css('left', '20px');
-                map.updateSize();
               }
               
               function hidePane(element) {

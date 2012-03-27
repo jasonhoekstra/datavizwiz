@@ -3,9 +3,103 @@
 /**
  * Comment is published.
  */
-define('DVW_', 0);
+define('DVW_SUMMARY_MAP_OPENLAYERS', 'OPENLAYERS');
+define('DVW_SUMMARY_FLOT_PIE', 'FLOT_PIE');
+define('DVW_SUMMARY_FLOT_BAR', 'FLOT_BAR');
+define('DVW_SUMMARY_HTML', 'HTML');
 
 // http://localhost/node/24836?sort=asc&order=Applicant
+
+
+function theme_datavizwiz_displaydata($node) {
+
+  $data_table_name = $node->field_dvw_datatable[0]['value'];
+  $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
+
+  if (!isset($_GET['detail'])) {
+//    drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.dev.js');
+//    drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/jquery.tabify-1.5/jquery.tabify.source.js');
+//
+//    _datavizwiz_add_javascript($markers);
+//
+//
+//    $output .= _datavizwiz_add_tabhtml();
+//    $output .= _datavizwiz_summary_table($rows, $data_table_name);
+
+    $output = _datavizwiz_display_summary_page($node, $data_table_name, $dataset_metadata);
+  }
+  else {
+    $output = _datavizwiz_display_detail_page($node, $data_table_name, $dataset_metadata);
+  }
+
+  return $output;
+}
+
+function _datavizwiz_display_summary_page($node, $data_table_name, $dataset_metadata) {
+  //drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.js');
+  //drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.css');
+
+  $summary_panes = _datavizwiz_get_summary_panes($node->nid);
+
+  if (count($summary_panes) > 0) {
+    drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/jquery.tabify-1.5/jquery.tabify.source.js');
+    drupal_add_js("$( function() { $('#dvwTabs').tabify(); } );", 'inline');
+    
+// First, display the tabs.
+    $output = '<div class="tabs" id="dvwTabs">';
+    $output .= '<ul id="dvwTabsList">';
+    $index = 0;
+    foreach ($summary_panes as $pane) {
+      $output .= sprintf('<li><a href="#pane-%s">%s</a></li>', $index, $pane['name']);
+      $index++;
+    }
+    $output .= '</ul>';
+
+    // Second, display the panes.
+    $index = 0;
+    $output .= '<div id="dvwTabContent" style="width: 100%; height: 400px">';
+    foreach ($summary_panes as $pane) {
+      switch ($pane['type']) {
+        case DVW_SUMMARY_MAP_OPENLAYERS:
+          $content = DVW_SUMMARY_MAP_OPENLAYERS;
+          break;
+        case DVW_SUMMARY_FLOT_PIE:
+          $content = DVW_SUMMARY_FLOT_PIE;
+          break;
+        case DVW_SUMMARY_FLOT_BAR:
+          $content = DVW_SUMMARY_FLOT_BAR;
+          break;
+        case DVW_SUMMARY_HTML:
+          $content = DVW_SUMMARY_HTML;
+          break;
+      }
+      $output .= sprintf('<div id="#pane-%s" class="dvwTab" style="width: 100%%; height: 400px">%s</div>', $index, $content);
+      $index++;
+    }
+    $output .= '</div>';
+  }
+
+  $output .= _datavizwiz_summary_table($node->nid, $data_table_name);
+  return $output;
+}
+
+function _datavizwiz_display_detail_page($node, $data_table_name, $dataset_metadata) {
+  $importerID = $_GET['detail'];
+  $output .= _datavizwiz_detail_page($dataset_metadata, $data_table_name, $importerID);
+
+  return $output;
+}
+
+function _datavizwiz_get_summary_panes($nid) {
+  $query = sprintf("
+      SELECT type, name, options 
+      FROM {dvw_summary_views} 
+      WHERE nid=%s 
+      ORDER BY pane_order", $nid);
+  $sql = db_query($query);
+  $rows = _datavizwiz_get_rowarray($sql);
+  return $rows;
+}
 
 function datavizwiz_theme_registry_alter(&$theme_registry) {
   // Remove the first path under 'node' which is the one for the
@@ -32,38 +126,6 @@ function datavizwiz_theme() {
       'arguments' => array('form' => NULL),
     ),
   );
-}
-
-function theme_datavizwiz_displaydata($node) {
-
-  $data_table_name = $node->field_dvw_datatable[0]['value'];
-  //$dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
-
-  if (!isset($_GET['detail'])) {
-    drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.dev.js');
-    drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/jquery.tabify-1.5/jquery.tabify.source.js');
-    drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.js');
-    drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.css');
-
-    _datavizwiz_add_javascript($markers);
-
-    $query = sprintf("
-      SELECT field_name, display_name, sortable 
-      FROM {dvw_field_meta} 
-      WHERE nid=%s AND visible_summary=1 
-      ORDER BY weight_summary", $node->nid);
-    $sql = db_query($query);
-    $rows = _datavizwiz_get_rowarray($sql);
-
-    $output .= _datavizwiz_add_tabhtml();
-    $output .= _datavizwiz_summary_table($rows, $data_table_name);
-  }
-  else {
-    $importerID = $_GET['detail'];
-    $output .= _datavizwiz_detail_page($dataset_metadata, $data_table_name, $importerID);
-  }
-
-  return $output;
 }
 
 function datavizwiz_graph() {
@@ -93,6 +155,13 @@ function _datavizwiz_add_tabhtml() {
     </div>';
 }
 
+function _datavizwiz_quick_json() {
+  $options = array();
+  $options['latitude-field'] = 'latitude';
+  $options['longitude-field'] = 'longitude';
+  dsm(json_encode($options));
+}
+
 function _datavizwiz_add_javascript($markers) {
   $script = "        var map, layer, markers;
 
@@ -119,8 +188,6 @@ function _datavizwiz_add_javascript($markers) {
            map.setCenter(new OpenLayers.LonLat(-98.35, 39.50), 3);
 
         };
-
-        $(function() { mapInit(); $('#dvwTabs').tabify();  });
 ";
   drupal_add_js($script, 'inline');
 }
@@ -216,8 +283,8 @@ function datavizwiz_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 20,
   );
-    
-    $items['node/%/dataset'] = array(
+
+  $items['node/%/dataset'] = array(
     'title' => 'Edit Dataset',
     'page callback' => 'datavizwiz_tab_dataset',
     'page arguments' => array(2),
@@ -232,24 +299,31 @@ function datavizwiz_menu() {
   return $items;
 }
 
-function _datavizwiz_summary_table($metadata, $table_name) {
+function _datavizwiz_summary_table($nid, $table_name) {
+
+  $query = sprintf("
+      SELECT field_name, display_name, sortable 
+      FROM {dvw_field_meta} 
+      WHERE nid=%s AND visible_summary=1 
+      ORDER BY weight_summary", $nid);
+  $sql = db_query($query);
+  $rows = _datavizwiz_get_rowarray($sql);
 
   // Get headers for summary table
   $headers = array();
   $id_counter = 1;
-  foreach ($metadata as $field) {
+  foreach ($rows as $field) {
     $header = array();
-      $header['data'] = $field['field_name'];
+    $header['data'] = $field['field_name'];
 
-      if ($field['sortable'] == 1) {
-        $header['field'] = $field['field_name'];
-        $header['sort'] = 'asc';
-      }
+    if ($field['sortable'] == 1) {
+      $header['field'] = $field['field_name'];
+      $header['sort'] = 'asc';
+    }
 
-      $header['id'] = 'dvwcol' . $id_counter;
-      array_push($headers, $header);
-      $id_counter++;
-
+    $header['id'] = 'dvwcol' . $id_counter;
+    array_push($headers, $header);
+    $id_counter++;
   }
 
   $column_names = '';
@@ -334,7 +408,7 @@ function _datavizwiz_experiment_pie_table() {
     );
     } );
 
-    ', 'inline'); 
+    ', 'inline');
 
   //return theme_table(array('One', 'Two'), $rows, array('id' => 'experiment'));
 

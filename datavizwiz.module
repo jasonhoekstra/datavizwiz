@@ -37,7 +37,7 @@ function datavizwiz_theme() {
 function theme_datavizwiz_displaydata($node) {
 
   $data_table_name = $node->field_dvw_datatable[0]['value'];
-  $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
+  //$dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
 
   if (!isset($_GET['detail'])) {
     drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.dev.js');
@@ -47,8 +47,16 @@ function theme_datavizwiz_displaydata($node) {
 
     _datavizwiz_add_javascript($markers);
 
+    $query = sprintf("
+      SELECT field_name, display_name, sortable 
+      FROM {dvw_field_meta} 
+      WHERE nid=%s AND visible_summary=1 
+      ORDER BY weight_summary", $node->nid);
+    $sql = db_query($query);
+    $rows = _datavizwiz_get_rowarray($sql);
+
     $output .= _datavizwiz_add_tabhtml();
-    $output .= _datavizwiz_summary_table($dataset_metadata, $data_table_name);
+    $output .= _datavizwiz_summary_table($rows, $data_table_name);
   }
   else {
     $importerID = $_GET['detail'];
@@ -163,7 +171,7 @@ function datavizwiz_form_alter(&$form, &$form_state, $form_id) {
 function datavizwiz_menu() {
   $items['admin/datavizwiz/edit/%'] = array(
     'title' => 'Manage Dataset',
-    'page callback' => 'datavizwiz_edit_two',
+    'page callback' => 'datavizwiz_tab_dataset',
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_CALLBACK,
@@ -172,7 +180,7 @@ function datavizwiz_menu() {
 
   $items['admin/datavizwiz/edit/%/main'] = array(
     'title' => 'Dataset',
-    'page callback' => 'datavizwiz_edit_two',
+    'page callback' => 'datavizwiz_tab_dataset',
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_DEFAULT_LOCAL_TASK,
@@ -221,7 +229,6 @@ function _datavizwiz_summary_table($metadata, $table_name) {
   $id_counter = 1;
   foreach ($metadata as $field) {
     $header = array();
-    if ($field['visible_summary'] == 1) {
       $header['data'] = $field['field_name'];
 
       if ($field['sortable'] == 1) {
@@ -232,7 +239,7 @@ function _datavizwiz_summary_table($metadata, $table_name) {
       $header['id'] = 'dvwcol' . $id_counter;
       array_push($headers, $header);
       $id_counter++;
-    }
+
   }
 
   $column_names = '';

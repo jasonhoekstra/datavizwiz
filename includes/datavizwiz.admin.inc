@@ -3,6 +3,11 @@
 define('DVW_SORT_SUMMARY', 0);
 define('DVW_SORT_DETAIL', 1);
 
+// <editor-fold desc="Tabs">
+
+function datavizwiz_tab_dataset($nid) {
+  return drupal_get_form('datavizwiz_dataset_form', $nid);
+}
 
 function datavizwiz_tab_manage_fields($nid) {
   return drupal_get_form('datavizwiz_fields_form', $nid);
@@ -15,6 +20,24 @@ function datavizwiz_tab_sort_summary($nid) {
 function datavizwiz_tab_sort_detail($nid) {
   return drupal_get_form('datavizwiz_sort_form', DVW_SORT_DETAIL, $nid);
 }
+
+// </editor-fold>
+
+function datavizwiz_dataset_form($frm, $nid) {
+  
+  $node = node_load($nid);
+  dsm($node);
+  $path = drupal_lookup_path('alias', 'node/' . $nid);
+  dsm($path . 'reak');
+  
+  $form['message'] = array (
+    '#value' => 'TODO:  Add content and link back to CCK type.',
+    );
+  
+  return $form;
+}
+
+// <editor-fold desc="Manage Fields">
 
 function datavizwiz_fields_form($frm, $nid) {
   $headers = array('Field', 'Display', 'Sortable', 'Visible Summary', 'Visible Detail', 'Visible Data');
@@ -122,9 +145,9 @@ function datavizwiz_fields_form_submit($form, &$form_state) {
   drupal_set_message(t('Dataset fields updated.'));
 }
 
-function datavizwiz_edit_two($nid) {
-  return 'hello!';
-}
+// </editor-fold>
+
+// <editor-fold desc="Manage Sorts">
 
 function datavizwiz_sort_form($frm, $type, $nid) {
   $tablerows = _datavizwiz_get_dataset_metadata($nid, array('fid', 'field_name', 'display_name', 'weight_summary'));
@@ -215,3 +238,5 @@ function datavizwiz_sort_form_submit($form, &$form_state) {
 
   }
 }
+
+// </editor-fold>

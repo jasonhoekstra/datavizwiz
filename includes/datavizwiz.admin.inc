@@ -156,7 +156,13 @@ function datavizwiz_summary_sort_form() {
   $header = array(t('Field Name'), t('Display Name'), t('Weight'));
   $rows = array();
   $form['weight_summary']['#tree'] = TRUE;
-  foreach ($tablerows as $tablerow) {
+  
+    $sql = ' SELECT fid, field_name, display_name, weight_summary FROM {dvw_field_meta} WHERE nid = %s AND visible_summary = TRUE ORDER BY weight_summary';
+  $result = db_query($sql, $nid);
+  
+  while ($tablerow = db_fetch_array($result)) {
+  
+  //foreach ($tablerows as $tablerow) {
     $fid = $tablerow['fid'];
 
     $form[$fid]['weights']['#attributes']['class'] = 'filter-order-weight';
@@ -178,9 +184,9 @@ function datavizwiz_summary_sort_form() {
 }
 
 function datavizwiz_summary_sort_form_submit($form, &$form_state) {
-  dsm($form_state);
+  //dsm($form_state);
   foreach ($form_state['values']['weight_summary'] as $id => $item) {
-    // db_query("UPDATE {foo} SET weight=%d WHERE id=%d",$item['weight'], $id);
-    dsm($id . ' -> ' . $item);
+    db_query("UPDATE {dvw_field_meta} SET weight_summary=%d WHERE fid=%d",$item, $id);
+    //dsm($id . ' -> ' . $item);
   }
 }

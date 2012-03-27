@@ -322,7 +322,7 @@ function _datavizwiz_experiment_pie_table() {
   }
 
 
-  /* drupal_add_js('$(function() {
+  drupal_add_js('$(function() {
     $.plot($("#placeholder"), [ ' . $data . ' ]
     , {
     series: { pie: { show: true } },
@@ -335,7 +335,7 @@ function _datavizwiz_experiment_pie_table() {
     );
     } );
 
-    ', 'inline'); */
+    ', 'inline'); 
 
   //return theme_table(array('One', 'Two'), $rows, array('id' => 'experiment'));
 
@@ -350,12 +350,6 @@ function _datavizwiz_map($rows) {
   $markers .= sprintf("markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(%s,%s),icon.clone()));\n", $row['Longitude'], $row['Latitude']);
   _datavizwiz_add_javascript($markers);
 }
-
-//function _datavizwiz_get_dataset_metadata($nid) {
-//  $sql = db_query("SELECT * FROM {dvw_field_meta} WHERE nid=%s", $nid);
-//  $rows = _datavizwiz_get_rowarray($sql);
-//  return $rows;
-//}
 
 function _datavizwiz_get_dataset_metadata($nid, $field_array) {
   $fields = implode(',', $field_array);

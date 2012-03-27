@@ -36,28 +36,29 @@ function theme_datavizwiz_displaydata($node) {
 }
 
 function _datavizwiz_display_summary_page($node, $data_table_name, $dataset_metadata) {
-  //drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.js');
-  //drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.css');
+  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.js');
+  drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.css');
 
   $summary_panes = _datavizwiz_get_summary_panes($node->nid);
 
   if (count($summary_panes) > 0) {
-    drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/jquery.tabify-1.5/jquery.tabify.source.js');
-    drupal_add_js("$( function() { $('#dvwTabs').tabify(); } );", 'inline');
-    
+    //drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/jquery.tabify-1.5/jquery.tabify.source.js');
+    //drupal_add_js("$( function() { $('#dvwTabs').tabify(); } );", 'inline');
 // First, display the tabs.
-    $output = '<div class="tabs" id="dvwTabs">';
-    $output .= '<ul id="dvwTabsList">';
+    $output .= '<div id="dvwPanes">';
+    $output .= '<div id="dvwTabs">';
+    $output .= '<ul class="dvwMenu">';
     $index = 0;
     foreach ($summary_panes as $pane) {
-      $output .= sprintf('<li><a href="#pane-%s">%s</a></li>', $index, $pane['name']);
+      $output .= sprintf('<li class="dvwMenu"><a href="pane-%s">%s</a></li>', $index, $pane['name']);
       $index++;
     }
     $output .= '</ul>';
+    $output .= '</div>';
 
     // Second, display the panes.
     $index = 0;
-    $output .= '<div id="dvwTabContent" style="width: 100%; height: 400px">';
+    $output .= '<div id="dvwTabContent" style="width: 100%; height: 400px" class="dvwContent">';
     foreach ($summary_panes as $pane) {
       switch ($pane['type']) {
         case DVW_SUMMARY_MAP_OPENLAYERS:
@@ -73,11 +74,12 @@ function _datavizwiz_display_summary_page($node, $data_table_name, $dataset_meta
           $content = DVW_SUMMARY_HTML;
           break;
       }
-      $output .= sprintf('<div id="#pane-%s" class="dvwTab" style="width: 100%%; height: 400px">%s</div>', $index, $content);
+      $output .= sprintf('<div id="pane-%s" class="dvwContent" style="width: 100%%; height: 400px">%s</div>', $index, $content);
       $index++;
     }
     $output .= '</div>';
   }
+  $output .= '</div>';
 
   $output .= _datavizwiz_summary_table($node->nid, $data_table_name);
   return $output;

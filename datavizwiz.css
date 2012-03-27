@@ -1,4 +1,4 @@
-#dvwTabs { padding: 0; margin: 0; clear: both; float: left; }
+/* #dvwTabs { padding: 0; margin: 0; clear: both; float: left; }
 #dvwTabs li { display: inline; cursor: pointer; }
 #dvwTabs li a { background: #ccc; padding: 10px; float:left; border-right: 1px solid #ccc; border-bottom: none; text-decoration: none; color: #000; font-weight: bold;}
 #dvwTabs li.active a { background: #eee; }
@@ -6,46 +6,44 @@
 #dvwTabContent { clear: both;  width: 100%; height: 300px; }
 
 .dvwTab {  position: absolute; left: -20000px;  }
-
-
+*/
 
 
 /* Example styles used for this demo */
-#tabContainer{
+#dvwPanes {
 position:relative;
-width:400px;
+width:100%;
 }
 
-#tabMenu{
+#dvwTabs {
 position:relative;
 height:30px;
 }
 
-#tabContent{
+#dvwTabContent {
 position:relative;
 height:266px;
 font:12px Verdana, Arial, Helvetica, sans-serif;
 color:#444444;
 border:4px solid #9fb2d6;
-overflow:auto;
+/* overflow:auto; */
 }
 
-#tabContent .content{
+#dvwTabContent .dvwContent{
 display:none;
 }
 
-#tabContent .active{
+#dvwTabContent .dvwActive{
 padding:5px 10px;
 display:block;
 }
 
 /* Tab menu styles generated via the horitontal menu builder @ www.cssmenubuilder.com */
-.menu{margin:0 auto; padding:0; height:30px; width:100%; display:block; background:url('topMenuImages.png') repeat-x;}
-.menu li{padding:0; margin:0; list-style:none; display:inline;}
-.menu li a{float:left; padding-left:15px; display:block; color:rgb(255,255,255); text-decoration:none; font:12px Verdana, Arial, Helvetica, sans-serif; cursor:pointer; background:url('topMenuImages.png') 0px -30px no-repeat;}
-.menu li a span{line-height:30px; float:left; display:block; padding-right:15px; background:url('topMenuImages.png') 100% -30px no-repeat;}
-.menu li a:hover{background-position:0px -60px; color:rgb(255,255,255);}
-.menu li a:hover span{background-position:100% -60px;}
-.menu li a.active, .menu li a.active:hover{line-height:30px; font:12px Verdana, Arial, Helvetica, sans-serif; background:url('topMenuImages.png') 0px -90px no-repeat; color:rgb(82,82,82);}
-.menu li a.active span, .menu li a.active:hover span{background:url('topMenuImages.png') 100% -90px no-repeat;}
-</style>
+.dvwMenu{margin:0 auto; padding:0; height:30px; width:100%; display:block; background:url('topMenuImages.png') repeat-x;}
+.dvwMenu li {padding:0; margin:0; list-style:none; display:inline;}
+.dvwMenu li a{float:left; padding-left:15px; height: 30px; width: 50px; display:block; color:rgb(255,255,255); text-decoration:none; font:12px Verdana, Arial, Helvetica, sans-serif; cursor:pointer; background:url('topMenuImages.png') 0px -30px no-repeat;}
+.dvwMenu li a span{line-height:30px; float:left; display:block; padding-right:15px; background:url('topMenuImages.png') 100% -30px no-repeat;}
+.dvwMenu li a:hover{background-position:0px -60px; color:rgb(255,255,255);}
+.dvwMenu li a:hover span{background-position:100% -60px;}
+.dvwMenu li a.active, .dvwMenu li a.active:hover{line-height:30px; font:12px Verdana, Arial, Helvetica, sans-serif; background:url('topMenuImages.png') 0px -90px no-repeat; color:rgb(82,82,82);}
+.dvwMenu li a.active span, .dvwMenu li a.active:hover span{background:url('topMenuImages.png') 100% -90px no-repeat;}

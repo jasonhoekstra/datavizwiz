@@ -3,12 +3,12 @@ $(document).ready(function(){
 });
  
 function initTabs() {
-  $('#tabMenu a').bind('click',function(e) {
+  $('#dvwTabs a').bind('click',function(e) {
     e.preventDefault();
     var thref = $(this).attr("href").replace(/#/, '');
-    $('#tabMenu a').removeClass('active');
-    $(this).addClass('active');
-    $('#tabContent div.content').removeClass('active');
-    $('#'+thref).addClass('active');
+    $('#dvwTabs a').removeClass('dvwActive');
+    $(this).addClass('dvwActive');
+    $('#dvwTabContent div.dvwContent').removeClass('dvwActive');
+    $('#'+thref).addClass('dvwActive');
   });
 }

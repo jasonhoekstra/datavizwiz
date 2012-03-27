@@ -1,16 +1,22 @@
 <?php
 
+define('DVW_SORT_SUMMARY', 0);
+define('DVW_SORT_DETAIL', 1);
+
+
 function datavizwiz_tab_manage_fields($nid) {
-  return drupal_get_form('datavizwiz_fields_form');
+  return drupal_get_form('datavizwiz_fields_form', $nid);
 }
 
-function datavizwiz_tab_summary_sort($nid) {
-  return drupal_get_form('datavizwiz_summary_sort_form');
+function datavizwiz_tab_sort_summary($nid) {
+  return drupal_get_form('datavizwiz_sort_form', DVW_SORT_SUMMARY, $nid);
 }
 
-function datavizwiz_fields_form() {
-  $nid = 14;
+function datavizwiz_tab_sort_detail($nid) {
+  return drupal_get_form('datavizwiz_sort_form', DVW_SORT_DETAIL, $nid);
+}
 
+function datavizwiz_fields_form($frm, $nid) {
   $headers = array('Field', 'Display', 'Sortable', 'Visible Summary', 'Visible Detail', 'Visible Data');
   $tablerows = _datavizwiz_get_dataset_metadata($nid, array('*'));
 
@@ -100,35 +106,6 @@ function theme_datavizwiz_fields_form($form) {
   return $output;
 }
 
-function theme_datavizwiz_summary_sort_form($form) {
-  $header = array(t('Field Name'), t('Display Name'), t('Weight'));
-
-  $rows = array();
-
-  foreach (element_children($form) as $key) {
-    $row = array();
-
-    if (is_numeric($key)) {
-      $row[] = array('data' => drupal_render($form[$key]['field_name']));
-      $row[] = array('data' => drupal_render($form[$key]['display_name']));
-      $row[] = array('data' => drupal_render($form['weight_summary'][$key]));
-
-      $rows[] = array(
-        'data' => $row,
-        'class' => 'draggable',
-      );
-    }
-  }
-
-
-  $output = theme('table', $header, $rows, array('id' => 'summary-order'));
-  $output .= drupal_render($form);
-
-  drupal_add_tabledrag('summary-order', 'order', 'sibling', 'summary-order-weight', NULL, NULL, FALSE);
-
-  return $output;
-}
-
 function datavizwiz_fields_form_submit($form, &$form_state) {
   $form_values = $form_state['values'];
   foreach ($form_values as $form_key => $form_value) {
@@ -149,44 +126,92 @@ function datavizwiz_edit_two($nid) {
   return 'hello!';
 }
 
-function datavizwiz_summary_sort_form() {
-  $nid = 14;
+function datavizwiz_sort_form($frm, $type, $nid) {
   $tablerows = _datavizwiz_get_dataset_metadata($nid, array('fid', 'field_name', 'display_name', 'weight_summary'));
 
   $header = array(t('Field Name'), t('Display Name'), t('Weight'));
   $rows = array();
-  $form['weight_summary']['#tree'] = TRUE;
+  $form['weights']['#tree'] = TRUE;
   
-    $sql = ' SELECT fid, field_name, display_name, weight_summary FROM {dvw_field_meta} WHERE nid = %s AND visible_summary = TRUE ORDER BY weight_summary';
+  if ($type == DVW_SORT_SUMMARY) {
+    $sql = 'SELECT fid, field_name, display_name, weight_summary FROM {dvw_field_meta} WHERE nid = %s AND visible_summary = TRUE ORDER BY weight_summary';
+    $form['update_type'] = array(
+      '#type' => 'hidden',
+      '#value' => DVW_SORT_SUMMARY,
+      );
+    $field_name = 'weight_summary'; // used below
+  } 
+  else {
+    $sql = 'SELECT fid, field_name, display_name, weight_detail FROM {dvw_field_meta} WHERE nid = %s AND visible_detail = TRUE ORDER BY weight_detail';
+    $form['update_type'] = array(
+      '#type' => 'hidden',
+      '#value' => DVW_SORT_DETAIL,
+      );
+    $field_name = 'weight_detail'; // used below
+  }
   $result = db_query($sql, $nid);
   
   while ($tablerow = db_fetch_array($result)) {
-  
-  //foreach ($tablerows as $tablerow) {
     $fid = $tablerow['fid'];
 
-    $form[$fid]['weights']['#attributes']['class'] = 'filter-order-weight';
-    $form[$fid]['field_name'] = array('#type' => 'markup', '#value' => $tablerow['field_name']);
-    $form[$fid]['display_name'] = array('#type' => 'markup', '#value' => $tablerow['display_name']);
-    $form['weight_summary'][$fid] = array('#type' => 'weight', 
+    $form[$fid]['field_name'] = array(
+      '#type' => 'markup',
+      '#value' => $tablerow['field_name'],
+      );
+    $form[$fid]['display_name'] = array(
+      '#type' => 'markup',
+      '#value' => $tablerow['display_name'],
+      );
+    $form['weights'][$fid] = array(
+      '#type' => 'weight', 
       '#delta' => 30, 
-      '#default_value' => $tablerow['weight_summary'], 
-      '#attributes' => array('class' => 'weight'),);
-    $form['weight_summary'][$fid]['#attributes']['class'] = 'summary-order-weight';
+      '#default_value' => $tablerow[$field_name],
+      '#attributes' => array('class' => 'weight'),
+      );
+    $form['weights'][$fid]['#attributes']['class'] = 'order-weight';
   }
 
   $form['submit'] = array('#type' => 'submit', '#value' => t('Save Order'));
-  //$output = theme('table', $header, $rows, array('id' => 'filter-order'));
-  //$output .= drupal_render($form);
-  //drupal_add_tabledrag('filter-order', 'order', 'sibling', 'filter-order-weight', NULL, NULL, FALSE);
-
   return $form;
 }
 
-function datavizwiz_summary_sort_form_submit($form, &$form_state) {
-  //dsm($form_state);
-  foreach ($form_state['values']['weight_summary'] as $id => $item) {
-    db_query("UPDATE {dvw_field_meta} SET weight_summary=%d WHERE fid=%d",$item, $id);
-    //dsm($id . ' -> ' . $item);
+function theme_datavizwiz_sort_form($form) {
+  $header = array(t('Field Name'), t('Display Name'), t('Weight'));
+
+  $rows = array();
+
+  foreach (element_children($form) as $key) {
+    $row = array();
+
+    if (is_numeric($key)) {
+      $row[] = array('data' => drupal_render($form[$key]['field_name']));
+      $row[] = array('data' => drupal_render($form[$key]['display_name']));
+      $row[] = array('data' => drupal_render($form['weights'][$key]));
+
+      $rows[] = array(
+        'data' => $row,
+        'class' => 'draggable',
+      );
+    }
+  }
+
+
+  $output = theme('table', $header, $rows, array('id' => 'field-order'));
+  $output .= drupal_render($form);
+
+  drupal_add_tabledrag('field-order', 'order', 'sibling', 'order-weight', NULL, NULL, FALSE);
+
+  return $output;
+}
+
+function datavizwiz_sort_form_submit($form, &$form_state) {
+  foreach ($form_state['values']['weights'] as $id => $item) {
+    if ($form_state['values']['update_type'] == DVW_SORT_SUMMARY) {
+      db_query("UPDATE {dvw_field_meta} SET weight_summary=%d WHERE fid=%d",$item, $id);
+    }
+    else {
+      db_query("UPDATE {dvw_field_meta} SET weight_detail=%d WHERE fid=%d",$item, $id);
+    }
+
   }
 }

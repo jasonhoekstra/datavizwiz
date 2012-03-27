@@ -28,7 +28,7 @@ function datavizwiz_theme() {
     'datavizwiz_fields_form' => array(
       'arguments' => array('form' => NULL),
     ),
-    'datavizwiz_summary_sort_form' => array(
+    'datavizwiz_sort_form' => array(
       'arguments' => array('form' => NULL),
     ),
   );
@@ -191,7 +191,7 @@ function datavizwiz_menu() {
 
   $items['admin/datavizwiz/edit/%/sort_summary'] = array(
     'title' => 'Summary Sort',
-    'page callback' => 'datavizwiz_tab_summary_sort',
+    'page callback' => 'datavizwiz_tab_sort_summary',
     'page arguments' => array(3),
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
@@ -201,7 +201,7 @@ function datavizwiz_menu() {
 
   $items['admin/datavizwiz/edit/%/sort_detail'] = array(
     'title' => 'Detail Sort',
-    'page callback' => 'datavizwiz_edit_two',
+    'page callback' => 'datavizwiz_tab_sort_detail',
     'page arguments' => array(3),
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
@@ -402,7 +402,7 @@ function _datavizwiz_get_summaryarray($dbquery) {
 }
 
 function _datavizwiz_add_columns_to_meta_table($nid, $fields) {
-  $i = 0;
+  $i = -30;
   foreach ($fields as $field) {
     $data = array(
       'nid' => $nid,

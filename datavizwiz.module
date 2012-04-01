@@ -49,8 +49,10 @@ function _datavizwiz_display_summary_page($node, $data_table_name, $dataset_meta
     $output .= '<div id="dvwTabs">';
     $output .= '<ul class="dvwMenu">';
     $index = 0;
+    $setActive = FALSE;
     foreach ($summary_panes as $pane) {
-      $output .= sprintf('<li class="dvwMenu"><a href="pane-%s">%s</a></li>', $index, $pane['name']);
+         $output .= sprintf('<li class="dvwMenu"><a href="pane-%s">%s</a></li>', $index, $pane['name']);     
+
       $index++;
     }
     $output .= '</ul>';
@@ -62,19 +64,26 @@ function _datavizwiz_display_summary_page($node, $data_table_name, $dataset_meta
     foreach ($summary_panes as $pane) {
       switch ($pane['type']) {
         case DVW_SUMMARY_MAP_OPENLAYERS:
-          $content = DVW_SUMMARY_MAP_OPENLAYERS;
+          $content = _datavizwiz_pane_openlayers($node, $index, $pane['options']);
           break;
         case DVW_SUMMARY_FLOT_PIE:
-          $content = DVW_SUMMARY_FLOT_PIE;
+          $content = _datavizwiz_pane_flot($node, $pane['options'], DVW_SUMMARY_FLOT_PIE);
           break;
         case DVW_SUMMARY_FLOT_BAR:
-          $content = DVW_SUMMARY_FLOT_BAR;
+          $content = _datavizwiz_pane_flot($node, $pane['options'], DVW_SUMMARY_FLOT_BAR);
           break;
         case DVW_SUMMARY_HTML:
-          $content = DVW_SUMMARY_HTML;
+          $content = _datavizwiz_pane_html($node, $pane['options']);
           break;
       }
-      $output .= sprintf('<div id="pane-%s" class="dvwContent" style="width: 100%%; height: 400px">%s</div>', $index, $content);
+      
+            if (!$setActive) { 
+              $output .= sprintf('<div id="pane-%s" class="dvwContent dvwActive" style="width: 100%%; height: 400px">%s</div>', $index, $content);
+              $setActive = TRUE;
+      } else {
+         $output .= sprintf('<div id="pane-%s" class="dvwContent" style="width: 100%%; height: 400px">%s</div>', $index, $content);    
+      }
+      
       $index++;
     }
     $output .= '</div>';
@@ -102,6 +111,69 @@ function _datavizwiz_get_summary_panes($nid) {
   $rows = _datavizwiz_get_rowarray($sql);
   return $rows;
 }
+
+function _datavizwiz_pane_openlayers($node, $pane, $options) {
+//   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/OpenLayers.js');
+  
+     //drupal_add_js('http://leaflet.cloudmade.com/dist/leaflet.js');
+
+  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/leaflet.js');
+  drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/lf_screen.css');
+  drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/leaflet.css');  
+  
+  
+   
+   //
+  //dsm ($options);
+  $pane_id = 'dvwmap' . $pane;
+  $opts = json_decode($options);
+  //dsm($opts);
+  
+   $output .= '<div id="' . $pane_id . '" style="width: 100%; height: 400px"></div>';
+   
+   
+    
+    $script = "$(function() {  var map = new L.Map('". $pane_id . "');
+
+			var cloudmadeUrl = 'http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/22677/256/{z}/{x}/{y}.png',
+				cloudmadeAttribution = 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade',
+				cloudmade = new L.TileLayer(cloudmadeUrl, {maxZoom: 18, attribution: cloudmadeAttribution});
+
+			var cloudmadeUrl = 'http://a.tiles.mapbox.com/v3/mapbox.mapbox-streets/{z}/{x}/{y}.png',
+				cloudmadeAttribution = 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade',
+				cloudmade = new L.TileLayer(cloudmadeUrl, {maxZoom: 18, attribution: cloudmadeAttribution});
+
+			map.setView(new L.LatLng( 39.50, -98.35), 4).addLayer(cloudmade);
+";
+
+
+  $sql = 'SELECT Applicant, City, State, Latitude, Longitude FROM import_2011_pn';
+  $result = db_query($sql);
+  
+  while ($row = db_fetch_array($result)) {
+    $script .= sprintf('marker = new L.Marker(new L.LatLng( %s, %s));', $row['Latitude'], $row['Longitude']);
+    $script .= 'map.addLayer(marker);';
+    $script .= sprintf('marker.bindPopup("<b>%s</b><br/>%s, %s");', $row['Applicant'], $row['City'], $row['State']);
+  }
+    
+    
+   $script .= '});';
+    
+  drupal_add_js($script, 'inline');
+  
+  
+  return $output;
+}
+
+function _datavizwiz_pane_flot($node, $options, $type) {
+  
+  return $output;
+}
+
+function _datavizwiz_pane_html($node, $options) {
+  return $options;
+}
+
 
 function datavizwiz_theme_registry_alter(&$theme_registry) {
   // Remove the first path under 'node' which is the one for the
@@ -256,6 +328,16 @@ function datavizwiz_menu() {
     'page arguments' => array(3),
   );
 
+    $items['admin/datavizwiz/edit/%/summary_pane'] = array(
+    'title' => 'Summary panes',
+    'page callback' => 'datavizwiz_tab_summary_panes',
+    'page arguments' => array(3),
+    'access arguments' => array('access administration pages'),
+    'file' => 'includes/datavizwiz.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+  );
+  
   $items['admin/datavizwiz/edit/%/fields'] = array(
     'title' => 'Manage fields',
     'page callback' => 'datavizwiz_tab_manage_fields',
@@ -263,7 +345,7 @@ function datavizwiz_menu() {
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_LOCAL_TASK,
-    'weight' => 1,
+    'weight' => 5,
   );
 
   $items['admin/datavizwiz/edit/%/sort_summary'] = array(

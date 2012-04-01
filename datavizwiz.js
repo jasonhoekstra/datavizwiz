@@ -8,7 +8,10 @@ function initTabs() {
     var thref = $(this).attr("href").replace(/#/, '');
     $('#dvwTabs a').removeClass('dvwActive');
     $(this).addClass('dvwActive');
-    $('#dvwTabContent div.dvwContent').removeClass('dvwActive');
-    $('#'+thref).addClass('dvwActive');
+    //$('#dvwTabContent div.dvwContent').removeClass('dvwActive');
+    $('#dvwTabContent div.dvwContent').css('left', '-20000px');
+    //$('#'+thref).addClass('dvwActive');
+        $('#'+thref).css('left', '0px');
+    //alert(thref);
   });
 }

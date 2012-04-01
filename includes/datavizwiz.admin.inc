@@ -52,6 +52,97 @@ function datavizwiz_dataset_form($frm, $nid) {
   return $form;
 }
 
+// <editor-fold desc="Summary Pane">
+
+function datavizwiz_summary_panes_form($frm, $nid) {
+  $sql =  sprintf("SELECT svid, nid, type, name, pane_order, options FROM {dvw_summary_views} WHERE nid = %s ORDER BY pane_order", $nid);
+  $result = db_query($sql);
+  
+  $form['delete']['#tree'] = TRUE;
+  $form['edit']['#tree'] = TRUE;
+  
+    while ($tablerow = db_fetch_array($result)) {
+                  
+    $svid = $tablerow['svid'];
+
+    $form[$svid]['type'] = array(
+      '#type' => 'markup',
+      '#value' => _datavizwiz_get_pane_type_name($tablerow['type']),
+      );
+    $form[$svid]['name'] = array(
+      '#type' => 'markup',
+      '#value' => $tablerow['name'],
+      );
+    $form['weights'][$svid] = array(
+      '#type' => 'weight', 
+      '#delta' => 10, 
+      '#default_value' => $tablerow['pane_order'],
+      '#attributes' => array('class' => 'weight'),
+      );
+    $form['edit'][$svid] = array(
+      '#type' => 'image_button',
+      '#name' => 'edit-' . $svid,
+      '#src' => drupal_get_path('module', 'datavizwiz') . '/edit.png', 
+      '#return_value' => 'edit-' . $svid,
+      );
+    $form['delete'][$svid] = array(
+      '#type' => 'image_button', 
+      '#name' => 'delete-' . $svid,
+      '#src' => drupal_get_path('module', 'datavizwiz') . '/delete.png', 
+      '#return_value' => 'delete-' . $svid,
+      );
+    $form['weights'][$svid]['#attributes']['class'] = 'order-weight';
+    }
+
+
+  $form['submit'] = array('#type' => 'submit', '#value' => t('Save Order'));
+  return $form;
+}
+
+function theme_datavizwiz_summary_panes_form($form) {
+  $header = array(t('Type'), t('Pane Name'), t('Weight'), t('Edit'), t('Delete'));
+
+  $rows = array();
+
+  foreach (element_children($form) as $key) {
+    $row = array();
+    if (is_numeric($key)) {
+      $row[] = array('data' => drupal_render($form[$key]['type']));
+      $row[] = array('data' => drupal_render($form[$key]['name']));
+      $row[] = array('data' => drupal_render($form['weights'][$key]));
+      $row[] = array('data' => drupal_render($form['edit'][$key]));
+      $row[] = array('data' => drupal_render($form['delete'][$key]));
+
+      $rows[] = array(
+        'data' => $row,
+        'class' => 'draggable',
+      );
+    }
+  }
+
+
+  $output = theme('table', $header, $rows, array('id' => 'field-order'));
+  $output .= drupal_render($form);
+
+  drupal_add_tabledrag('field-order', 'order', 'sibling', 'order-weight', NULL, NULL, FALSE);
+
+  return $output;
+}
+
+function datavizwiz_summary_panes_form_submit($form, &$form_state) {
+  //dsm($form_state);
+  dsm($form_state['clicked_button']['#value']);
+  
+  if ($form_state['clicked_button']['#value'] == 'Save Order') {
+    
+  } else {
+    
+  }
+  
+}
+
+// </editor-fold>
+
 // <editor-fold desc="Manage Fields">
 
 function datavizwiz_fields_form($frm, $nid) {
@@ -105,73 +196,6 @@ function datavizwiz_fields_form($frm, $nid) {
     '#type' => 'submit',
     '#value' => t('Save'),
   );
-
-  return $form;
-}
-
-function datavizwiz_summary_panes_form($frm, $nid) {
-  $sql =  sprintf("SELECT svid, nid, type, name, pane_order, options FROM {dvw_summary_views} WHERE nid = %s", $nid);
-  $result = db_query($sql);
-  
-    while ($tablerow = db_fetch_array($result)) {
-                  $form[$tablerow['svid']] = array(
-              '#value' => $tablerow['type'] . ' ' . $tablerow['name'] . '<br/>',
-                    );
-      //dsm($tablerow);
-      //$output .= $tablerow['type'] . ' ' . $tablerow['name'];
-    }
-  
-  //$output = 'test';
-//  $headers = array('Field', 'Display', 'Sortable', 'Visible Summary', 'Visible Detail', 'Visible Data');
-//  $tablerows = _datavizwiz_get_dataset_metadata($nid, array('*'));
-//
-//  $headerrows = array();
-//
-//  if (count($tablerows) > 0) {
-//    foreach ($tablerows[0] as $key => $value) {
-//      if ($key != 'fid' && $key != 'nid' && $key != NULL && $key != 'weight_summary' & $key != 'weight_detail') {
-//        array_push($headerrows, $key);
-//      }
-//    }
-//  }
-//
-//  $displayrows = array();
-//
-//  foreach ($tablerows as $tablerow) {
-//    if ($tablerow['field_name'] != 'ImporterID') {
-//      $displayrow = array();
-//
-//      foreach ($headerrows as $headerrow) {
-//        $value = $tablerow[$headerrow];
-//        if ($value == 1) {
-//          $checked = 'CHECKED';
-//        }
-//        else {
-//          $checked = '';
-//        }
-//        switch ($headerrow) {
-//          case 'sortable' :
-//          case 'visible_summary' :
-//          case 'visible_detail' :
-//          case 'visible_data' :
-//            $form[$tablerow['fid']]['check-' . $tablerow['fid'] . '-' . $headerrow] = array(
-//              '#type' => 'checkbox',
-//              '#default_value' => $checked,
-//            );
-//            break;
-//          default :
-//            $form[$tablerow['fid']][$tablerow['fid'] . '-' . $headerrow] = array(
-//              '#value' => $value,
-//            );
-//        }
-//      }
-//    }
-//  }
-//
-//  $form['submit'] = array(
-//    '#type' => 'submit',
-//    '#value' => t('Save'),
-//  );
 
   return $form;
 }
@@ -318,6 +342,23 @@ function datavizwiz_sort_form_submit($form, &$form_state) {
       db_query("UPDATE {dvw_field_meta} SET weight_detail=%d WHERE fid=%d",$item, $id);
     }
 
+  }
+}
+
+function _datavizwiz_get_pane_type_name($pane_type) {
+  switch ($pane_type) {
+    case DVW_SUMMARY_MAP_OPENLAYERS:
+      return 'OpenLayers Map';
+      break;
+    case DVW_SUMMARY_FLOT_PIE:
+      return 'Flot Graph (Pie Chart)';
+      break;
+    case DVW_SUMMARY_FLOT_BAR:
+      return 'Flot Graph (Bar)';
+      break;
+    case DVW_SUMMARY_HTML:
+      return 'HTML Pane';
+      break;
   }
 }
 

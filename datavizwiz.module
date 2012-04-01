@@ -8,24 +8,12 @@ define('DVW_SUMMARY_FLOT_PIE', 'FLOT_PIE');
 define('DVW_SUMMARY_FLOT_BAR', 'FLOT_BAR');
 define('DVW_SUMMARY_HTML', 'HTML');
 
-// http://localhost/node/24836?sort=asc&order=Applicant
-
-
 function theme_datavizwiz_displaydata($node) {
 
   $data_table_name = $node->field_dvw_datatable[0]['value'];
   $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
 
   if (!isset($_GET['detail'])) {
-//    drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.dev.js');
-//    drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/jquery.tabify-1.5/jquery.tabify.source.js');
-//
-//    _datavizwiz_add_javascript($markers);
-//
-//
-//    $output .= _datavizwiz_add_tabhtml();
-//    $output .= _datavizwiz_summary_table($rows, $data_table_name);
-
     $output = _datavizwiz_display_summary_page($node, $data_table_name, $dataset_metadata);
   }
   else {
@@ -67,13 +55,13 @@ function _datavizwiz_display_summary_page($node, $data_table_name, $dataset_meta
           $content = _datavizwiz_pane_openlayers($node, $index, $pane['options']);
           break;
         case DVW_SUMMARY_FLOT_PIE:
-          $content = _datavizwiz_pane_flot($node, $pane['options'], DVW_SUMMARY_FLOT_PIE);
+          $content = _datavizwiz_pane_flot($node, $index, $pane['options'], DVW_SUMMARY_FLOT_PIE);
           break;
         case DVW_SUMMARY_FLOT_BAR:
-          $content = _datavizwiz_pane_flot($node, $pane['options'], DVW_SUMMARY_FLOT_BAR);
+          $content = _datavizwiz_pane_flot($node, $index, $pane['options'], DVW_SUMMARY_FLOT_BAR);
           break;
         case DVW_SUMMARY_HTML:
-          $content = _datavizwiz_pane_html($node, $pane['options']);
+          $content = _datavizwiz_pane_html($node, $index, $pane['options']);
           break;
       }
       
@@ -112,7 +100,7 @@ function _datavizwiz_get_summary_panes($nid) {
   return $rows;
 }
 
-function _datavizwiz_pane_openlayers($node, $pane, $options) {
+function _datavizwiz_pane_openlayers($node, $index, $options) {
 //   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/OpenLayers.js');
   
      //drupal_add_js('http://leaflet.cloudmade.com/dist/leaflet.js');
@@ -120,9 +108,7 @@ function _datavizwiz_pane_openlayers($node, $pane, $options) {
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/leaflet.js');
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/lf_screen.css');
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/leaflet.css');  
-  
-  
-   
+
    //
   //dsm ($options);
   $pane_id = 'dvwmap' . $pane;
@@ -154,7 +140,8 @@ function _datavizwiz_pane_openlayers($node, $pane, $options) {
   $result = db_query($sql);
   
   while ($row = db_fetch_array($result)) {
-    $script .= sprintf('marker = new L.Marker(new L.LatLng( %s, %s));', $row['Latitude'], $row['Longitude']);
+    $script .= sprintf('marker = new L.CircleMarker(new L.LatLng( %s, %s));', $row['Latitude'], $row['Longitude']);
+    $script .= 'marker.setRadius(7);';
     $script .= 'map.addLayer(marker);';
     $script .= sprintf('marker.bindPopup("<b>%s</b><br/>%s, %s");', $row['Applicant'], $row['City'], $row['State']);
   }
@@ -168,21 +155,26 @@ function _datavizwiz_pane_openlayers($node, $pane, $options) {
   return $output;
 }
 
-function _datavizwiz_pane_flot($node, $options, $type) {
+function _datavizwiz_pane_flot($node, $index, $options, $type) {
   
-    $sql = db_query("SELECT AbsolutePriority, Count(*) as SumTotal FROM import_oii_2011_i3 group by AbsolutePriority");
+  $sql = db_query("SELECT AbsolutePriority, Count(*) as SumTotal FROM import_oii_2011_i3 group by AbsolutePriority ORDER BY SumTotal");
+    //SELECT Applicant, City, State, Latitude, Longitude FROM import_2011_pn
+  $sql = db_query("SELECT ApplicantType, Count(*) as SumTotal FROM import_2011_pn group by ApplicantType ORDER BY SumTotal");
   $rows = _datavizwiz_get_rowarray($sql);
 
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.min.js');
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.pie.min.js');
+  
 
+  $pane = 'dvwpane' . $index;
+
+  if ($type == DVW_SUMMARY_FLOT_PIE) {
   foreach ($rows as $row) {
-    $data .= '{label:"' . $row["AbsolutePriority"] . '", data:' . $row["SumTotal"] . '},';
+    $data .= '{label:"' . $row["ApplicantType"] . '", data:' . $row["SumTotal"] . '},';
   }
-
-
+  
   drupal_add_js('$(function() {
-    $.plot($("#placeholder"), [ ' . $data . ' ]
+    $.plot($("#' . $pane .'"), [ ' . $data . ' ]
     , {
     series: { pie: { show: true } },
     legend: { show: true },
@@ -194,18 +186,54 @@ function _datavizwiz_pane_flot($node, $options, $type) {
     } );
 
     ', 'inline');
-
+  } else {
+    
+      $tickcount=0;
+  foreach ($rows as $row) {
+    
+    $data .= sprintf('[%s,%s],', $tickcount,$row["SumTotal"]);
+ 
+    
+    $ticks .= sprintf('[%s,"%s"],', $tickcount,$row["ApplicantType"]);
+    $tickcount++;
+  }
+  
+  drupal_add_js('$(function() {$.plot(
+   $("#'. $pane .'"),
+   [
+    {
+      label: "Total Things Per Year",
+      data: [ ' . $data . ' ],
+              color: "#000",
+      bars: {
+        show: true,
+        barWidth: 0.2,
+        align: "center"
+      }   
+    }
+ ],
+ {
+   xaxis: {
+     ticks: [
+'. $ticks .'
+     ]
+   }   
+ }
+);
+});
+', 'inline');
+  }
   //return theme_table(array('One', 'Two'), $rows, array('id' => 'experiment'));
 
-  return '<div id="placeholder" style="width:100%;height:300px"></div>
+  return '<div id="' . $pane .'" style="width:100%;height:400px"></div>
     <style type="text/css">div.legend table { width: 350px; } </style>
-<div id=”initialPlaceHolder” style=”width:600px;height:300px”></div>';
+<div id=”initialPlaceHolder” style=”width:600px;height:400px”></div>';
   
   
   return $output;
 }
 
-function _datavizwiz_pane_html($node, $options) {
+function _datavizwiz_pane_html($node, $index, $options) {
   return $options;
 }
 
@@ -232,6 +260,9 @@ function datavizwiz_theme() {
       'arguments' => array('form' => NULL),
     ),
     'datavizwiz_sort_form' => array(
+      'arguments' => array('form' => NULL),
+    ),
+    'datavizwiz_summary_panes_form' => array(
       'arguments' => array('form' => NULL),
     ),
   );

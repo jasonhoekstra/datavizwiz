@@ -34,6 +34,8 @@ border:4px solid #9fb2d6;
 position: absolute;
 left:-20000px;
 top:0 ;
+width:100%;
+height: 600px;
  }
 
 #dvwTabContent .dvwActive{

@@ -135,15 +135,24 @@ function _datavizwiz_pane_openlayers($node, $pane, $options) {
     
     $script = "$(function() {  var map = new L.Map('". $pane_id . "');
 
-			var cloudmadeUrl = 'http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/22677/256/{z}/{x}/{y}.png',
-				cloudmadeAttribution = 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade',
-				cloudmade = new L.TileLayer(cloudmadeUrl, {maxZoom: 18, attribution: cloudmadeAttribution});
+		//var cloudmadeUrl = 'http://{s}.tile.cloudmade.com/BC9A493B41014CAABB98F0471D759707/22677/256/{z}/{x}/{y}.png',
+			//	cloudmadeAttribution = 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade',
+				//cloudmade = new L.TileLayer(cloudmadeUrl, {maxZoom: 18, attribution: cloudmadeAttribution});
 
-			var cloudmadeUrl = 'http://a.tiles.mapbox.com/v3/mapbox.mapbox-streets/{z}/{x}/{y}.png',
-				cloudmadeAttribution = 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade',
-				cloudmade = new L.TileLayer(cloudmadeUrl, {maxZoom: 18, attribution: cloudmadeAttribution});
+			var url = 'http://a.tiles.mapbox.com/v3/mapbox.mapbox-streets/{z}/{x}/{y}.png',
+				attribution = 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2011 CloudMade',
+				mapbox = new L.TileLayer(url, {maxZoom: 18, attribution: attribution});
+        
 
-			map.setView(new L.LatLng( 39.50, -98.35), 4).addLayer(cloudmade);
+        
+
+
+			map.setView(new L.LatLng( 39.50, -98.35), 4).addLayer(mapbox);
+      
+
+      fcc = new L.TileLayer('http://a.tiles.mapbox.com/v3/fcc.nbm-wired-speed/{z}/{x}/{y}.png', {maxZoom: 18});
+      map.addLayer(fcc);
+
 ";
 
 

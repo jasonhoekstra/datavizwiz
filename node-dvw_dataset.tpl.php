@@ -59,7 +59,7 @@
     <div class="terms terms-inline"><?php print $terms ?></div>
   <?php endif;?>
   </div>
-    <!--<div id="dvwmap01" style="width:100%; height:400px;"/></div>-->
+
   <div class="content">
     <?php print $content ?>
   </div>
@@ -74,9 +74,5 @@
   <?php if ($submitted): ?>
     <p><span class="submitted">Last updated: <?php print $submitted ?></span></p>
   <?php endif; ?>
-
-
-
-
 
 </div>

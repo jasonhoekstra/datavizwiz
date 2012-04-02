@@ -143,11 +143,21 @@ function datavizwiz_summary_panes_form_submit($form, &$form_state) {
   //dsm($form_state['clicked_button']['#value']);
 
   $nid = $form_state['values']['nid'];
+  $node =  node_load($nid);
+  
+        dsm($node);
   $submit_value = drupal_substr($form_state['clicked_button']['#value'], 0, 3);
   
   switch ($submit_value) {
     case 'Sav':
-      dsm('Save');
+      foreach($form_state['values'] as $key => $value) {
+        if (is_numeric($key)) {
+        $sql = sprintf("UPDATE {dvw_summary_views} SET pane_order = %s WHERE svid = %s", $value, $key);
+        db_query($sql);        
+        }
+      }
+      
+      drupal_set_message(t('Pane order updated.'));
       break;
     case 'Add':
       dsm('Add');

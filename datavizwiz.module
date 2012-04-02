@@ -404,6 +404,15 @@ function datavizwiz_menu() {
     'weight' => 1,
   );
   
+   $items['admin/datavizwiz/edit/%/summary_pane/%/%'] = array(
+    'title' => 'Manage Dataset',
+    'page callback' => 'datavizwiz_tab_summary_pane_edit',
+    'access arguments' => array('access administration pages'),
+    'file' => 'includes/datavizwiz.admin.inc',
+    'type' => MENU_CALLBACK,
+    'page arguments' => array(3,5,6),
+  );
+    
   $items['admin/datavizwiz/edit/%/fields'] = array(
     'title' => 'Manage fields',
     'page callback' => 'datavizwiz_tab_manage_fields',

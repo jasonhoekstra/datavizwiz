@@ -13,12 +13,16 @@ function datavizwiz_tab_dataset($nid) {
       drupal_goto(sprintf('admin/datavizwiz/edit/%s', $bits[1]));
     }
   }
-  
+
   return drupal_get_form('datavizwiz_dataset_form', $nid);
 }
 
 function datavizwiz_tab_summary_panes($nid) {
-    return drupal_get_form('datavizwiz_summary_panes_form', $nid);
+  return drupal_get_form('datavizwiz_summary_panes_form', $nid);
+}
+
+function datavizwiz_tab_summary_pane_edit($nid, $op, $svid) {
+    return drupal_get_form('datavizwiz_summary_pane_edit_form', $nid, $op, $svid);
 }
 
 function datavizwiz_tab_manage_fields($nid) {
@@ -36,66 +40,71 @@ function datavizwiz_tab_sort_detail($nid) {
 // </editor-fold>
 
 function datavizwiz_dataset_form($frm, $nid) {
-  
+
   $node = node_load($nid);
   dsm($node);
   $path = drupal_lookup_path('alias', '/node/' . $nid);
-  if ($path == '') { $path =  '/node/' . $nid; }
-  
+  if ($path == '') {
+    $path = '/node/' . $nid;
+  }
+
   $output = '<a href="' . $path . '">View Dataset</a><br/><br/>';
   $output .= 'TODO:  Add content and link back to CCK type.';
-  
-  $form['message'] = array (
+
+  $form['message'] = array(
     '#value' => $output,
-    );
-  
+  );
+
   return $form;
 }
 
 // <editor-fold desc="Summary Pane">
 
 function datavizwiz_summary_panes_form($frm, $nid) {
-  $sql =  sprintf("SELECT svid, nid, type, name, pane_order, options FROM {dvw_summary_views} WHERE nid = %s ORDER BY pane_order", $nid);
+  $sql = sprintf("SELECT svid, nid, type, name, pane_order, options FROM {dvw_summary_views} WHERE nid = %s ORDER BY pane_order", $nid);
   $result = db_query($sql);
-  
+
   $form['delete']['#tree'] = TRUE;
   $form['edit']['#tree'] = TRUE;
-  
-    while ($tablerow = db_fetch_array($result)) {
-                  
+
+  while ($tablerow = db_fetch_array($result)) {
+
     $svid = $tablerow['svid'];
 
     $form[$svid]['type'] = array(
       '#type' => 'markup',
       '#value' => _datavizwiz_get_pane_type_name($tablerow['type']),
-      );
+    );
     $form[$svid]['name'] = array(
       '#type' => 'markup',
       '#value' => $tablerow['name'],
-      );
+    );
     $form['weights'][$svid] = array(
-      '#type' => 'weight', 
-      '#delta' => 10, 
+      '#type' => 'weight',
+      '#delta' => 10,
       '#default_value' => $tablerow['pane_order'],
       '#attributes' => array('class' => 'weight'),
-      );
+    );
     $form['edit'][$svid] = array(
       '#type' => 'image_button',
       '#name' => 'edit-' . $svid,
-      '#src' => drupal_get_path('module', 'datavizwiz') . '/edit.png', 
+      '#src' => drupal_get_path('module', 'datavizwiz') . '/edit.png',
       '#return_value' => 'edit-' . $svid,
-      );
+    );
     $form['delete'][$svid] = array(
-      '#type' => 'image_button', 
+      '#type' => 'image_button',
       '#name' => 'delete-' . $svid,
-      '#src' => drupal_get_path('module', 'datavizwiz') . '/delete.png', 
+      '#src' => drupal_get_path('module', 'datavizwiz') . '/delete.png',
       '#return_value' => 'delete-' . $svid,
-      );
+    );
     $form['weights'][$svid]['#attributes']['class'] = 'order-weight';
-    }
+  }
 
+  $form['nid'] = array('#type' => 'hidden', '#value' => $nid);
 
   $form['submit'] = array('#type' => 'submit', '#value' => t('Save Order'));
+  $form['add'] = array('#type' => 'submit', '#value' => t('Add Pane'));
+
   return $form;
 }
 
@@ -130,15 +139,73 @@ function theme_datavizwiz_summary_panes_form($form) {
 }
 
 function datavizwiz_summary_panes_form_submit($form, &$form_state) {
-  //dsm($form_state);
-  dsm($form_state['clicked_button']['#value']);
+  dsm($form_state);
+  //dsm($form_state['clicked_button']['#value']);
+
+  $nid = $form_state['values']['nid'];
+  $submit_value = drupal_substr($form_state['clicked_button']['#value'], 0, 3);
   
-  if ($form_state['clicked_button']['#value'] == 'Save Order') {
-    
-  } else {
-    
+  switch ($submit_value) {
+    case 'Sav':
+      dsm('Save');
+      break;
+    case 'Add':
+      dsm('Add');
+      $url = sprintf('admin/datavizwiz/edit/%s/summary_pane/%s/%s', $nid, 'add', 0);
+      drupal_goto($url);
+      break;
+    case 'edi':
+      dsm('Edit');
+      $svid = drupal_substr($form_state['clicked_button']['#value'], 5);
+      $url = sprintf('admin/datavizwiz/edit/%s/summary_pane/%s/%s', $nid, 'edit', $svid);
+      drupal_goto($url);
+      break;
+    case 'del':
+      dsm('Delete');
+      $svid = drupal_substr($form_state['clicked_button']['#value'], 7);
+      $url = sprintf('admin/datavizwiz/edit/%s/summary_pane/%s/%s', $nid, 'delete', $svid);
+      drupal_goto($url);
+      break;
   }
+}
+
+function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
+  $form['#attributes'] = array('id' => 'summary-pane-edit');
   
+  switch ($op) {
+    case 'add':
+      drupal_add_js('function submit_edit_form(id) {
+        //alert(id);
+        document.forms["datavizwiz-summary-pane-edit-form"].operation = id;
+        document.forms["datavizwiz-summary-pane-edit-form"].submit();
+        }','inline');
+      $form['type'] = array(
+        '#title' => t('Pane type'),
+        '#type' => 'select',
+        '#options' => array(
+          DVW_SUMMARY_MAP_OPENLAYERS => t('Leaflet Map'), 
+          DVW_SUMMARY_FLOT_PIE => t('Flot Pie Chart'),
+          DVW_SUMMARY_FLOT_BAR=> t('Flot Bar Graph'),
+          DVW_SUMMARY_HTML => t('HTML Block'),       
+          ),
+        '#default_value' => $frm['post']['type'],
+        '#attributes' => array('onchange' => 'submit_edit_form(this.selectedIndex)')
+      );  
+      $form['operation'] = array('#type' => 'hidden', '#value' => 0);
+      $form['submit'] = array('#type' => 'submit', '#value' => 0);
+      break;
+    case 'delete':
+      $form['question'] = array('#value' => t("Are you sure you'd like to delete this summary view?<br/>"));
+      $form['submit_yes'] = array('#type' => 'submit', '#value' => 'Yes');
+      $form['submit_no'] = array('#type' => 'submit', '#value' => 'No');
+      $form['delete'] = array('#type' => 'hidden', '#value' => 'delete');                  
+      break;
+  }
+  return $form;
+}
+
+function datavizwiz_summary_pane_edit_form_submit($form, &$form_state) {
+        dsm($form_state['values']['type']);
 }
 
 // </editor-fold>
@@ -261,42 +328,42 @@ function datavizwiz_sort_form($frm, $type, $nid) {
   $header = array(t('Field Name'), t('Display Name'), t('Weight'));
   $rows = array();
   $form['weights']['#tree'] = TRUE;
-  
+
   if ($type == DVW_SORT_SUMMARY) {
     $sql = 'SELECT fid, field_name, display_name, weight_summary FROM {dvw_field_meta} WHERE nid = %s AND visible_summary = TRUE ORDER BY weight_summary';
     $form['update_type'] = array(
       '#type' => 'hidden',
       '#value' => DVW_SORT_SUMMARY,
-      );
+    );
     $field_name = 'weight_summary'; // used below
-  } 
+  }
   else {
     $sql = 'SELECT fid, field_name, display_name, weight_detail FROM {dvw_field_meta} WHERE nid = %s AND visible_detail = TRUE ORDER BY weight_detail';
     $form['update_type'] = array(
       '#type' => 'hidden',
       '#value' => DVW_SORT_DETAIL,
-      );
+    );
     $field_name = 'weight_detail'; // used below
   }
   $result = db_query($sql, $nid);
-  
+
   while ($tablerow = db_fetch_array($result)) {
     $fid = $tablerow['fid'];
 
     $form[$fid]['field_name'] = array(
       '#type' => 'markup',
       '#value' => $tablerow['field_name'],
-      );
+    );
     $form[$fid]['display_name'] = array(
       '#type' => 'markup',
       '#value' => $tablerow['display_name'],
-      );
+    );
     $form['weights'][$fid] = array(
-      '#type' => 'weight', 
-      '#delta' => 30, 
+      '#type' => 'weight',
+      '#delta' => 30,
       '#default_value' => $tablerow[$field_name],
       '#attributes' => array('class' => 'weight'),
-      );
+    );
     $form['weights'][$fid]['#attributes']['class'] = 'order-weight';
   }
 
@@ -336,12 +403,11 @@ function theme_datavizwiz_sort_form($form) {
 function datavizwiz_sort_form_submit($form, &$form_state) {
   foreach ($form_state['values']['weights'] as $id => $item) {
     if ($form_state['values']['update_type'] == DVW_SORT_SUMMARY) {
-      db_query("UPDATE {dvw_field_meta} SET weight_summary=%d WHERE fid=%d",$item, $id);
+      db_query("UPDATE {dvw_field_meta} SET weight_summary=%d WHERE fid=%d", $item, $id);
     }
     else {
-      db_query("UPDATE {dvw_field_meta} SET weight_detail=%d WHERE fid=%d",$item, $id);
+      db_query("UPDATE {dvw_field_meta} SET weight_detail=%d WHERE fid=%d", $item, $id);
     }
-
   }
 }
 

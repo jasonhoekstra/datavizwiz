@@ -3,10 +3,10 @@
 /**
  * Comment is published.
  */
-define('DVW_SUMMARY_MAP_OPENLAYERS', 'OPENLAYERS');
-define('DVW_SUMMARY_FLOT_PIE', 'FLOT_PIE');
-define('DVW_SUMMARY_FLOT_BAR', 'FLOT_BAR');
-define('DVW_SUMMARY_HTML', 'HTML');
+define('DVW_TYPE_MAP_LEAFLET', 'MAP_LEAFLET');
+define('DVW_TYPE_PIE_FLOT', 'PIE_FLOT');
+define('DVW_TYPE_BAR_FLOT', 'BAR_FLOT');
+define('DVW_TYPE_HTML', 'HTML');
 
 function theme_datavizwiz_displaydata($node) {
 
@@ -51,16 +51,16 @@ function _datavizwiz_display_summary_page($node, $data_table_name, $dataset_meta
     $output .= '<div id="dvwTabContent" style="width: 100%; height: 400px" class="dvwContent">';
     foreach ($summary_panes as $pane) {
       switch ($pane['type']) {
-        case DVW_SUMMARY_MAP_OPENLAYERS:
-          $content = _datavizwiz_pane_openlayers($node, $index, $pane['options']);
+        case DVW_TYPE_MAP_LEAFLET:
+          $content = _datavizwiz_pane_map_leaflet($node, $index, $pane['options']);
           break;
-        case DVW_SUMMARY_FLOT_PIE:
-          $content = _datavizwiz_pane_flot($node, $index, $pane['options'], DVW_SUMMARY_FLOT_PIE);
+        case DVW_TYPE_PIE_FLOT:
+          $content = _datavizwiz_pane_flot($node, $index, $pane['options'], DVW_TYPE_PIE_FLOT);
           break;
-        case DVW_SUMMARY_FLOT_BAR:
-          $content = _datavizwiz_pane_flot($node, $index, $pane['options'], DVW_SUMMARY_FLOT_BAR);
+        case DVW_TYPE_BAR_FLOT:
+          $content = _datavizwiz_pane_flot($node, $index, $pane['options'], DVW_TYPE_BAR_FLOT);
           break;
-        case DVW_SUMMARY_HTML:
+        case DVW_TYPE_HTML:
           $content = _datavizwiz_pane_html($node, $index, $pane['options']);
           break;
       }
@@ -100,20 +100,13 @@ function _datavizwiz_get_summary_panes($nid) {
   return $rows;
 }
 
-function _datavizwiz_pane_openlayers($node, $index, $options) {
-//   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/OpenLayers.js');
-  
-     //drupal_add_js('http://leaflet.cloudmade.com/dist/leaflet.js');
-
+function _datavizwiz_pane_map_leaflet($node, $index, $options) {
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/leaflet.js');
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/lf_screen.css');
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/leaflet.css');  
 
-   //
-  //dsm ($options);
   $pane_id = 'dvwmap' . $pane;
   $opts = json_decode($options);
-  //dsm($opts);
   
    $output .= '<div id="' . $pane_id . '" style="width: 100%; height: 400px"></div>';
    
@@ -130,20 +123,24 @@ function _datavizwiz_pane_openlayers($node, $index, $options) {
 				mapbox = new L.TileLayer(url, {maxZoom: 18, attribution: attribution});
 			map.setView(new L.LatLng( 39.50, -98.35), 4).addLayer(mapbox);
       
-      fcc = new L.TileLayer('http://a.tiles.mapbox.com/v3/fcc.nbm-wired-speed/{z}/{x}/{y}.png', {maxZoom: 18});
-      map.addLayer(fcc);
+      //fcc = new L.TileLayer('http://a.tiles.mapbox.com/v3/fcc.nbm-wired-speed/{z}/{x}/{y}.png', {maxZoom: 18});
+      //map.addLayer(fcc);
 
 ";
 
+  $tablename = $node->field_dvw_datatable[0]['value'];
+  $lat = $opts->latitude;
+  $lon = $opts->longitude;
+    
 
-  $sql = 'SELECT Applicant, City, State, Latitude, Longitude FROM import_2011_pn';
+  $sql = sprintf('SELECT %s, %s FROM %s', $lat, $lon, $tablename);
   $result = db_query($sql);
   
   while ($row = db_fetch_array($result)) {
-    $script .= sprintf('marker = new L.CircleMarker(new L.LatLng( %s, %s));', $row['Latitude'], $row['Longitude']);
-    $script .= 'marker.setRadius(7);';
+    $script .= sprintf('marker = new L.CircleMarker(new L.LatLng( %s, %s));', $row[$lat], $row[$lon]);
+    $script .= 'marker.setRadius(5);';
     $script .= 'map.addLayer(marker);';
-    $script .= sprintf('marker.bindPopup("<b>%s</b><br/>%s, %s");', $row['Applicant'], $row['City'], $row['State']);
+    //$script .= sprintf('marker.bindPopup("<b>%s</b><br/>%s, %s");', $row['Applicant'], $row['City'], $row['State']);
   }
     
     
@@ -168,7 +165,7 @@ function _datavizwiz_pane_flot($node, $index, $options, $type) {
 
   $pane = 'dvwpane' . $index;
 
-  if ($type == DVW_SUMMARY_FLOT_PIE) {
+  if ($type == DVW_TYPE_PIE_FLOT) {
   foreach ($rows as $row) {
     $data .= '{label:"' . $row["ApplicantType"] . '", data:' . $row["SumTotal"] . '},';
   }
@@ -299,7 +296,6 @@ function _datavizwiz_quick_json() {
   $options = array();
   $options['latitude-field'] = 'latitude';
   $options['longitude-field'] = 'longitude';
-  dsm(json_encode($options));
 }
 
 function _datavizwiz_add_javascript($markers) {

@@ -132,7 +132,7 @@ function datavizwiz_schema() {
     'primary key' => array('fid'),
   );  
 
-    $schema['dvw_dataset'] = array(
+  $schema['dvw_dataset'] = array(
     'description' => 'Stores metadata for a dataset visualiztion.',
     'fields' => array(
       'fid' => array(
@@ -179,7 +179,52 @@ function datavizwiz_schema() {
     'primary key' => array('fid'),
   );  
 
-  
+  $schema['dvw_summary_views'] = array(
+    'description' => 'Stores metadata for a datasets summary views.',
+    'fields' => array(
+      'svid' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique field ID.',
+      ),
+      'nid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'The {node}.nid of the data set for this field.',
+      ),
+      'type' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Type of summary view.',
+       ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'Display name of the summary view.',
+       ),
+      'pane_order' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Pane order of the summary view',
+       ),        
+      'options' => array(
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'Options for the summary view.',
+       ),     
+    ),
+    'indexes' => array(
+      'nid'    => array('nid'),
+    ),
+    'primary key' => array('svid'),
+  ); 
   
   
   

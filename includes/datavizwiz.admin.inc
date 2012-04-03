@@ -3,6 +3,12 @@
 define('DVW_SORT_SUMMARY', 0);
 define('DVW_SORT_DETAIL', 1);
 
+define('DVW_TYPE_MAP_LEAFLET', 'MAP_LEAFLET');
+define('DVW_TYPE_PIE_FLOT', 'PIE_FLOT');
+define('DVW_TYPE_BAR_FLOT', 'BAR_FLOT');
+define('DVW_TYPE_HTML', 'HTML');
+
+
 // <editor-fold desc="Tabs">
 
 function datavizwiz_tab_dataset($nid) {
@@ -42,7 +48,6 @@ function datavizwiz_tab_sort_detail($nid) {
 function datavizwiz_dataset_form($frm, $nid) {
 
   $node = node_load($nid);
-  dsm($node);
   $path = drupal_lookup_path('alias', '/node/' . $nid);
   if ($path == '') {
     $path = '/node/' . $nid;
@@ -66,7 +71,11 @@ function datavizwiz_summary_panes_form($frm, $nid) {
 
   $form['delete']['#tree'] = TRUE;
   $form['edit']['#tree'] = TRUE;
-
+  
+  $form['nid'] = array('#type' => 'hidden', '#value' => $nid);
+ 
+  
+  $item_count=0;
   while ($tablerow = db_fetch_array($result)) {
 
     $svid = $tablerow['svid'];
@@ -98,12 +107,34 @@ function datavizwiz_summary_panes_form($frm, $nid) {
       '#return_value' => 'delete-' . $svid,
     );
     $form['weights'][$svid]['#attributes']['class'] = 'order-weight';
+    $item_count++;
   }
 
-  $form['nid'] = array('#type' => 'hidden', '#value' => $nid);
+  if ($item_count > 0) {
+    $form['submit'] = array('#type' => 'submit', '#value' => t('Save Order'));    
+  }
 
-  $form['submit'] = array('#type' => 'submit', '#value' => t('Save Order'));
-  $form['add'] = array('#type' => 'submit', '#value' => t('Add Pane'));
+
+
+  
+      $form['add_panel'] = array(
+      '#type' => 'fieldset', 
+      '#title' => t('Add new pane'),
+      '#collapsible' => FALSE,
+    );
+  
+        $form['add_panel']['type'] = array(
+        '#title' => t('Pane type'),
+        '#type' => 'select',
+        '#options' => array(
+          DVW_TYPE_MAP_LEAFLET => t('Leaflet Map'), 
+          DVW_TYPE_PIE_FLOT => t('Flot Pie Chart'),
+          DVW_TYPE_BAR_FLOT=> t('Flot Bar Graph'),
+          DVW_TYPE_HTML => t('HTML Block'),       
+          ),
+        '#attributes' => array('onchange' => 'submit_edit_form(this.selectedIndex)')
+      );  
+  $form['add_panel']['add'] = array('#type' => 'submit', '#value' => t('Add Pane'));
 
   return $form;
 }
@@ -113,6 +144,7 @@ function theme_datavizwiz_summary_panes_form($form) {
 
   $rows = array();
 
+  $item_count = 0;
   foreach (element_children($form) as $key) {
     $row = array();
     if (is_numeric($key)) {
@@ -126,26 +158,23 @@ function theme_datavizwiz_summary_panes_form($form) {
         'data' => $row,
         'class' => 'draggable',
       );
+      $item_count++;
     }
   }
 
-
-  $output = theme('table', $header, $rows, array('id' => 'field-order'));
-  $output .= drupal_render($form);
-
-  drupal_add_tabledrag('field-order', 'order', 'sibling', 'order-weight', NULL, NULL, FALSE);
+  if ($item_count > 0) {
+    $output = theme('table', $header, $rows, array('id' => 'field-order'));
+    $output .= drupal_render($form);
+    
+    drupal_add_tabledrag('field-order', 'order', 'sibling', 'order-weight', NULL, NULL, FALSE);
+  }
 
   return $output;
 }
 
 function datavizwiz_summary_panes_form_submit($form, &$form_state) {
-  dsm($form_state);
-  //dsm($form_state['clicked_button']['#value']);
-
   $nid = $form_state['values']['nid'];
   $node =  node_load($nid);
-  
-        dsm($node);
   $submit_value = drupal_substr($form_state['clicked_button']['#value'], 0, 3);
   
   switch ($submit_value) {
@@ -156,22 +185,18 @@ function datavizwiz_summary_panes_form_submit($form, &$form_state) {
         db_query($sql);        
         }
       }
-      
       drupal_set_message(t('Pane order updated.'));
       break;
     case 'Add':
-      dsm('Add');
-      $url = sprintf('admin/datavizwiz/edit/%s/summary_pane/%s/%s', $nid, 'add', 0);
+      $url = sprintf('admin/datavizwiz/edit/%s/summary_pane/%s/%s', $nid, 'add', $form_state['values']['type']);
       drupal_goto($url);
       break;
     case 'edi':
-      dsm('Edit');
       $svid = drupal_substr($form_state['clicked_button']['#value'], 5);
       $url = sprintf('admin/datavizwiz/edit/%s/summary_pane/%s/%s', $nid, 'edit', $svid);
       drupal_goto($url);
       break;
     case 'del':
-      dsm('Delete');
       $svid = drupal_substr($form_state['clicked_button']['#value'], 7);
       $url = sprintf('admin/datavizwiz/edit/%s/summary_pane/%s/%s', $nid, 'delete', $svid);
       drupal_goto($url);
@@ -180,29 +205,37 @@ function datavizwiz_summary_panes_form_submit($form, &$form_state) {
 }
 
 function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
+  $node = node_load($nid);
   $form['#attributes'] = array('id' => 'summary-pane-edit');
   
   switch ($op) {
-    case 'add':
-      drupal_add_js('function submit_edit_form(id) {
-        //alert(id);
-        document.forms["datavizwiz-summary-pane-edit-form"].operation = id;
-        document.forms["datavizwiz-summary-pane-edit-form"].submit();
-        }','inline');
-      $form['type'] = array(
-        '#title' => t('Pane type'),
-        '#type' => 'select',
-        '#options' => array(
-          DVW_SUMMARY_MAP_OPENLAYERS => t('Leaflet Map'), 
-          DVW_SUMMARY_FLOT_PIE => t('Flot Pie Chart'),
-          DVW_SUMMARY_FLOT_BAR=> t('Flot Bar Graph'),
-          DVW_SUMMARY_HTML => t('HTML Block'),       
-          ),
-        '#default_value' => $frm['post']['type'],
-        '#attributes' => array('onchange' => 'submit_edit_form(this.selectedIndex)')
-      );  
+    case 'add':      
+      $form['pane_name'] = array('#type' => 'textfield',
+        '#title' => t('Pane Name'));
+      $form['nid'] = array('#type' => 'hidden',
+        '#value' => $nid);
+      switch (arg(6)) {
+        case DVW_TYPE_MAP_LEAFLET:
+          drupal_set_title('Add Pane - Leaflet Map');
+          $form = _datavizwiz_summary_pane_edit_map_leaflet_form($form, $node);
+          break;
+        case DVW_TYPE_PIE_FLOT:
+          drupal_set_title('Add Pane - Pie Chart (Flot)');
+          $form = _datavizwiz_summary_pane_edit_pie_flot_form($form);
+          break;
+        case DVW_TYPE_BAR_FLOT:
+          drupal_set_title('Add Pane - Bar Graph (Flot)');
+          $form = _datavizwiz_summary_pane_edit_bar_flot_form($form);
+          break;
+        case DVW_TYPE_HTML:
+          drupal_set_title('Add Pane - HTML');
+          $form = _datavizwiz_summary_pane_edit_html_form($form);
+          break;
+      }
       $form['operation'] = array('#type' => 'hidden', '#value' => 0);
-      $form['submit'] = array('#type' => 'submit', '#value' => 0);
+      $form['submit'] = array('#type' => 'submit', '#value' => t('Save Pane'));
+      $form['cancel'] = array('#type' => 'submit', '#value' => t('Cancel'));
+      
       break;
     case 'delete':
       $form['question'] = array('#value' => t("Are you sure you'd like to delete this summary view?<br/>"));
@@ -214,8 +247,75 @@ function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
   return $form;
 }
 
-function datavizwiz_summary_pane_edit_form_submit($form, &$form_state) {
-        dsm($form_state['values']['type']);
+function _datavizwiz_summary_pane_edit_map_leaflet_form(&$form, $node) {
+  $field_array = _datavizwiz_get_field_array($node->field_dvw_datatable[0]['value']);
+  
+  $form['type'] = array('#type' => 'hidden',
+    '#value' => DVW_TYPE_MAP_LEAFLET);
+  
+  $form['latitude'] = array('#type' => 'select',
+    '#title' => t('Latitude field'),
+    '#options' => $field_array,
+          );
+  
+  $form['longitude'] = array('#type' => 'select',
+    '#title' => t('Longitude field'),
+    '#options' => $field_array,
+          );
+  return $form;
+}
+
+function _datavizwiz_summary_pane_edit_bar_flot_form(&$form) {
+  
+  $form['type'] = array('#type' => 'hidden',
+    '#value' => DVW_TYPE_BAR_FLOT);
+  return $form;
+}
+
+function _datavizwiz_summary_pane_edit_pie_flot_form(&$form) {
+  
+  $form['type'] = array('#type' => 'hidden',
+    '#value' => DVW_TYPE_PIE_FLOT);
+  return $form;
+}
+
+function _datavizwiz_summary_pane_edit_html_form(&$form) {
+  $form['html'] = array('#type' => 'textarea',
+    '#title' => t('HTML'),
+    '#rows' => 15);
+  
+  $form['type'] = array('#type' => 'hidden',
+    '#value' => DVW_TYPE_HTML);
+  return $form;
+}
+
+function datavizwiz_summary_pane_edit_form_submit(&$form, &$form_state) {
+        $pane_type = $form_state['values']['type'];
+        $form['type'] = array('#value' => $pane_type);
+        $nid = $form_state['values']['nid'];
+        
+        $record = new stdClass();
+        $record->nid = $nid;
+        $record->name = $form_state['values']['pane_name'];
+        $record->type = $pane_type;
+        
+        switch ($pane_type) {
+          case DVW_TYPE_MAP_LEAFLET:
+            dsm($form_state);
+            $options = array('latitude' => $form_state['values']['latitude'],
+                    'longitude' => $form_state['values']['longitude']);
+            $record->options = json_encode($options);
+            break;
+          case DVW_TYPE_PIE_FLOT:
+            break;
+          case DVW_TYPE_BAR_FLOT:
+            break;
+          case DVW_TYPE_HTML:
+            $record->options = $form_state['values']['html'];
+            break;
+        }
+        $result = drupal_write_record('dvw_summary_views', $record);
+        //drupal_goto(sprintf('admin/datavizwiz/edit/%s/summary_pane', $nid));
 }
 
 // </editor-fold>
@@ -316,8 +416,6 @@ function datavizwiz_fields_form_submit($form, &$form_state) {
   $form_values = $form_state['values'];
   foreach ($form_values as $form_key => $form_value) {
     if (substr($form_key, 0, 6) == 'check-') {
-      //dsm($form_value . $form_key);
-
       $second_dash = strpos($form_key, '-', 6);
       $fid = substr($form_key, 6, $second_dash - 6);
       $field = substr($form_key, $second_dash + 1, strlen($form_key) - $second_dash - 1);
@@ -413,29 +511,50 @@ function theme_datavizwiz_sort_form($form) {
 function datavizwiz_sort_form_submit($form, &$form_state) {
   foreach ($form_state['values']['weights'] as $id => $item) {
     if ($form_state['values']['update_type'] == DVW_SORT_SUMMARY) {
-      db_query("UPDATE {dvw_field_meta} SET weight_summary=%d WHERE fid=%d", $item, $id);
+      $record = new stdClass();
+      $record->weight_summary = $item;
+      $record->fid = $id;
+      drupal_write_record('dvw_field_meta', $record, 'fid');
     }
     else {
-      db_query("UPDATE {dvw_field_meta} SET weight_detail=%d WHERE fid=%d", $item, $id);
+      $record = new stdClass();
+      $record->weight_detail = $item;
+      $record->fid = $id;
+      drupal_write_record('dvw_field_meta', $record, 'fid');
     }
   }
 }
 
 function _datavizwiz_get_pane_type_name($pane_type) {
   switch ($pane_type) {
-    case DVW_SUMMARY_MAP_OPENLAYERS:
-      return 'OpenLayers Map';
+    case DVW_TYPE_MAP_LEAFLET:
+      return 'Leaflet Map';
       break;
-    case DVW_SUMMARY_FLOT_PIE:
-      return 'Flot Graph (Pie Chart)';
+    case DVW_TYPE_PIE_FLOT:
+      return 'Pie Chart (Flot)';
       break;
-    case DVW_SUMMARY_FLOT_BAR:
-      return 'Flot Graph (Bar)';
+    case DVW_TYPE_BAR_FLOT:
+      return 'Bar Graph (Flot)';
       break;
-    case DVW_SUMMARY_HTML:
+    case DVW_TYPE_HTML:
       return 'HTML Pane';
       break;
   }
+}
+
+function _datavizwiz_get_field_array($table_name) {
+  $columns = array();
+  
+  $sql = sprintf('SHOW COLUMNS FROM %s', $table_name);
+  $results = db_query($sql);
+  
+  while ($column = db_fetch_array($results)) {
+    if ($column['Field'] != 'ImporterID') {
+      $columns[$column['Field']] = $column['Field'];
+    }
+  }
+  
+  return $columns;
 }
 
 // </editor-fold>

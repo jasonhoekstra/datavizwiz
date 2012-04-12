@@ -221,11 +221,11 @@ function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
           break;
         case DVW_TYPE_PIE_FLOT:
           drupal_set_title('Add Pane - Pie Chart (Flot)');
-          $form = _datavizwiz_summary_pane_edit_pie_flot_form($form);
+          $form = _datavizwiz_summary_pane_edit_flot_form($form, $node, DVW_TYPE_PIE_FLOT);
           break;
         case DVW_TYPE_BAR_FLOT:
           drupal_set_title('Add Pane - Bar Graph (Flot)');
-          $form = _datavizwiz_summary_pane_edit_bar_flot_form($form);
+          $form = _datavizwiz_summary_pane_edit_flot_form($form, $node, DVW_TYPE_BAR_FLOT);
           break;
         case DVW_TYPE_HTML:
           drupal_set_title('Add Pane - HTML');
@@ -265,17 +265,20 @@ function _datavizwiz_summary_pane_edit_map_leaflet_form(&$form, $node) {
   return $form;
 }
 
-function _datavizwiz_summary_pane_edit_bar_flot_form(&$form) {
+function _datavizwiz_summary_pane_edit_flot_form(&$form, $node, $chart_type) {
+  
+  
+  $field_array = _datavizwiz_get_field_array($node->field_dvw_datatable[0]['value']);
+  
   
   $form['type'] = array('#type' => 'hidden',
-    '#value' => DVW_TYPE_BAR_FLOT);
-  return $form;
-}
-
-function _datavizwiz_summary_pane_edit_pie_flot_form(&$form) {
+    '#value' => $chart_type);
   
-  $form['type'] = array('#type' => 'hidden',
-    '#value' => DVW_TYPE_PIE_FLOT);
+  $form['variable'] = array('#type' => 'select',
+  '#title' => t('Chart variable'),
+  '#options' => $field_array,
+        );
+  
   return $form;
 }
 
@@ -307,15 +310,21 @@ function datavizwiz_summary_pane_edit_form_submit(&$form, &$form_state) {
             $record->options = json_encode($options);
             break;
           case DVW_TYPE_PIE_FLOT:
+            dsm($form_state);
+            $options = array('variable' => $form_state['values']['variable']);
+            $record->options = json_encode($options);
             break;
           case DVW_TYPE_BAR_FLOT:
+            dsm($form_state);
+            $options = array('variable' => $form_state['values']['variable']);
+            $record->options = json_encode($options);
             break;
           case DVW_TYPE_HTML:
             $record->options = $form_state['values']['html'];
             break;
         }
         $result = drupal_write_record('dvw_summary_views', $record);
-        //drupal_goto(sprintf('admin/datavizwiz/edit/%s/summary_pane', $nid));
+        drupal_goto(sprintf('admin/datavizwiz/edit/%s/summary_pane', $nid));
 }
 
 // </editor-fold>
@@ -327,7 +336,7 @@ function datavizwiz_fields_form($frm, $nid) {
   $tablerows = _datavizwiz_get_dataset_metadata($nid, array('*'));
 
   $headerrows = array();
-
+  
   if (count($tablerows) > 0) {
     foreach ($tablerows[0] as $key => $value) {
       if ($key != 'fid' && $key != 'nid' && $key != NULL && $key != 'weight_summary' & $key != 'weight_detail') {

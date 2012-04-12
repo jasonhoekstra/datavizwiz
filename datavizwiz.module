@@ -153,21 +153,24 @@ function _datavizwiz_pane_map_leaflet($node, $index, $options) {
 }
 
 function _datavizwiz_pane_flot($node, $index, $options, $type) {
-  
-  $sql = db_query("SELECT AbsolutePriority, Count(*) as SumTotal FROM import_oii_2011_i3 group by AbsolutePriority ORDER BY SumTotal");
-    //SELECT Applicant, City, State, Latitude, Longitude FROM import_2011_pn
-  $sql = db_query("SELECT ApplicantType, Count(*) as SumTotal FROM import_2011_pn group by ApplicantType ORDER BY SumTotal");
-  $rows = _datavizwiz_get_rowarray($sql);
-
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.min.js');
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.pie.min.js');
+  
+  $opts = json_decode($options);
+  $variable = $opts->variable;
+  $table_name = $node->field_dvw_datatable[0]['value'];
+  
+  $sql = db_query(sprintf('SELECT %s, Count(*) as SumTotal FROM %s group by %s ORDER BY SumTotal', $variable, $table_name, $variable));
+  $rows = _datavizwiz_get_rowarray($sql);
+
+
   
 
   $pane = 'dvwpane' . $index;
 
   if ($type == DVW_TYPE_PIE_FLOT) {
   foreach ($rows as $row) {
-    $data .= '{label:"' . $row["ApplicantType"] . '", data:' . $row["SumTotal"] . '},';
+    $data .= '{label:"' . $row[$variable] . '", data:' . $row["SumTotal"] . '},';
   }
   
   drupal_add_js('$(function() {
@@ -597,9 +600,11 @@ function _datavizwiz_get_columns_in_table($table_name) {
   // Run a query that will return no results to get the column names.
   $sql = db_query("SELECT column_name,ordinal_position,data_type 
     FROM {information_schema.columns}
-    WHERE table_schema = 'acquia_drupal' and table_name like '{%s}'", $table_name);
+    WHERE table_schema = 'dataedgov' and table_name like '{%s}'", $table_name);
+  
+  dsm('Must find the database name!!!!');
 
-  //TODO:  Find the proper table name above.
+  //TODO:  Find the proper database name above.
 
   return _datavizwiz_get_rowarray($sql);
 }
@@ -608,7 +613,8 @@ function _datavizwiz_get_import_tables() {
   // Run a query that will return no results to get the column names.
   $sql = db_query("SELECT table_name 
     FROM {information_schema.tables}
-    WHERE table_schema = 'acquia_drupal' and table_name like 'import\_%'");
+    WHERE table_schema = 'dataedgov' and table_name like 'import\_%'");
+    dsm('Must find the database name!!!!');
 
   //TODO:  Find the proper table name above.
 

@@ -304,18 +304,15 @@ function datavizwiz_summary_pane_edit_form_submit(&$form, &$form_state) {
         
         switch ($pane_type) {
           case DVW_TYPE_MAP_LEAFLET:
-            dsm($form_state);
             $options = array('latitude' => $form_state['values']['latitude'],
                     'longitude' => $form_state['values']['longitude']);
             $record->options = json_encode($options);
             break;
           case DVW_TYPE_PIE_FLOT:
-            dsm($form_state);
             $options = array('variable' => $form_state['values']['variable']);
             $record->options = json_encode($options);
             break;
           case DVW_TYPE_BAR_FLOT:
-            dsm($form_state);
             $options = array('variable' => $form_state['values']['variable']);
             $record->options = json_encode($options);
             break;

@@ -13,21 +13,16 @@ $content['type']  = array (
     'sticky' => false,
     'revision' => false,
   ),
+  'show_preview_changes' => true,
+  'show_diff_inline' => false,
+  'enable_revisions_page' => true,
   'old_type' => 'dvw_dataset',
   'orig_type' => '',
   'module' => 'node',
   'custom' => '1',
   'modified' => '1',
   'locked' => '0',
-  'comment' => '0',
-  'comment_default_mode' => '4',
-  'comment_default_order' => '1',
-  'comment_default_per_page' => '50',
-  'comment_controls' => '3',
-  'comment_anonymous' => 0,
-  'comment_subject_field' => '1',
-  'comment_preview' => '1',
-  'comment_form_location' => '0',
+  'custom_breadcrumbs_show_form_table' => 'CUSTOM_BREADCRUMBS_TYPE_SHOW_FORM_TABLE',
 );
 $content['fields']  = array (
   0 => 
@@ -51,6 +46,7 @@ $content['fields']  = array (
     ),
     'default_value_php' => '',
     'default_value_widget' => NULL,
+    'group' => false,
     'required' => 1,
     'multiple' => '0',
     'text_processing' => '0',
@@ -125,10 +121,11 @@ $content['fields']  = array (
         ),
       ),
     ),
+    'group' => false,
     'required' => 1,
     'multiple' => '0',
     'min' => '0',
-    'max' => '1',
+    'max' => '',
     'prefix' => '',
     'suffix' => '',
     'allowed_values' => '',
@@ -147,20 +144,21 @@ $content['fields']  = array (
     ),
     'display_settings' => 
     array (
+      'weight' => '-1',
+      'parent' => '',
       'label' => 
       array (
         'format' => 'above',
-        'exclude' => 0,
       ),
       'teaser' => 
       array (
         'format' => 'default',
-        'exclude' => 0,
+        'exclude' => 1,
       ),
       'full' => 
       array (
         'format' => 'default',
-        'exclude' => 0,
+        'exclude' => 1,
       ),
       4 => 
       array (
@@ -182,7 +180,7 @@ $content['fields']  = array (
     array (
       0 => 
       array (
-        'value' => NULL,
+        'value' => 'No',
       ),
     ),
     'default_value_php' => '',
@@ -193,14 +191,15 @@ $content['fields']  = array (
         'value' => false,
       ),
     ),
+    'group' => false,
     'required' => 1,
     'multiple' => '0',
-    'min' => '0',
-    'max' => '1',
+    'min' => '',
+    'max' => '',
     'prefix' => '',
     'suffix' => '',
-    'allowed_values' => '0
-1',
+    'allowed_values' => '0|No
+1|CSV Download',
     'allowed_values_php' => '',
     'op' => 'Save field settings',
     'module' => 'number',
@@ -216,20 +215,21 @@ $content['fields']  = array (
     ),
     'display_settings' => 
     array (
+      'weight' => 0,
+      'parent' => '',
       'label' => 
       array (
         'format' => 'above',
-        'exclude' => 0,
       ),
       'teaser' => 
       array (
         'format' => 'default',
-        'exclude' => 0,
+        'exclude' => 1,
       ),
       'full' => 
       array (
         'format' => 'default',
-        'exclude' => 0,
+        'exclude' => 1,
       ),
       4 => 
       array (
@@ -251,7 +251,7 @@ $content['fields']  = array (
     array (
       0 => 
       array (
-        'value' => NULL,
+        'value' => 'No',
       ),
     ),
     'default_value_php' => '',
@@ -262,14 +262,15 @@ $content['fields']  = array (
         'value' => false,
       ),
     ),
+    'group' => false,
     'required' => 1,
     'multiple' => '0',
-    'min' => '0',
-    'max' => '1',
+    'min' => '',
+    'max' => '',
     'prefix' => '',
     'suffix' => '',
-    'allowed_values' => '0
-1',
+    'allowed_values' => '0|No
+1|JSON Download',
     'allowed_values_php' => '',
     'op' => 'Save field settings',
     'module' => 'number',
@@ -285,20 +286,21 @@ $content['fields']  = array (
     ),
     'display_settings' => 
     array (
+      'weight' => '1',
+      'parent' => '',
       'label' => 
       array (
         'format' => 'above',
-        'exclude' => 0,
       ),
       'teaser' => 
       array (
         'format' => 'default',
-        'exclude' => 0,
+        'exclude' => 1,
       ),
       'full' => 
       array (
         'format' => 'default',
-        'exclude' => 0,
+        'exclude' => 1,
       ),
       4 => 
       array (
@@ -315,12 +317,12 @@ $content['fields']  = array (
     'widget_type' => 'optionwidgets_onoff',
     'change' => 'Change basic information',
     'weight' => '2',
-    'description' => '',
+    'description' => 'XML Download',
     'default_value' => 
     array (
       0 => 
       array (
-        'value' => NULL,
+        'value' => 'No',
       ),
     ),
     'default_value_php' => '',
@@ -331,14 +333,15 @@ $content['fields']  = array (
         'value' => false,
       ),
     ),
+    'group' => false,
     'required' => 1,
     'multiple' => '0',
     'min' => '',
     'max' => '',
     'prefix' => '',
     'suffix' => '',
-    'allowed_values' => '0
-1',
+    'allowed_values' => '0|No
+1|XML Download',
     'allowed_values_php' => '',
     'op' => 'Save field settings',
     'module' => 'number',
@@ -354,20 +357,21 @@ $content['fields']  = array (
     ),
     'display_settings' => 
     array (
+      'weight' => '2',
+      'parent' => '',
       'label' => 
       array (
         'format' => 'above',
-        'exclude' => 0,
       ),
       'teaser' => 
       array (
         'format' => 'default',
-        'exclude' => 0,
+        'exclude' => 1,
       ),
       'full' => 
       array (
         'format' => 'default',
-        'exclude' => 0,
+        'exclude' => 1,
       ),
       4 => 
       array (

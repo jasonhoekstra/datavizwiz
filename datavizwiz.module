@@ -30,8 +30,6 @@ function _datavizwiz_display_summary_page($node, $data_table_name, $dataset_meta
   $summary_panes = _datavizwiz_get_summary_panes($node->nid);
 
   if (count($summary_panes) > 0) {
-    //drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/jquery.tabify-1.5/jquery.tabify.source.js');
-    //drupal_add_js("$( function() { $('#dvwTabs').tabify(); } );", 'inline');
 // First, display the tabs.
     $output .= '<div id="dvwPanes">';
     $output .= '<div id="dvwTabs">';
@@ -78,7 +76,7 @@ function _datavizwiz_display_summary_page($node, $data_table_name, $dataset_meta
   }
   $output .= '</div>';
 
-  $output .= _datavizwiz_summary_table($node->nid, $data_table_name);
+  $output .= _datavizwiz_summary_table($node->nid, $data_table_name, $node->field_dvw_pagesize[0]['value']);
   return $output;
 }
 
@@ -90,7 +88,6 @@ function _datavizwiz_display_detail_page($node, $data_table_name, $dataset_metad
 }
 
 function _datavizwiz_get_summary_panes($nid) {
-  dsm(_datavizwiz_get_database_name());
   $query = sprintf("
       SELECT type, name, options 
       FROM {dvw_summary_views} 
@@ -458,7 +455,7 @@ function datavizwiz_menu() {
   return $items;
 }
 
-function _datavizwiz_summary_table($nid, $table_name) {
+function _datavizwiz_summary_table($nid, $table_name, $page_size) {
 
   $query = sprintf("
       SELECT field_name, display_name, sortable 
@@ -494,7 +491,7 @@ function _datavizwiz_summary_table($nid, $table_name) {
   $column_names = substr($column_names, 0, strlen($column_names) - 1);
   $sql = sprintf("SELECT ImporterID, %s FROM {%s}", $column_names, $table_name);
   $sql .= tablesort_sql($headers);
-  $query = pager_query($sql, 25);
+  $query = pager_query($sql, $page_size);
 
   $tablerows = _datavizwiz_get_summaryarray($query);
 

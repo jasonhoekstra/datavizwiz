@@ -90,6 +90,7 @@ function _datavizwiz_display_detail_page($node, $data_table_name, $dataset_metad
 }
 
 function _datavizwiz_get_summary_panes($nid) {
+  dsm(_datavizwiz_get_database_name());
   $query = sprintf("
       SELECT type, name, options 
       FROM {dvw_summary_views} 
@@ -597,26 +598,23 @@ function _datavizwiz_get_dataset_metadata($nid, $field_array) {
  * @param type $table_name 
  */
 function _datavizwiz_get_columns_in_table($table_name) {
+  $dbname = _datavizwiz_get_database_name();
+  
   // Run a query that will return no results to get the column names.
   $sql = db_query("SELECT column_name,ordinal_position,data_type 
     FROM {information_schema.columns}
-    WHERE table_schema = 'dataedgov' and table_name like '{%s}'", $table_name);
+    WHERE table_schema = '%s' and table_name like '{%s}'", $dbname, $table_name);
   
-  dsm('Must find the database name!!!!');
-
-  //TODO:  Find the proper database name above.
-
   return _datavizwiz_get_rowarray($sql);
 }
 
 function _datavizwiz_get_import_tables() {
+  $dbname = _datavizwiz_get_database_name();
+    
   // Run a query that will return no results to get the column names.
   $sql = db_query("SELECT table_name 
     FROM {information_schema.tables}
-    WHERE table_schema = 'dataedgov' and table_name like 'import\_%'");
-    dsm('Must find the database name!!!!');
-
-  //TODO:  Find the proper table name above.
+    WHERE table_schema = '%s' and table_name like 'import\_%'", $dbname);
 
   return _datavizwiz_get_rowarray($sql);
 }
@@ -660,4 +658,11 @@ function _datavizwiz_add_columns_to_meta_table($nid, $fields) {
     drupal_write_record('dvw_field_meta', $data);
     $i++;
   }
+}
+
+function _datavizwiz_get_database_name() {
+  global $db_url;
+  $db_name = explode("/",$db_url);
+  $dbname = $db_name[count($db_name)-1];
+  return $dbname;
 }

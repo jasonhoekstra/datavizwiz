@@ -97,13 +97,13 @@ function datavizwiz_summary_panes_form($frm, $nid) {
     $form['edit'][$svid] = array(
       '#type' => 'image_button',
       '#name' => 'edit-' . $svid,
-      '#src' => drupal_get_path('module', 'datavizwiz') . '/edit.png',
+      '#src' => drupal_get_path('module', 'datavizwiz') . '/images/edit.png',
       '#return_value' => 'edit-' . $svid,
     );
     $form['delete'][$svid] = array(
       '#type' => 'image_button',
       '#name' => 'delete-' . $svid,
-      '#src' => drupal_get_path('module', 'datavizwiz') . '/delete.png',
+      '#src' => drupal_get_path('module', 'datavizwiz') . '/images/delete.png',
       '#return_value' => 'delete-' . $svid,
     );
     $form['weights'][$svid]['#attributes']['class'] = 'order-weight';

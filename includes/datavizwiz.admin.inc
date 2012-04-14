@@ -4,9 +4,12 @@ define('DVW_SORT_SUMMARY', 0);
 define('DVW_SORT_DETAIL', 1);
 
 define('DVW_TYPE_MAP_LEAFLET', 'MAP_LEAFLET');
+define('DVW_TYPE_MAP_D3', 'MAP_D3');
 define('DVW_TYPE_PIE_FLOT', 'PIE_FLOT');
 define('DVW_TYPE_BAR_FLOT', 'BAR_FLOT');
 define('DVW_TYPE_HTML', 'HTML');
+
+define('DVW_D3_BASEMAP_US_STATES', 'US_MAP');
 
 
 // <editor-fold desc="Tabs">
@@ -114,9 +117,6 @@ function datavizwiz_summary_panes_form($frm, $nid) {
     $form['submit'] = array('#type' => 'submit', '#value' => t('Save Order'));    
   }
 
-
-
-  
       $form['add_panel'] = array(
       '#type' => 'fieldset', 
       '#title' => t('Add new pane'),
@@ -127,10 +127,11 @@ function datavizwiz_summary_panes_form($frm, $nid) {
         '#title' => t('Pane type'),
         '#type' => 'select',
         '#options' => array(
-          DVW_TYPE_MAP_LEAFLET => t('Leaflet Map'), 
-          DVW_TYPE_PIE_FLOT => t('Flot Pie Chart'),
-          DVW_TYPE_BAR_FLOT=> t('Flot Bar Graph'),
-          DVW_TYPE_HTML => t('HTML Block'),       
+          DVW_TYPE_HTML => t('Freeform - HTML Block'),
+          DVW_TYPE_PIE_FLOT => t('Graph - Flot Pie'),
+          DVW_TYPE_BAR_FLOT=> t('Graph - Flot Bar'),
+          DVW_TYPE_MAP_LEAFLET => t('Map - Leaflet'),
+          DVW_TYPE_MAP_D3 => t('Map - D3'),
           ),
         '#attributes' => array('onchange' => 'submit_edit_form(this.selectedIndex)')
       );  
@@ -219,6 +220,10 @@ function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
           drupal_set_title('Add Pane - Leaflet Map');
           $form = _datavizwiz_summary_pane_edit_map_leaflet_form($form, $node);
           break;
+        case DVW_TYPE_MAP_D3:
+          drupal_set_title('Add Pane - D3 Map');
+          $form = _datavizwiz_summary_pane_edit_map_d3_form($form, $node);
+          break;        
         case DVW_TYPE_PIE_FLOT:
           drupal_set_title('Add Pane - Pie Chart (Flot)');
           $form = _datavizwiz_summary_pane_edit_flot_form($form, $node, DVW_TYPE_PIE_FLOT);
@@ -265,6 +270,32 @@ function _datavizwiz_summary_pane_edit_map_leaflet_form(&$form, $node) {
   return $form;
 }
 
+function _datavizwiz_summary_pane_edit_map_d3_form(&$form, $node) {
+  $field_array = _datavizwiz_get_field_array($node->field_dvw_datatable[0]['value']);
+  
+  $form['type'] = array('#type' => 'hidden',
+    '#value' => DVW_TYPE_MAP_D3);
+  
+  $form['keyfield'] = array('#type' => 'select',
+    '#title' => t('Key field'),
+    '#options' => $field_array,
+          );
+
+    $form['keytype'] = array('#type' => 'select',
+    '#title' => t('Key type'),
+    '#options' => array('FIPS' =>  t('US State FIPS'),
+      'STATE_NAME' => t('US State Name'),
+      'STATE_ABBR' => t('US State Abbrevation')),
+          );
+
+    $form['baselayer'] = array('#type' => 'select',
+    '#title' => t('Base layer'),
+    '#options' => array(DVW_D3_BASEMAP_US_STATES => t('US State Map')),
+          );
+  
+  return $form;
+}
+
 function _datavizwiz_summary_pane_edit_flot_form(&$form, $node, $chart_type) {
   
   
@@ -305,8 +336,13 @@ function datavizwiz_summary_pane_edit_form_submit(&$form, &$form_state) {
         switch ($pane_type) {
           case DVW_TYPE_MAP_LEAFLET:
             $options = array('latitude' => $form_state['values']['latitude'],
-                    'longitude' => $form_state['values']['longitude']);
+              'longitude' => $form_state['values']['longitude']);
             $record->options = json_encode($options);
+            break;
+          case DVW_TYPE_MAP_D3:
+            $options = array('keyfield' => $form_state['values']['keyfield'],
+              'keytype' => $form_state['values']['keytype'],
+              'baselayer' => $form_state['values']['baselayer']);
             break;
           case DVW_TYPE_PIE_FLOT:
             $options = array('variable' => $form_state['values']['variable']);

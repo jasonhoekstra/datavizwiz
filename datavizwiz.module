@@ -81,6 +81,7 @@ function _datavizwiz_display_summary_page($node, $data_table_name, $dataset_meta
 }
 
 function _datavizwiz_display_detail_page($node, $data_table_name, $dataset_metadata) {
+  drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.css');
   $importerID = $_GET['detail'];
   $output .= _datavizwiz_detail_page($dataset_metadata, $data_table_name, $importerID);
 
@@ -158,7 +159,7 @@ function _datavizwiz_pane_flot($node, $index, $options, $type) {
   $variable = $opts->variable;
   $table_name = $node->field_dvw_datatable[0]['value'];
   
-  $sql = db_query(sprintf('SELECT %s, Count(*) as SumTotal FROM %s group by %s ORDER BY SumTotal', $variable, $table_name, $variable));
+  $sql = db_query(sprintf('SELECT %s, Count(*) as SumTotal FROM %s group by %s ORDER BY SumTotal DESC', $variable, $table_name, $variable));
   $rows = _datavizwiz_get_rowarray($sql);
 
 
@@ -168,7 +169,7 @@ function _datavizwiz_pane_flot($node, $index, $options, $type) {
 
   if ($type == DVW_TYPE_PIE_FLOT) {
   foreach ($rows as $row) {
-    $data .= '{label:"' . $row[$variable] . '", data:' . $row["SumTotal"] . '},';
+    $data .= '{label:"' . $row[$variable] . ' (' . $row["SumTotal"]  .')", data:' . $row["SumTotal"] . '},';
   }
   
   drupal_add_js('$(function() {
@@ -185,14 +186,14 @@ function _datavizwiz_pane_flot($node, $index, $options, $type) {
 
     ', 'inline');
   } else {
-    
+    // Type is DVW_TYPE_BAR_FLOT
       $tickcount=0;
   foreach ($rows as $row) {
     
     $data .= sprintf('[%s,%s],', $tickcount,$row["SumTotal"]);
  
     
-    $ticks .= sprintf('[%s,"%s"],', $tickcount,$row["ApplicantType"]);
+    $ticks .= sprintf('[%s,"%s"],', $tickcount,$row[$variable]);
     $tickcount++;
   }
   
@@ -202,7 +203,7 @@ function _datavizwiz_pane_flot($node, $index, $options, $type) {
     {
       label: "Total Things Per Year",
       data: [ ' . $data . ' ],
-              color: "#000",
+              color: "#00f",
       bars: {
         show: true,
         barWidth: 0.2,
@@ -530,10 +531,12 @@ function _datavizwiz_detail_page($metadata, $table_name, $importerID) {
   $result = db_query(db_rewrite_sql($sql));
   if ($row = db_fetch_array($result)) {
     foreach ($row as $key => $value) {
-      $output .= '<div>' . $key . ': ' . $value . '</div>';
+      $output .= '<div class="dvwDetail"><strong>' . $key . '</strong><p>' . $value . '</p></div>';
     }
   }
 
+  $output .= '<div style="clear: both"/>';
+  
   return $output;
 }
 

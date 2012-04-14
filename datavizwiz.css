@@ -52,3 +52,17 @@ left:0;
 .dvwMenu li a:hover span{background-position:100% -60px;}
 .dvwMenu li a.active, .dvwMenu li a.active:hover{line-height:30px; font:12px Verdana, Arial, Helvetica, sans-serif; background:url('topMenuImages.png') 0px -90px no-repeat; color:rgb(82,82,82);}
 .dvwMenu li a.active span, .dvwMenu li a.active:hover span{background:url('topMenuImages.png') 100% -90px no-repeat;}
+
+.dvwDetail {
+  float: left;
+  width: 320px;
+  margin: 8px 15px 0 0;
+}
+
+.dvwDetail strong {
+  color: #777;
+  padding: 0 0 2px 0;
+  border-bottom: 1px #EFEFEF solid;
+  margin: 0 0 2px 0;
+  display: block;
+}

@@ -4,7 +4,21 @@
  * Implementation of hook_install().
  */
 function datavizwiz_install() {
+  // Install database schema
   drupal_install_schema('datavizwiz');
+  
+  // Install DataVizWiz content type
+  $filename = drupal_get_path('module','datavizwiz') . "/datavizwiz.dvw_cck_type.inc";
+  $content = implode ('', file ($filename));
+  // Build form state
+  $form_state = array(
+     'values' => array(
+        'type_name' => '<create>',
+        'macro' => $content,
+     ),
+  );
+  drupal_execute("content_copy_import_form", $form_state);
+  
 }
 
 /**

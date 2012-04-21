@@ -495,13 +495,15 @@ function datavizwiz_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
-function Ndadatavizwiz_menu() {
+function datavizwiz_menu() {
   $items['admin/datavizwiz/edit/%'] = array(
     'title' => 'Manage Dataset',
     'page callback' => 'datavizwiz_tab_dataset',
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_CALLBACK,
+    'access callback'  => 'user_access',
+    'access arguments' => array('access datavizwiz'),
     'page arguments' => array(3),
   );
 
@@ -511,6 +513,8 @@ function Ndadatavizwiz_menu() {
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_DEFAULT_LOCAL_TASK,
+    'access callback'  => 'user_access',
+    'access arguments' => array('access datavizwiz'),
     'page arguments' => array(3),
   );
 
@@ -521,6 +525,8 @@ function Ndadatavizwiz_menu() {
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_LOCAL_TASK,
+    'access callback'  => 'user_access',
+    'access arguments' => array('access datavizwiz'),
     'weight' => 1,
   );
   
@@ -530,6 +536,8 @@ function Ndadatavizwiz_menu() {
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_CALLBACK,
+    'access callback'  => 'user_access',
+    'access arguments' => array('access datavizwiz'),
     'page arguments' => array(3,5,6),
   );
     
@@ -540,6 +548,8 @@ function Ndadatavizwiz_menu() {
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_LOCAL_TASK,
+    'access callback'  => 'user_access',
+    'access arguments' => array('access datavizwiz'),
     'weight' => 5,
   );
 
@@ -550,6 +560,8 @@ function Ndadatavizwiz_menu() {
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_LOCAL_TASK,
+    'access callback'  => 'user_access',
+    'access arguments' => array('access datavizwiz'),
     'weight' => 10,
   );
 
@@ -560,6 +572,8 @@ function Ndadatavizwiz_menu() {
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_LOCAL_TASK,
+    'access callback'  => 'user_access',
+    'access arguments' => array('access datavizwiz'),
     'weight' => 20,
   );
 
@@ -570,6 +584,8 @@ function Ndadatavizwiz_menu() {
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_LOCAL_TASK,
+    'access callback'  => 'user_access',
+    'access arguments' => array('access datavizwiz'),
     'weight' => 999,
   );
 
@@ -578,10 +594,13 @@ function Ndadatavizwiz_menu() {
     'page arguments' => array(2,3),
     'file' => 'includes/datavizwiz.api.inc',
     'type' => MENU_CALLBACK,
-  );
+  );  //TODO:  Add custom callback to check if published or if user has admin
 
-  //TODO:  Assign permission
   return $items;
+}
+
+function datavizwiz_perm() {
+  return array('adminster datavizwiz');
 }
 
 function _datavizwiz_summary_table($nid, $table_name, $page_size) {
@@ -628,7 +647,9 @@ function _datavizwiz_summary_table($nid, $table_name, $page_size) {
     $output = theme_table($headers, $tablerows);
     $output .= theme('pager', NULL, 0);
   } else {
-   drupal_set_message(t('This dataset has not yet been initatilzed.  Visit the "Edit Dataset" tab to define summary fields to display below.'), 'warning');
+    if (user_access('adminster datavizwiz')) {
+      drupal_set_message(t('This dataset has not yet been initatilzed.  Visit the "Edit Dataset" tab to define summary fields to display below.'), 'warning');
+    }
   }
 
   return $output;

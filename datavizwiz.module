@@ -14,11 +14,15 @@ function theme_datavizwiz_displaydata($node) {
   $data_table_name = $node->field_dvw_datatable[0]['value'];
   $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
 
-  if (!isset($_GET['detail'])) {
-    $output = _datavizwiz_display_summary_page($node, $data_table_name, $dataset_metadata);
+  if (isset($_GET['detail'])) {
+    $output = _datavizwiz_display_detail_page($node, $data_table_name, $dataset_metadata);
+  }
+  if (isset($_GET['json_d3'])) {
+    //$output = 
+    _datavizwiz_display_json_d3($node, $data_table_name, $dataset_metadata);
   }
   else {
-    $output = _datavizwiz_display_detail_page($node, $data_table_name, $dataset_metadata);
+    $output = _datavizwiz_display_summary_page($node, $data_table_name, $dataset_metadata);
   }
 
   return $output;
@@ -90,6 +94,12 @@ function _datavizwiz_display_detail_page($node, $data_table_name, $dataset_metad
   $output .= _datavizwiz_detail_page($dataset_metadata, $data_table_name, $importerID);
 
   return $output;
+}
+
+function _datavizwiz_display_json_d3($node, $data_table_name, $dataset_metadata) {
+  $output = json_encode(array('test' => 'hi'));
+  drupal_json(array('status' => TRUE, 'data' => $output));
+  die;
 }
 
 function _datavizwiz_get_summary_panes($nid) {
@@ -485,7 +495,7 @@ function datavizwiz_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
-function datavizwiz_menu() {
+function Ndadatavizwiz_menu() {
   $items['admin/datavizwiz/edit/%'] = array(
     'title' => 'Manage Dataset',
     'page callback' => 'datavizwiz_tab_dataset',
@@ -563,6 +573,12 @@ function datavizwiz_menu() {
     'weight' => 999,
   );
 
+   $items['dvwapi/%/%'] = array(
+    'page callback' => 'datavizwiz_api',
+    'page arguments' => array(2,3),
+    'file' => 'includes/datavizwiz.api.inc',
+    'type' => MENU_CALLBACK,
+  );
 
   //TODO:  Assign permission
   return $items;

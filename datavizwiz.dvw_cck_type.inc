@@ -13,16 +13,16 @@ $content['type']  = array (
     'sticky' => false,
     'revision' => false,
   ),
-  'show_preview_changes' => true,
+  'show_preview_changes' => 1,
   'show_diff_inline' => false,
-  'enable_revisions_page' => true,
+  'enable_revisions_page' => 1,
   'old_type' => 'dvw_dataset',
   'orig_type' => '',
   'module' => 'node',
   'custom' => '1',
   'modified' => '1',
   'locked' => '0',
-  'custom_breadcrumbs_show_form_table' => 'CUSTOM_BREADCRUMBS_TYPE_SHOW_FORM_TABLE',
+  'custom_breadcrumbs_show_form_table' => 1,
 );
 $content['fields']  = array (
   0 => 
@@ -30,18 +30,15 @@ $content['fields']  = array (
     'label' => 'Data Table',
     'field_name' => 'field_dvw_datatable',
     'type' => 'text',
-    'widget_type' => 'text_textfield',
+    'widget_type' => 'optionwidgets_select',
     'change' => 'Change basic information',
     'weight' => '-2',
-    'rows' => 5,
-    'size' => '60',
     'description' => '',
     'default_value' => 
     array (
       0 => 
       array (
         'value' => '',
-        '_error_element' => 'default_value_widget][field_dvw_datatable][0][value',
       ),
     ),
     'default_value_php' => '',
@@ -52,10 +49,19 @@ $content['fields']  = array (
     'text_processing' => '0',
     'max_length' => '',
     'allowed_values' => '',
-    'allowed_values_php' => '',
+    'allowed_values_php' => 'global $db_url;
+$db_name = explode("/",$db_url);
+$dbname = $db_name[count($db_name)-1];
+$sql = db_query("SELECT table_name FROM {information_schema.tables} WHERE table_schema = \'%s\' and table_name like \'import\\_%\' ORDER BY table_name", $dbname);
+
+while ($row = db_fetch_object($sql)) {
+  $rows[$row->table_name] = $row->table_name;
+}
+
+return $rows;',
     'op' => 'Save field settings',
     'module' => 'text',
-    'widget_module' => 'text',
+    'widget_module' => 'optionwidgets',
     'columns' => 
     array (
       'value' => 

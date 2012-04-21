@@ -498,88 +498,30 @@ function datavizwiz_form_alter(&$form, &$form_state, $form_id) {
 function datavizwiz_menu() {
   $items['admin/datavizwiz/edit/%'] = array(
     'title' => 'Manage Dataset',
-    'page callback' => 'datavizwiz_tab_dataset',
+    'page callback' => 'datavizwiz_tab_manage_fields',
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_CALLBACK,
     'access callback'  => 'user_access',
     'access arguments' => array('access datavizwiz'),
     'page arguments' => array(3),
-  );
-
-  $items['admin/datavizwiz/edit/%/main'] = array(
-    'title' => 'Dataset',
-    'page callback' => 'datavizwiz_tab_dataset',
-    'access arguments' => array('access administration pages'),
-    'file' => 'includes/datavizwiz.admin.inc',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'access callback'  => 'user_access',
-    'access arguments' => array('access datavizwiz'),
-    'page arguments' => array(3),
-  );
-
-    $items['admin/datavizwiz/edit/%/summary_pane'] = array(
-    'title' => 'Summary panes',
-    'page callback' => 'datavizwiz_tab_summary_panes',
-    'page arguments' => array(3),
-    'access arguments' => array('access administration pages'),
-    'file' => 'includes/datavizwiz.admin.inc',
-    'type' => MENU_LOCAL_TASK,
-    'access callback'  => 'user_access',
-    'access arguments' => array('access datavizwiz'),
-    'weight' => 1,
   );
   
-   $items['admin/datavizwiz/edit/%/summary_pane/%/%'] = array(
-    'title' => 'Manage Dataset',
-    'page callback' => 'datavizwiz_tab_summary_pane_edit',
-    'access arguments' => array('access administration pages'),
-    'file' => 'includes/datavizwiz.admin.inc',
-    'type' => MENU_CALLBACK,
-    'access callback'  => 'user_access',
-    'access arguments' => array('access datavizwiz'),
-    'page arguments' => array(3,5,6),
-  );
-    
   $items['admin/datavizwiz/edit/%/fields'] = array(
     'title' => 'Manage fields',
     'page callback' => 'datavizwiz_tab_manage_fields',
     'page arguments' => array(3),
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
     'access callback'  => 'user_access',
     'access arguments' => array('access datavizwiz'),
-    'weight' => 5,
+    'weight' => -100,
   );
-
-  $items['admin/datavizwiz/edit/%/sort_summary'] = array(
-    'title' => 'Summary Sort',
-    'page callback' => 'datavizwiz_tab_sort_summary',
-    'page arguments' => array(3),
-    'access arguments' => array('access administration pages'),
-    'file' => 'includes/datavizwiz.admin.inc',
-    'type' => MENU_LOCAL_TASK,
-    'access callback'  => 'user_access',
-    'access arguments' => array('access datavizwiz'),
-    'weight' => 10,
-  );
-
-  $items['admin/datavizwiz/edit/%/sort_detail'] = array(
-    'title' => 'Detail Sort',
-    'page callback' => 'datavizwiz_tab_sort_detail',
-    'page arguments' => array(3),
-    'access arguments' => array('access administration pages'),
-    'file' => 'includes/datavizwiz.admin.inc',
-    'type' => MENU_LOCAL_TASK,
-    'access callback'  => 'user_access',
-    'access arguments' => array('access datavizwiz'),
-    'weight' => 20,
-  );
-
+  
   $items['node/%/dataset'] = array(
-    'title' => 'Edit Dataset',
-    'page callback' => 'datavizwiz_tab_dataset',
+    'title' => 'Manage fields',
+    'page callback' => 'datavizwiz_redirect_admin',
     'page arguments' => array(2),
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
@@ -589,7 +531,54 @@ function datavizwiz_menu() {
     'weight' => 999,
   );
 
-   $items['dvwapi/%/%'] = array(
+  $items['admin/datavizwiz/edit/%/sort_summary'] = array(
+    'title' => 'Summary sort',
+    'page callback' => 'datavizwiz_tab_sort_summary',
+    'page arguments' => array(3),
+    'access arguments' => array('access administration pages'),
+    'file' => 'includes/datavizwiz.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'access callback'  => 'user_access',
+    'access arguments' => array('access datavizwiz'),
+    'weight' => -80,
+  );
+
+  $items['admin/datavizwiz/edit/%/sort_detail'] = array(
+    'title' => 'Detail sort',
+    'page callback' => 'datavizwiz_tab_sort_detail',
+    'page arguments' => array(3),
+    'access arguments' => array('access administration pages'),
+    'file' => 'includes/datavizwiz.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'access callback'  => 'user_access',
+    'access arguments' => array('access datavizwiz'),
+    'weight' => -60,
+  );
+  
+  $items['admin/datavizwiz/edit/%/summary_pane'] = array(
+    'title' => 'Summary panes',
+    'page callback' => 'datavizwiz_tab_summary_panes',
+    'page arguments' => array(3),
+    'access arguments' => array('access administration pages'),
+    'file' => 'includes/datavizwiz.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'access callback'  => 'user_access',
+    'access arguments' => array('access datavizwiz'),
+    'weight' => -40,
+  );
+  
+  $items['admin/datavizwiz/edit/%/summary_pane/%/%'] = array(
+    'title' => 'Manage Dataset',
+    'page callback' => 'datavizwiz_tab_summary_pane_edit',
+    'access arguments' => array('access administration pages'),
+    'file' => 'includes/datavizwiz.admin.inc',
+    'type' => MENU_CALLBACK,
+    'access callback'  => 'user_access',
+    'access arguments' => array('access datavizwiz'),
+    'page arguments' => array(3,5,6),
+  );
+
+ $items['dvwapi/%/%'] = array(
     'page callback' => 'datavizwiz_api',
     'page arguments' => array(2,3),
     'file' => 'includes/datavizwiz.api.inc',

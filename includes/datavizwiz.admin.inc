@@ -14,7 +14,7 @@ define('DVW_D3_BASEMAP_US_STATES', 'US_MAP');
 
 // <editor-fold desc="Tabs">
 
-function datavizwiz_tab_dataset($nid) {
+function datavizwiz_redirect_admin($nid) {
   $path = urldecode(drupal_get_destination());
   if (substr($path, 12, 4) == 'node') {
     $bits = explode('/', $path);

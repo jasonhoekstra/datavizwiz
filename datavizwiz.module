@@ -593,39 +593,43 @@ function _datavizwiz_summary_table($nid, $table_name, $page_size) {
       ORDER BY weight_summary", $nid);
   $sql = db_query($query);
   $rows = _datavizwiz_get_rowarray($sql);
+  
+  if (count($rows) > 0) {
+    // Get headers for summary table
+    $headers = array();
+    $id_counter = 1;
+    foreach ($rows as $field) {
+      $header = array();
+      $header['data'] = $field['field_name'];
 
-  // Get headers for summary table
-  $headers = array();
-  $id_counter = 1;
-  foreach ($rows as $field) {
-    $header = array();
-    $header['data'] = $field['field_name'];
+      if ($field['sortable'] == 1) {
+        $header['field'] = $field['field_name'];
+        $header['sort'] = 'asc';
+      }
 
-    if ($field['sortable'] == 1) {
-      $header['field'] = $field['field_name'];
-      $header['sort'] = 'asc';
+      $header['id'] = 'dvwcol' . $id_counter;
+      array_push($headers, $header);
+      $id_counter++;
     }
 
-    $header['id'] = 'dvwcol' . $id_counter;
-    array_push($headers, $header);
-    $id_counter++;
+    $column_names = '';
+    // Get the column names we need
+    foreach ($headers as $header) {
+      $column_names .= $header['data'] . ',';
+    }
+
+    $column_names = substr($column_names, 0, strlen($column_names) - 1);
+    $sql = sprintf("SELECT ImporterID, %s FROM {%s}", $column_names, $table_name);
+    $sql .= tablesort_sql($headers);
+    $query = pager_query($sql, $page_size);
+
+    $tablerows = _datavizwiz_get_summaryarray($query);
+
+    $output = theme_table($headers, $tablerows);
+    $output .= theme('pager', NULL, 0);
+  } else {
+   drupal_set_message(t('This dataset has not yet been initatilzed.  Visit the "Edit Dataset" tab to define summary fields to display below.'), 'warning');
   }
-
-  $column_names = '';
-  // Get the column names we need
-  foreach ($headers as $header) {
-    $column_names .= $header['data'] . ',';
-  }
-
-  $column_names = substr($column_names, 0, strlen($column_names) - 1);
-  $sql = sprintf("SELECT ImporterID, %s FROM {%s}", $column_names, $table_name);
-  $sql .= tablesort_sql($headers);
-  $query = pager_query($sql, $page_size);
-
-  $tablerows = _datavizwiz_get_summaryarray($query);
-
-  $output = theme_table($headers, $tablerows);
-  $output .= theme('pager', NULL, 0);
 
   return $output;
 }

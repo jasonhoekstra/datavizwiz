@@ -497,7 +497,7 @@ function datavizwiz_form_alter(&$form, &$form_state, $form_id) {
 
 function datavizwiz_menu() {
   $items['admin/datavizwiz/edit/%'] = array(
-    'title' => 'Manage Dataset',
+    'title' => 'Manage dataset',
     'page callback' => 'datavizwiz_tab_manage_fields',
     'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
@@ -520,7 +520,7 @@ function datavizwiz_menu() {
   );
   
   $items['node/%/dataset'] = array(
-    'title' => 'Manage fields',
+    'title' => 'Manage dataset',
     'page callback' => 'datavizwiz_redirect_admin',
     'page arguments' => array(2),
     'access arguments' => array('access administration pages'),
@@ -576,13 +576,29 @@ function datavizwiz_menu() {
     'access callback'  => 'user_access',
     'access arguments' => array('access datavizwiz'),
     'page arguments' => array(3,5,6),
+    'weight' => -20,
   );
+  
+  $items['admin/datavizwiz/edit/%/view'] = array(
+    'title' => 'View dataset',
+    'page callback' => 'datavizwiz_redirect_view',
+    'page arguments' => array(3),
+    'access arguments' => array('access administration pages'),
+    'file' => 'includes/datavizwiz.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'access callback'  => 'user_access',
+    'access arguments' => array('access datavizwiz'),
+    'weight' => 100,
+  );
+  
 
  $items['dvwapi/%/%'] = array(
     'page callback' => 'datavizwiz_api',
-    'page arguments' => array(2,3),
+    'page arguments' => array(1,2),
     'file' => 'includes/datavizwiz.api.inc',
     'type' => MENU_CALLBACK,
+    'access callback'  => 'user_access',
+    'access arguments' => array('access datavizwiz'),
   );  //TODO:  Add custom callback to check if published or if user has admin
 
   return $items;

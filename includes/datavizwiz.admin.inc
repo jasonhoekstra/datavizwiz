@@ -22,8 +22,14 @@ function datavizwiz_redirect_admin($nid) {
       drupal_goto(sprintf('admin/datavizwiz/edit/%s', $bits[1]));
     }
   }
+}
 
-  return drupal_get_form('datavizwiz_dataset_form', $nid);
+function datavizwiz_redirect_view($nid) {
+  $path = urldecode(drupal_get_destination());
+  $bits = explode('/', substr($path, 34));
+  if (count($bits) == 2 && is_numeric($bits[0])) {
+    drupal_goto(sprintf('node/%s', $bits[0]));
+  }
 }
 
 function datavizwiz_tab_summary_panes($nid) {
@@ -47,24 +53,6 @@ function datavizwiz_tab_sort_detail($nid) {
 }
 
 // </editor-fold>
-
-function datavizwiz_dataset_form($frm, $nid) {
-
-  $node = node_load($nid);
-  $path = drupal_lookup_path('alias', '/node/' . $nid);
-  if ($path == '') {
-    $path = '/node/' . $nid;
-  }
-
-  $output = '<a href="' . $path . '">View Dataset</a><br/><br/>';
-  $output .= 'TODO:  Add content and link back to CCK type.';
-
-  $form['message'] = array(
-    '#value' => $output,
-  );
-
-  return $form;
-}
 
 // <editor-fold desc="Summary Pane">
 

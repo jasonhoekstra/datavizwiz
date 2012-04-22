@@ -77,8 +77,7 @@ function theme_datavizwiz_summarypanes($node) {
   }
   $output .= '</div>';
 
-  
-  
+  return $output;
 }
 
 function theme_datavizwiz_datafilters($node) {
@@ -87,21 +86,20 @@ function theme_datavizwiz_datafilters($node) {
 
 function theme_datavizwiz_opendatalinks($node) {
   
-  $icon_opendata = '<img src="' . drupal_get_path('module', 'datavizwiz') . '/images/opendata.png' . '"/> ';
+  // $icon_opendata = '<img src="' . drupal_get_path('module', 'datavizwiz') . '/images/opendata.png' . '"/> ';
   $icon_csv = '<img src="' . drupal_get_path('module', 'datavizwiz') . '/images/csv.png' . '"/> ';
   $icon_geojson = '<img src="' . drupal_get_path('module', 'datavizwiz') . '/images/geojson.png' . '"/> ';
   $icon_json = '<img src="' . drupal_get_path('module', 'datavizwiz') . '/images/json.png' . '"/> ';
   $icon_xml = '<img src="' . drupal_get_path('module', 'datavizwiz') . '/images/xml.png' . '"/> ';
   
   
-  return $icon_opendata . $icon_csv . $icon_geojson . $icon_json . $icon_xml;
+  return $icon_csv . $icon_geojson . $icon_json . $icon_xml;
 }
 
 function theme_datavizwiz_datatable($node) {
   $table_name = $node->field_dvw_datatable[0]['value'];
   $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
   $page_size = $node->field_dvw_pagesize[0]['value'];
-  
   
   $query = sprintf("
       SELECT field_name, display_name, sortable 

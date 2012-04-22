@@ -20,22 +20,22 @@
     <?php print $content ?>
   </div>
 
-  <div class="datadisplay">
+  <div class="dvwarea datadisplay">
     <?php //print theme('datavizwiz_datadisplay', $node); ?>
     
-    <div class="summarypanes">
+    <div class="dvwarea summarypanes">
       <?php print theme('datavizwiz_summarypanes', $node); ?>
     </div>  
 
-    <div class="datafilters">
+    <div class="dvwarea datafilters">
       <?php print theme('datavizwiz_datafilters', $node); ?>
     </div>
     
-    <div class="opendatalinks">
+    <div class="dvwarea opendatalinks">
       <?php print theme('datavizwiz_opendatalinks', $node); ?>
     </div>
     
-    <div class="datatable">
+    <div class="dvwarea datatable">
       <?php print theme('datavizwiz_datatable', $node); ?>
     </div>
   </div>

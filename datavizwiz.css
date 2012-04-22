@@ -25,7 +25,7 @@ position:relative;
 height:266px;
 font:12px Verdana, Arial, Helvetica, sans-serif;
 color:#444444;
-border:4px solid #9fb2d6;
+border:3px solid #eee;
 /* overflow:auto; */
 }
 
@@ -65,4 +65,8 @@ left:0;
   border-bottom: 1px #EFEFEF solid;
   margin: 0 0 2px 0;
   display: block;
+}
+
+.dvwarea {
+  padding-top: 12px;
 }

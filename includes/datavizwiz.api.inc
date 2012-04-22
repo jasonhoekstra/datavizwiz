@@ -51,9 +51,7 @@ function _datavizwiz_return_csv($rows) {
   drupal_set_header("Cache-Control: no-store, no-cache");
   drupal_set_header('Content-Disposition: attachment; filename="data.csv"');
   
-  foreach(array_keys($rows[0]) as $colname) {
-    $colnames[] = $colname;
-  }
+  $colnames = _datavizwiz_get_column_names($rows[0]);
 
   echo _datavizwiz_export_csv($rows, $colnames);
 }
@@ -61,14 +59,24 @@ function _datavizwiz_return_csv($rows) {
 function _datavizwiz_return_json($rows) {
   // Drupal function: drupal_json does not return valid JSON
   echo json_encode($rows);
-  //echo 'json';
 }
 
 function _datavizwiz_return_xml($rows) {
-  $xml = new SimpleXMLElement("<dataset></dataset>");
+  $colnames = _datavizwiz_get_column_names($rows[0]);
+  $xml = simplexml_load_string("<dataset></dataset>");
+
+  foreach($rows as $row) {
+    $data = $xml->addChild('data');
+    foreach($colnames as $colname) {
+      $element = $data->addChild($colname, $row[$colname]);
+    }
+  }
   
-  print_r($xml);
-  echo 'xml';
+  
+  
+  drupal_set_header("Content-Type:text/xml");
+  echo $xml->asXML();
+  //print_r($xml);
 }
 
 function _datavizwiz_export_csv($data, $col_headers = array(), $return_string = false) {
@@ -91,4 +99,12 @@ function _datavizwiz_export_csv($data, $col_headers = array(), $return_string = 
   else {
     fclose($stream);
   }
+}
+
+function _datavizwiz_get_column_names($array) {
+  foreach(array_keys($array) as $colname) {
+    $colnames[] = $colname;
+  }
+  
+  return $colnames;
 }

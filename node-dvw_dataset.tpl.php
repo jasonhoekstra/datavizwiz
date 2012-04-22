@@ -1,13 +1,7 @@
-<?php
-if (isset($_GET['json_d3'])) {
-  //drupal_set_header();
-  //echo 'true';
-  //echo $node->nid;
-  //dsm($node); 
-  //exit;
-  //ddebug_backtrace();
-  die;
-} else {
+<?php 
+  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.js');
+  drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.css');
+
 ?>
 <div id="node-<?php print $node->nid; ?>" class="datavizwiz node<?php if ($sticky) { print ' sticky'; } ?><?php if (!$status) { print ' node-unpublished'; } ?> clear-block">
 
@@ -27,7 +21,23 @@ if (isset($_GET['json_d3'])) {
   </div>
 
   <div class="datadisplay">
-    <?php print theme('datavizwiz_displaydata', $node); ?>
+    <?php //print theme('datavizwiz_datadisplay', $node); ?>
+    
+    <div class="summarypanes">
+      <?php print theme('datavizwiz_summarypanes', $node); ?>
+    </div>  
+
+    <div class="datafilters">
+      <?php print theme('datavizwiz_datafilters', $node); ?>
+    </div>
+    
+    <div class="opendatalinks">
+      <?php print theme('datavizwiz_opendatalinks', $node); ?>
+    </div>
+    
+    <div class="datatable">
+      <?php print theme('datavizwiz_datatable', $node); ?>
+    </div>
   </div>
 
   <?php print $links; ?>
@@ -38,4 +48,3 @@ if (isset($_GET['json_d3'])) {
   <?php endif; ?>
 
 </div>
-<?php } ?>

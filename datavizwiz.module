@@ -9,17 +9,13 @@ define('DVW_TYPE_PIE_FLOT', 'PIE_FLOT');
 define('DVW_TYPE_BAR_FLOT', 'BAR_FLOT');
 define('DVW_TYPE_HTML', 'HTML');
 
-function theme_datavizwiz_displaydata($node) {
+function theme_datavizwiz_datadisplay($node) {
 
   $data_table_name = $node->field_dvw_datatable[0]['value'];
   $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
 
   if (isset($_GET['detail'])) {
     $output = _datavizwiz_display_detail_page($node, $data_table_name, $dataset_metadata);
-  }
-  if (isset($_GET['json_d3'])) {
-    //$output = 
-    _datavizwiz_display_json_d3($node, $data_table_name, $dataset_metadata);
   }
   else {
     $output = _datavizwiz_display_summary_page($node, $data_table_name, $dataset_metadata);
@@ -28,11 +24,8 @@ function theme_datavizwiz_displaydata($node) {
   return $output;
 }
 
-function _datavizwiz_display_summary_page($node, $data_table_name, $dataset_metadata) {
-  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.js');
-  drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.css');
-
-  $summary_panes = _datavizwiz_get_summary_panes($node->nid);
+function theme_datavizwiz_summarypanes($node) {
+    $summary_panes = _datavizwiz_get_summary_panes($node->nid);
 
   if (count($summary_panes) > 0) {
 // First, display the tabs.
@@ -84,7 +77,79 @@ function _datavizwiz_display_summary_page($node, $data_table_name, $dataset_meta
   }
   $output .= '</div>';
 
-  $output .= _datavizwiz_summary_table($node->nid, $data_table_name, $node->field_dvw_pagesize[0]['value']);
+  
+  
+}
+
+function theme_datavizwiz_datafilters($node) {
+  
+}
+
+function theme_datavizwiz_opendatalinks($node) {
+  
+  $icon_opendata = '<img src="' . drupal_get_path('module', 'datavizwiz') . '/images/opendata.png' . '"/> ';
+  $icon_csv = '<img src="' . drupal_get_path('module', 'datavizwiz') . '/images/csv.png' . '"/> ';
+  $icon_geojson = '<img src="' . drupal_get_path('module', 'datavizwiz') . '/images/geojson.png' . '"/> ';
+  $icon_json = '<img src="' . drupal_get_path('module', 'datavizwiz') . '/images/json.png' . '"/> ';
+  $icon_xml = '<img src="' . drupal_get_path('module', 'datavizwiz') . '/images/xml.png' . '"/> ';
+  
+  
+  return $icon_opendata . $icon_csv . $icon_geojson . $icon_json . $icon_xml;
+}
+
+function theme_datavizwiz_datatable($node) {
+  $table_name = $node->field_dvw_datatable[0]['value'];
+  $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
+  $page_size = $node->field_dvw_pagesize[0]['value'];
+  
+  
+  $query = sprintf("
+      SELECT field_name, display_name, sortable 
+      FROM {dvw_field_meta} 
+      WHERE nid=%s AND visible_summary=1 
+      ORDER BY weight_summary", $node->nid);
+  $sql = db_query($query);
+  $rows = _datavizwiz_get_rowarray($sql);
+  
+  if (count($rows) > 0) {
+    // Get headers for summary table
+    $headers = array();
+    $id_counter = 1;
+    foreach ($rows as $field) {
+      $header = array();
+      $header['data'] = $field['field_name'];
+
+      if ($field['sortable'] == 1) {
+        $header['field'] = $field['field_name'];
+        $header['sort'] = 'asc';
+      }
+
+      $header['id'] = 'dvwcol' . $id_counter;
+      array_push($headers, $header);
+      $id_counter++;
+    }
+
+    $column_names = '';
+    // Get the column names we need
+    foreach ($headers as $header) {
+      $column_names .= $header['data'] . ',';
+    }
+
+    $column_names = substr($column_names, 0, strlen($column_names) - 1);
+    $sql = sprintf("SELECT ImporterID,%s FROM {%s}", $column_names, $table_name);
+    $sql .= tablesort_sql($headers);
+    $query = pager_query($sql, $page_size);
+
+    $tablerows = _datavizwiz_get_summaryarray($query);
+
+    $output = theme_table($headers, $tablerows);
+    $output .= theme('pager', NULL, 0);
+  } else {
+    if (user_access('adminster datavizwiz')) {
+      drupal_set_message(t('This dataset has not yet been initatilzed.  Visit the "Edit Dataset" tab to define summary fields to display below.'), 'warning');
+    }
+  }
+
   return $output;
 }
 
@@ -94,12 +159,6 @@ function _datavizwiz_display_detail_page($node, $data_table_name, $dataset_metad
   $output .= _datavizwiz_detail_page($dataset_metadata, $data_table_name, $importerID);
 
   return $output;
-}
-
-function _datavizwiz_display_json_d3($node, $data_table_name, $dataset_metadata) {
-  $output = json_encode(array('test' => 'hi'));
-  drupal_json(array('status' => TRUE, 'data' => $output));
-  die;
 }
 
 function _datavizwiz_get_summary_panes($nid) {
@@ -358,7 +417,6 @@ function _datavizwiz_pane_html($node, $index, $options) {
   return $options;
 }
 
-
 function datavizwiz_theme_registry_alter(&$theme_registry) {
   // Remove the first path under 'node' which is the one for the
   // module that created the template
@@ -374,9 +432,21 @@ function datavizwiz_theme_registry_alter(&$theme_registry) {
 
 function datavizwiz_theme() {
   return array(
-    'datavizwiz_displaydata' => array(
+    /* 'datavizwiz_datadisplay' => array(
       'arguments' => array('node' => NULL),
-    ),
+    ), */
+    'datavizwiz_summarypanes' => array(
+      'arguments' => array('node' => NULL),
+    ), 
+    'datavizwiz_datafilters' => array(
+      'arguments' => array('node' => NULL),
+    ), 
+    'datavizwiz_opendatalinks' => array(
+      'arguments' => array('node' => NULL),
+    ), 
+    'datavizwiz_datatable' => array(
+      'arguments' => array('node' => NULL),
+    ),    
     'datavizwiz_fields_form' => array(
       'arguments' => array('form' => NULL),
     ),
@@ -610,54 +680,6 @@ function datavizwiz_perm() {
 
 function _datavizwiz_summary_table($nid, $table_name, $page_size) {
 
-  $query = sprintf("
-      SELECT field_name, display_name, sortable 
-      FROM {dvw_field_meta} 
-      WHERE nid=%s AND visible_summary=1 
-      ORDER BY weight_summary", $nid);
-  $sql = db_query($query);
-  $rows = _datavizwiz_get_rowarray($sql);
-  
-  if (count($rows) > 0) {
-    // Get headers for summary table
-    $headers = array();
-    $id_counter = 1;
-    foreach ($rows as $field) {
-      $header = array();
-      $header['data'] = $field['field_name'];
-
-      if ($field['sortable'] == 1) {
-        $header['field'] = $field['field_name'];
-        $header['sort'] = 'asc';
-      }
-
-      $header['id'] = 'dvwcol' . $id_counter;
-      array_push($headers, $header);
-      $id_counter++;
-    }
-
-    $column_names = '';
-    // Get the column names we need
-    foreach ($headers as $header) {
-      $column_names .= $header['data'] . ',';
-    }
-
-    $column_names = substr($column_names, 0, strlen($column_names) - 1);
-    $sql = sprintf("SELECT ImporterID, %s FROM {%s}", $column_names, $table_name);
-    $sql .= tablesort_sql($headers);
-    $query = pager_query($sql, $page_size);
-
-    $tablerows = _datavizwiz_get_summaryarray($query);
-
-    $output = theme_table($headers, $tablerows);
-    $output .= theme('pager', NULL, 0);
-  } else {
-    if (user_access('adminster datavizwiz')) {
-      drupal_set_message(t('This dataset has not yet been initatilzed.  Visit the "Edit Dataset" tab to define summary fields to display below.'), 'warning');
-    }
-  }
-
-  return $output;
 }
 
 function _datavizwiz_detail_page($metadata, $table_name, $importerID) {

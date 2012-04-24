@@ -1,22 +1,5 @@
 <?php
 
-define('DVW_SORT_SUMMARY', 0);
-define('DVW_SORT_DETAIL', 1);
-
-define('DVW_TYPE_MAP_LEAFLET', 'MAP_LEAFLET');
-define('DVW_TYPE_MAP_D3', 'MAP_D3');
-define('DVW_TYPE_PIE_FLOT', 'PIE_FLOT');
-define('DVW_TYPE_BAR_FLOT', 'BAR_FLOT');
-define('DVW_TYPE_HTML', 'HTML');
-
-define('DVW_D3_BASEMAP_US_STATES', 'US_MAP');
-
-define('DVW_FLAG_LATITUDE', 'LAT');
-define('DVW_FLAG_LONGITUDE', 'LON');
-define('DVW_FLAG_NONE', '');
-
-
-
 // <editor-fold desc="Tabs">
 
 function datavizwiz_redirect_admin($nid) {

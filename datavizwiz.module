@@ -9,6 +9,22 @@ define('DVW_TYPE_PIE_FLOT', 'PIE_FLOT');
 define('DVW_TYPE_BAR_FLOT', 'BAR_FLOT');
 define('DVW_TYPE_HTML', 'HTML');
 
+define('DVW_SORT_SUMMARY', 0);
+define('DVW_SORT_DETAIL', 1);
+
+define('DVW_TYPE_MAP_LEAFLET', 'MAP_LEAFLET');
+define('DVW_TYPE_MAP_D3', 'MAP_D3');
+define('DVW_TYPE_PIE_FLOT', 'PIE_FLOT');
+define('DVW_TYPE_BAR_FLOT', 'BAR_FLOT');
+define('DVW_TYPE_HTML', 'HTML');
+
+define('DVW_D3_BASEMAP_US_STATES', 'US_MAP');
+
+define('DVW_FLAG_LATITUDE', 'LAT');
+define('DVW_FLAG_LONGITUDE', 'LON');
+define('DVW_FLAG_NONE', '');
+
+
 function theme_datavizwiz_datadisplay($node) {
 
   $data_table_name = $node->field_dvw_datatable[0]['value'];
@@ -213,7 +229,6 @@ function _datavizwiz_pane_map_leaflet($node, $index, $options) {
 
 var geojsonLayer = new L.GeoJSON();
 map.addLayer(geojsonLayer);
-alert('load the actual points, detect lat/lon from db.');
 
 $.ajax({ url: 'http://localhost:8080/dvwapi/".$node->nid."/geojson', success: handleGeoJSON, dataType: 'json' });
 
@@ -222,13 +237,7 @@ function handleGeoJSON(data) {
     geojsonLayer.addGeoJSON(data);
 
 }
-
-
-
       });
-      
-
-
 ";
 
     
@@ -822,6 +831,14 @@ function _datavizwiz_get_columns_in_table($table_name) {
   return _datavizwiz_get_rowarray($sql);
 }
 
+function _datavizwiz_get_latlon_cols($nid) {
+  $query = db_query("SELECT fid, field_name, flag
+    FROM {dvw_field_meta} 
+    WHERE nid=%s AND (flag='%s' OR flag='%s')"
+    , $nid, DVW_FLAG_LATITUDE, DVW_FLAG_LONGITUDE);
+  return _datavizwiz_get_rowarray($query);
+}
+
 function _datavizwiz_get_import_tables() {
   $dbname = _datavizwiz_get_database_name();
     
@@ -835,7 +852,6 @@ function _datavizwiz_get_import_tables() {
 
 function _datavizwiz_get_rowarray($dbquery) {
   $rows = array();
-
   while ($row = db_fetch_array($dbquery)) {
     array_push($rows, $row);
   }

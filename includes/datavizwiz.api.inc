@@ -8,10 +8,11 @@ function datavizwiz_api($nid, $operation) {
       _datavizwiz_return_csv($rows);
       break;
     case 'geojson':
-      _datavizwiz_return_geojson($rows);
+      //echo 'test';
+      $latloncols = _datavizwiz_get_latlon_cols($nid);
+      _datavizwiz_return_geojson($rows, $latloncols);
       break;
     case 'json':
-      //$latlon_array = _datavizwiz_get_latlon_columns($nid);
       _datavizwiz_return_json($rows);
       break;
     case 'xml':
@@ -58,34 +59,50 @@ function _datavizwiz_return_csv($rows) {
   echo _datavizwiz_export_csv($rows, $colnames);
 }
 
-function _datavizwiz_return_geojson($rows) {
+function _datavizwiz_return_geojson($rows, $latloncols) {
   drupal_set_header("Content-type: application/json");
   drupal_set_header("Cache-Control: no-store, no-cache");
   
-  foreach($rows as $row) {
-    $x = (mt_rand(0, 1000) * .100) + 30;
-    $y = (mt_rand(0,1000) * .100) + 50;
-    $y = $y * -1;
-  
-    $feature = new stdClass();
-    $feature->type = 'Feature';
+  if (count($latloncols) != 2) {
+    $return = "Latitude and longitude is not defined for this data set.";
+  } else {
+    $latcol = '';
+    $loncol = '';
     
-    $geometry = new stdClass();
-    $geometry->type = 'Point';
-    $geometry->coordinates = array($y, $x); // sprintf('[%s, %s]', $y, $x);
-    $feature->geometry = $geometry;
+    foreach($latloncols as $col) {
+      if ($col['flag'] == DVW_FLAG_LATITUDE) {
+        $latcol = $col['field_name'];
+      }
+      if ($col['flag'] == DVW_FLAG_LONGITUDE) {
+        $loncol = $col['field_name'];
+      }
+    }
+    
+    if ($latcol == '' || $loncol == '') {
+      $return = "Latitude and longitude is not defined for this data set.";
+    } else {
+      foreach($rows as $row) {
+        $feature = new stdClass();
+        $feature->type = 'Feature';
 
-    $feature->id = $row['ImporterID'];
-    $properties = new stdClass();
-    $properties->popupContent = 'Test';
-    $feature->properties = $properties;
-    
-    $geojson[] = $feature;
+        $geometry = new stdClass();
+        $geometry->type = 'Point';
+        $geometry->coordinates = array($row[$loncol], $row[$latcol]); // sprintf('[%s, %s]', $y, $x);
+        $feature->geometry = $geometry;
+
+        $feature->id = $row['ImporterID'];
+        $properties = new stdClass();
+        $properties->popupContent = 'Test';
+        $feature->properties = $properties;
+
+        $geojson[] = $feature;
+      }
+
+      $return = new stdClass();
+      $return->type = 'FeatureCollection';
+      $return->features = $geojson;
+    }
   }
-  
-  $return = new stdClass();
-  $return->type = 'FeatureCollection';
-  $return->features = $geojson;
   
   echo json_encode($return);
   

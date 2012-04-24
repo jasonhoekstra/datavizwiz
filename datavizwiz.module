@@ -186,6 +186,7 @@ function _datavizwiz_get_summary_panes($nid) {
 
 function _datavizwiz_pane_map_leaflet($node, $index, $options) {
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/leaflet.js');
+  //drupal_add_js('http://code.leafletjs.com/leaflet-0.3.1/leaflet.js');
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/lf_screen.css');
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/leaflet.css');  
 
@@ -210,25 +211,45 @@ function _datavizwiz_pane_map_leaflet($node, $index, $options) {
       //fcc = new L.TileLayer('http://a.tiles.mapbox.com/v3/fcc.nbm-wired-speed/{z}/{x}/{y}.png', {maxZoom: 18});
       //map.addLayer(fcc);
 
+var geojsonLayer = new L.GeoJSON();
+map.addLayer(geojsonLayer);
+
+$.ajax({ url: 'http://localhost:8080/dvwapi/24818/geojson', success: handleGeoJSON, dataType: 'json' });
+
+function handleGeoJSON(data) {
+    console.log(data);
+    geojsonLayer.addGeoJSON(data);
+
+}
+
+
+
+      });
+      
+
+
 ";
 
+    
+       //$script .= '';
+    
   $tablename = $node->field_dvw_datatable[0]['value'];
   $lat = $opts->latitude;
   $lon = $opts->longitude;
     
 
-  $sql = sprintf('SELECT %s, %s FROM %s', $lat, $lon, $tablename);
-  $result = db_query($sql);
+  //$sql = sprintf('SELECT %s, %s FROM %s', $lat, $lon, $tablename);
+  //$result = db_query($sql);
   
-  while ($row = db_fetch_array($result)) {
+  /* while ($row = db_fetch_array($result)) {
     $script .= sprintf('marker = new L.CircleMarker(new L.LatLng( %s, %s));', $row[$lat], $row[$lon]);
     $script .= 'marker.setRadius(5);';
     $script .= 'map.addLayer(marker);';
     //$script .= sprintf('marker.bindPopup("<b>%s</b><br/>%s, %s");', $row['Applicant'], $row['City'], $row['State']);
-  }
+  } */
     
     
-   $script .= '});';
+
     
   drupal_add_js($script, 'inline');
   

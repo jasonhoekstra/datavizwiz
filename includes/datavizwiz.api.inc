@@ -60,71 +60,23 @@ function _datavizwiz_return_csv($rows) {
 }
 
 function _datavizwiz_return_geojson($rows) {
-  /* { "features": [
-    { "id": "point_example",
-      "title": "Point Example",
-      "point": [[0.0, 0.0, 0.0]],
-      "srs": "EPSG:4326"
-    }
-    { "id": "linestring_example",
-      "title": "LineString Example",
-      "linestring": [[0.0, 0.0, 0.0] [1.0, 1.0, 0.0]],
-      "srs": "EPSG:4326"
-    }
-    { "id": "polygon_example",
-      "title": "Polygon Example",
-      "polygon": [[[0.0, 0.0, 0.0] [1.0, 0.0, 0.0] [1.0, 1.0, 0.0] [0.0, 1.0, 0.0] [0.0, 0.0, 0.0]]],
-      "srs": "EPSG:4326"
-    }
-  ]
-} */
-  
-  /* { "type": "Feature",
-      "geometry": {"type": "Point", "coordinates": [102.0, 0.5]},
-      "properties": {"prop0": "value0"}
-      }, */
-  
-  /* "geometry": {
-                "type": "Point",
-                "coordinates": [
-                    -104.9963919,
-                    39.7444271
-                ]
-            },
-            "type": "Feature",
-            "properties": {
-                "popupContent": "This is a B-Cycle Station. Come pick up a bike and pay by the hour. What a deal!"
-            },
-            "id": 54
-        },
-        {
-            "geometry": {
-                "type": "Point",
-                "coordinates": [
-                    -104.9960754,
-                    39.7498956
-                ]
-            },
-            "type": "Feature",
-            "properties": {
-                "popupContent": "This is a B-Cycle Station. Come pick up a bike and pay by the hour. What a deal!"
-            },
-            "id": 55  */
-
-  
+  drupal_set_header("Content-type: application/json");
+  drupal_set_header("Cache-Control: no-store, no-cache");
   
   foreach($rows as $row) {
     $x = (mt_rand(0, 1000) * .100) + 30;
     $y = (mt_rand(0,1000) * .100) + 50;
     $y = $y * -1;
   
-    $geometry = new stdClass();
-    $geometry->coordinates = sprintf('[%s, %s]', $y, $x);
-    $geometry->type = 'Point';
     $feature = new stdClass();
-    $feature->id = $row['ImporterID'];
-    $feature->geometry = $geometry;
     $feature->type = 'Feature';
+    
+    $geometry = new stdClass();
+    $geometry->type = 'Point';
+    $geometry->coordinates = array($y, $x); // sprintf('[%s, %s]', $y, $x);
+    $feature->geometry = $geometry;
+
+    $feature->id = $row['ImporterID'];
     $properties = new stdClass();
     $properties->popupContent = 'Test';
     $feature->properties = $properties;

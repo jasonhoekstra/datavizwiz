@@ -11,6 +11,11 @@ define('DVW_TYPE_HTML', 'HTML');
 
 define('DVW_D3_BASEMAP_US_STATES', 'US_MAP');
 
+define('DVW_FLAG_LATITUDE', 'LAT');
+define('DVW_FLAG_LONGITUDE', 'LON');
+define('DVW_FLAG_NONE', '');
+
+
 
 // <editor-fold desc="Tabs">
 
@@ -353,7 +358,7 @@ function datavizwiz_summary_pane_edit_form_submit(&$form, &$form_state) {
 // <editor-fold desc="Manage Fields">
 
 function datavizwiz_fields_form($frm, $nid) {
-  $headers = array('Field', 'Display', 'Sortable', 'Visible Summary', 'Visible Detail', 'Visible Data');
+  $headers = array('Field', 'Display', 'Sortable', 'Visible Summary', 'Visible Detail', 'Visible Data', 'Flag');
   $tablerows = _datavizwiz_get_dataset_metadata($nid, array('*'));
 
   $headerrows = array();
@@ -390,6 +395,16 @@ function datavizwiz_fields_form($frm, $nid) {
               '#default_value' => $checked,
             );
             break;
+          case 'flag' :
+            $form[$tablerow['fid']]['select-' . $tablerow['fid'] . '-' . $headerrow] = array(
+              '#type' => 'select',
+              '#options' => array(DVW_FLAG_NONE => '', 
+                DVW_FLAG_LATITUDE => 'lat', 
+                DVW_FLAG_LONGITUDE => 'lon',
+                ),
+              '#default_value' => $value,
+            );
+            break;
           default :
             $form[$tablerow['fid']][$tablerow['fid'] . '-' . $headerrow] = array(
               '#value' => $value,
@@ -422,6 +437,7 @@ function theme_datavizwiz_fields_form($form) {
       $row[] = array('data' => drupal_render($form[$key]['check-' . $key . '-visible_summary']));
       $row[] = array('data' => drupal_render($form[$key]['check-' . $key . '-visible_detail']));
       $row[] = array('data' => drupal_render($form[$key]['check-' . $key . '-visible_data']));
+      $row[] = array('data' => drupal_render($form[$key]['select-' . $key . '-flag']));      
 
       $rows[] = $row;
     }
@@ -435,7 +451,7 @@ function theme_datavizwiz_fields_form($form) {
   $header[] = t('Discount');
   $header[] = t('Created on');
 
-  $headers = array('Field', 'Display', 'Sortable', 'Include Summary', 'Include Detail', 'Include Data');
+  $headers = array('Field', 'Display', 'Sortable', 'Include Summary', 'Include Detail', 'Include Data', 'Flag');
 
   $output = theme('table', $headers, $rows);
   $output .= drupal_render($form);
@@ -452,6 +468,13 @@ function datavizwiz_fields_form_submit($form, &$form_state) {
       $row = array('fid' => $fid, $field => $form_value);
       drupal_write_record('dvw_field_meta', $row, 'fid');
     }
+    if (substr($form_key, 0, 7) == 'select-') {
+      $second_dash = strpos($form_key, '-', 7);
+      $fid = substr($form_key, 7, $second_dash - 7);
+      $field = substr($form_key, $second_dash + 1, strlen($form_key) - $second_dash - 1);
+      $row = array('fid' => $fid, $field => $form_value);
+      drupal_write_record('dvw_field_meta', $row, 'fid');
+    }  
   }
   drupal_set_message(t('Dataset fields updated.'));
 }

@@ -213,8 +213,9 @@ function _datavizwiz_pane_map_leaflet($node, $index, $options) {
 
 var geojsonLayer = new L.GeoJSON();
 map.addLayer(geojsonLayer);
+alert('load the actual points, detect lat/lon from db.');
 
-$.ajax({ url: 'http://localhost:8080/dvwapi/24818/geojson', success: handleGeoJSON, dataType: 'json' });
+$.ajax({ url: 'http://localhost:8080/dvwapi/".$node->nid."/geojson', success: handleGeoJSON, dataType: 'json' });
 
 function handleGeoJSON(data) {
     console.log(data);

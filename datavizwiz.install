@@ -99,6 +99,13 @@ function datavizwiz_schema() {
         'default' => 0,
         'description' => 'Weight in detail listing',
       ),
+     'flag' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'Special flag (lat, lon, etc) for the field.',
+      ),
     ),
     'indexes' => array(
       'nid'    => array('nid'),

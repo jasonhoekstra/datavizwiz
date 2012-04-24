@@ -1,12 +1,6 @@
 <?php
 
 function datavizwiz_api($nid, $operation) {
-
-  $object = new stdClass();
-  $object->id = 1;
-  $object->type = "object";
-  $object->description = "sample object";
-
   $rows = _datavizwiz_get_data_array($nid);
 
   switch (strtolower($operation)) {
@@ -17,6 +11,7 @@ function datavizwiz_api($nid, $operation) {
       _datavizwiz_return_geojson($rows);
       break;
     case 'json':
+      //$latlon_array = _datavizwiz_get_latlon_columns($nid);
       _datavizwiz_return_json($rows);
       break;
     case 'xml':
@@ -47,6 +42,10 @@ function _datavizwiz_get_data_array($nid) {
   }
 
   return $rows;
+}
+
+function _datavizwiz_get_latlon_columns($nid) {
+  
 }
 
 function _datavizwiz_return_csv($rows) {

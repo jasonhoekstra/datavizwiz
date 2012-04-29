@@ -8,12 +8,15 @@ function datavizwiz_api($nid, $operation) {
       _datavizwiz_return_csv($rows);
       break;
     case 'geojson':
-      //echo 'test';
       $latloncols = _datavizwiz_get_latlon_cols($nid);
       _datavizwiz_return_geojson($rows, $latloncols);
       break;
     case 'json':
       _datavizwiz_return_json($rows);
+      break;
+    case 'd3json':
+      echo 
+      _datavizwiz_return_d3_json($rows);
       break;
     case 'xml':
       _datavizwiz_return_xml($rows);
@@ -132,7 +135,10 @@ function _datavizwiz_return_xml($rows) {
 }
 
 function _datavizwiz_return_d3_json($rows) {
-  return "d3_json";
+  
+  echo '{"01":18.9,"02":11,"04":17.6,"05":18.7,"06":15.8,"08":13.2,"09":10.1,"10":11.9,"11":18.8,"12":16.5,"13":18,"15":11.1,"16":15.8,"17":13.8,"18":15.3,"19":12.5,"20":13.5,"21":18.9,"22":18.8,"23":13.1,"24":9.9,"25":11.4,"26":16.7,"27":11.5,"28":22.4,"29":15.3,"30":15.2,"31":12.6,"32":14.8,"33":8.6,"34":10.2,"35":19.8,"36":15,"37":17.4,"38":12.5,"39":15.8,"40":16.8,"41":15.8,"42":13.4,"44":14.1,"45":18.1,"46":14.6,"47":17.8,"48":17.9,"49":13.3,"50":12.4,"51":11.1,"53":13.5,"54":18.2,"55":13.2,"56":11.4}';
+  
+  //return "d3_json";
 }
 
 function _datavizwiz_export_csv($data, $col_headers = array(), $return_string = false) {

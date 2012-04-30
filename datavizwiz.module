@@ -103,10 +103,10 @@ function theme_datavizwiz_datafilters($node) {
 function theme_datavizwiz_opendatalinks($node) {
   
   // $icon_opendata = '<img src="' . drupal_get_path('module', 'datavizwiz') . '/images/opendata.png' . '"/> ';
-  $icon_csv = '<img border="0" src="' . drupal_get_path('module', 'datavizwiz') . '/images/csv.png' . '"/> ';
-  $icon_geojson = '<img border="0" src="' . drupal_get_path('module', 'datavizwiz') . '/images/geojson.png' . '"/> ';
-  $icon_json = '<img border="0" src="' . drupal_get_path('module', 'datavizwiz') . '/images/json.png' . '"/> ';
-  $icon_xml = '<img border="0" src="' . drupal_get_path('module', 'datavizwiz') . '/images/xml.png' . '"/> ';
+  $icon_csv = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/csv.png' . '"/> ';
+  $icon_geojson = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/geojson.png' . '"/> ';
+  $icon_json = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/json.png' . '"/> ';
+  $icon_xml = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/xml.png' . '"/> ';
   
   $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'csv');
   $icon_csv = $link . $icon_csv . "</a>";

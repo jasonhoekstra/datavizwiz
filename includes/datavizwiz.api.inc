@@ -90,7 +90,7 @@ function _datavizwiz_return_geojson($rows, $latloncols) {
 
         $geometry = new stdClass();
         $geometry->type = 'Point';
-        $geometry->coordinates = array($row[$loncol], $row[$latcol]); // sprintf('[%s, %s]', $y, $x);
+        $geometry->coordinates = array((float) $row[$loncol], (float) $row[$latcol]);
         $feature->geometry = $geometry;
 
         $feature->id = $row['ImporterID'];

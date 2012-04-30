@@ -106,7 +106,7 @@ function datavizwiz_summary_panes_form($frm, $nid) {
           DVW_TYPE_HTML => t('Freeform - HTML Block'),
           DVW_TYPE_PIE_FLOT => t('Graph - Flot Pie'),
           DVW_TYPE_BAR_FLOT=> t('Graph - Flot Bar'),
-          DVW_TYPE_MAP_LEAFLET => t('Map - Leaflet'),
+          DVW_TYPE_MAP_OPENLAYERS => t('Map - OpenLayers'),
           DVW_TYPE_MAP_D3 => t('Map - D3'),
           ),
         '#attributes' => array('onchange' => 'submit_edit_form(this.selectedIndex)')
@@ -191,9 +191,9 @@ function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
       $form['pane_name'] = array('#type' => 'textfield',
         '#title' => t('Pane Name'));
       switch (arg(6)) {
-        case DVW_TYPE_MAP_LEAFLET:
-          drupal_set_title('Add Pane - Leaflet Map');
-          $form = _datavizwiz_summary_pane_edit_map_leaflet_form($form, $node);
+        case DVW_TYPE_MAP_OPENLAYERS:
+          drupal_set_title('Add Pane - OpenLayers Map');
+          $form = _datavizwiz_summary_pane_edit_map_openlayers_form($form, $node);
           break;
         case DVW_TYPE_MAP_D3:
           drupal_set_title('Add Pane - D3 Map');
@@ -229,21 +229,12 @@ function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
   return $form;
 }
 
-function _datavizwiz_summary_pane_edit_map_leaflet_form(&$form, $node) {
+function _datavizwiz_summary_pane_edit_map_openlayers_form(&$form, $node) {
   $field_array = _datavizwiz_get_field_array($node->field_dvw_datatable[0]['value']);
   
   $form['type'] = array('#type' => 'hidden',
-    '#value' => DVW_TYPE_MAP_LEAFLET);
+    '#value' => DVW_TYPE_MAP_OPENLAYERS);
   
-  $form['latitude'] = array('#type' => 'select',
-    '#title' => t('Latitude field'),
-    '#options' => $field_array,
-          );
-  
-  $form['longitude'] = array('#type' => 'select',
-    '#title' => t('Longitude field'),
-    '#options' => $field_array,
-          );
   return $form;
 }
 
@@ -315,10 +306,7 @@ function datavizwiz_summary_pane_edit_form_submit(&$form, &$form_state) {
       $record->type = $pane_type;
 
       switch ($pane_type) {
-        case DVW_TYPE_MAP_LEAFLET:
-          $options = array('latitude' => $form_state['values']['latitude'],
-            'longitude' => $form_state['values']['longitude']);
-          $record->options = json_encode($options);
+        case DVW_TYPE_MAP_OPENLAYERS:
           break;
         case DVW_TYPE_MAP_D3:
           $options = array('keyfield' => $form_state['values']['keyfield'],
@@ -576,8 +564,8 @@ function datavizwiz_sort_form_submit($form, &$form_state) {
 
 function _datavizwiz_get_pane_type_name($pane_type) {
   switch ($pane_type) {
-    case DVW_TYPE_MAP_LEAFLET:
-      return 'Leaflet Map';
+    case DVW_TYPE_MAP_OPENLAYERS:
+      return 'OpenLayers Map';
       break;
     case DVW_TYPE_MAP_D3:
       return 'D3 Map';

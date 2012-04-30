@@ -579,6 +579,9 @@ function _datavizwiz_get_pane_type_name($pane_type) {
     case DVW_TYPE_MAP_LEAFLET:
       return 'Leaflet Map';
       break;
+    case DVW_TYPE_MAP_D3:
+      return 'D3 Map';
+      break;
     case DVW_TYPE_PIE_FLOT:
       return 'Pie Chart (Flot)';
       break;

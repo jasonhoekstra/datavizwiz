@@ -68,7 +68,8 @@ function theme_datavizwiz_summarypanes($node) {
     foreach ($summary_panes as $pane) {
       switch ($pane['type']) {
         case DVW_TYPE_MAP_LEAFLET:
-          $content = _datavizwiz_pane_map_leaflet($node, $index, $pane['options']);
+          //$content = _datavizwiz_pane_map_leaflet($node, $index, $pane['options']);
+          $content = _datavizwiz_pane_map_openlayers($node, $index, $pane['options']);
           break;
         case DVW_TYPE_MAP_D3:
           $content = _datavizwiz_pane_map_d3($node, $index, $pane['options']);
@@ -194,22 +195,20 @@ function _datavizwiz_display_detail_page($node, $data_table_name, $dataset_metad
 }
 
 function _datavizwiz_get_summary_panes($nid) {
-  $query = sprintf("
-      SELECT type, name, options 
-      FROM {dvw_summary_views} 
-      WHERE nid=%s 
-      ORDER BY pane_order", $nid);
-  $sql = db_query($query);
+  $query = "SELECT type, name, options FROM {dvw_summary_views} 
+      WHERE nid=%s ORDER BY pane_order";
+  $sql = db_query($query, $nid);
   $rows = _datavizwiz_get_rowarray($sql);
   return $rows;
 }
 
 function _datavizwiz_pane_map_leaflet($node, $index, $options) {
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/leaflet.js');
+  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/leafclusterer.js');
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/lf_screen.css');
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/leaflet.css');  
 
-  $pane_id = 'dvwmap' . $pane;
+  $pane_id = 'dvwmap' . $index;
   $opts = json_decode($options);
   
    $output .= '<div id="' . $pane_id . '" style="width: 100%; height: 400px"></div>';
@@ -245,6 +244,89 @@ function _datavizwiz_pane_map_leaflet($node, $index, $options) {
      }
   });
 ";
+    
+  $tablename = $node->field_dvw_datatable[0]['value'];
+  $lat = $opts->latitude;
+  $lon = $opts->longitude;
+    
+  drupal_add_js($script, 'inline');
+  
+  
+  return $output;
+}
+
+function _datavizwiz_pane_map_openlayers($node, $index, $options) {
+  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.js');
+    drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/theme/default/style.css');
+
+  $pane_id = 'dvwmap' . $index;
+  $opts = json_decode($options);
+  
+   $output .= '<div id="' . $pane_id . '" style="width: 100%; height: 400px"></div>';
+   $script = '$(function() { var streets = new OpenLayers.Layer.XYZ(
+    "MapBox Streets",
+    [
+        "http://a.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
+        "http://b.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
+        "http://c.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
+        "http://d.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png"
+    ], {
+        sphericalMercator: true,
+        wrapDateLine: true,
+        transitionEffect: "resize",
+        buffer: 1,
+        numZoomLevels: 17
+    }
+  );
+
+  var map = new OpenLayers.Map({
+      div: "' . $pane_id . '",
+      layers: [streets],
+      center: [-98.35, 39.50],
+      projection: "EPSG:4326",
+      zoom: 4,
+      controls: [
+          new OpenLayers.Control.Navigation({
+              dragPanOptions: {
+                  enableKinetic: true
+              }
+          }),
+          new OpenLayers.Control.Attribution(),
+          new OpenLayers.Control.Zoom()
+      ]
+  });
+
+map.setCenter(
+    new OpenLayers.LonLat(-98.35, 39.50).transform(
+        new OpenLayers.Projection("EPSG:4326"),
+        map.getProjectionObject()
+    ), 4
+);
+
+  $.ajax({ url: "/dvwapi/'.$node->nid.'/geojson", success: handleGeoJSON, dataType: "json" });
+
+      function handleGeoJSON(geodata) {
+        console.log(geodata);
+        baseProjection = map.projection; 
+        wgs84 = new OpenLayers.Projection("EPSG:4326");
+                diff = new OpenLayers.Projection("EPSG:900913");
+        var geojson_format = new OpenLayers.Format.GeoJSON({
+    "externalProjection": wgs84,
+    "internalProjection": diff
+  });
+        var vector_layer = new OpenLayers.Layer.Vector("Locations", {
+          projection: "EPSG:4326",
+          strategies: [
+            new OpenLayers.Strategy.Cluster()
+          ]
+         }
+        ); 
+        map.addLayer(vector_layer);
+        vector_layer.addFeatures(geojson_format.read(geodata));
+        console.log(map);
+      }
+});
+';
     
   $tablename = $node->field_dvw_datatable[0]['value'];
   $lat = $opts->latitude;

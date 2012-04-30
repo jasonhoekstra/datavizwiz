@@ -24,6 +24,10 @@ define('DVW_FLAG_LATITUDE', 'LAT');
 define('DVW_FLAG_LONGITUDE', 'LON');
 define('DVW_FLAG_NONE', '');
 
+define('DVW_OP_ADD', 0);
+define('DVW_OP_EDIT', 1);
+define('DVW_OP_DELETE', 2);
+
 
 function theme_datavizwiz_datadisplay($node) {
 
@@ -318,10 +322,7 @@ $('#svg').html('test');
 
 ";
     
-  $tablename = $node->field_dvw_datatable[0]['value'];
-  dsm($opts);
-
-    
+  $tablename = $node->field_dvw_datatable[0]['value'];    
     
    $script .= '});';
     

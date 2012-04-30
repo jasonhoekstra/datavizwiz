@@ -184,13 +184,12 @@ function datavizwiz_summary_panes_form_submit($form, &$form_state) {
 function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
   $node = node_load($nid);
   $form['#attributes'] = array('id' => 'summary-pane-edit');
+  $form['nid'] = array('#type' => 'hidden', '#value' => $nid);
   
   switch ($op) {
     case 'add':      
       $form['pane_name'] = array('#type' => 'textfield',
         '#title' => t('Pane Name'));
-      $form['nid'] = array('#type' => 'hidden',
-        '#value' => $nid);
       switch (arg(6)) {
         case DVW_TYPE_MAP_LEAFLET:
           drupal_set_title('Add Pane - Leaflet Map');
@@ -213,12 +212,14 @@ function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
           $form = _datavizwiz_summary_pane_edit_html_form($form);
           break;
       }
-      $form['operation'] = array('#type' => 'hidden', '#value' => 0);
+      $form['operation'] = array('#type' => 'hidden', '#value' => DVW_OP_ADD);
       $form['submit'] = array('#type' => 'submit', '#value' => t('Save Pane'));
       $form['cancel'] = array('#type' => 'submit', '#value' => t('Cancel'));
       
       break;
     case 'delete':
+      $form['operation'] = array('#type' => 'hidden', '#value' => DVW_OP_DELETE);
+      $form['svid'] = array('#type' => 'hidden', '#value' => $svid);
       $form['question'] = array('#value' => t("Are you sure you'd like to delete this summary view?<br/>"));
       $form['submit_yes'] = array('#type' => 'submit', '#value' => 'Yes');
       $form['submit_no'] = array('#type' => 'submit', '#value' => 'No');
@@ -300,39 +301,52 @@ function _datavizwiz_summary_pane_edit_html_form(&$form) {
 }
 
 function datavizwiz_summary_pane_edit_form_submit(&$form, &$form_state) {
-        $pane_type = $form_state['values']['type'];
-        $form['type'] = array('#value' => $pane_type);
+
         $nid = $form_state['values']['nid'];
+        $op = $form_state['values']['operation'];
         
-        $record = new stdClass();
-        $record->nid = $nid;
-        $record->name = $form_state['values']['pane_name'];
-        $record->type = $pane_type;
-        
-        switch ($pane_type) {
-          case DVW_TYPE_MAP_LEAFLET:
-            $options = array('latitude' => $form_state['values']['latitude'],
-              'longitude' => $form_state['values']['longitude']);
-            $record->options = json_encode($options);
+        switch ($op) {
+          case DVW_OP_ADD:
+            $pane_type = $form_state['values']['type'];
+            $form['type'] = array('#value' => $pane_type);
+
+            $record = new stdClass();
+            $record->nid = $nid;
+            $record->name = $form_state['values']['pane_name'];
+            $record->type = $pane_type;
+
+            switch ($pane_type) {
+              case DVW_TYPE_MAP_LEAFLET:
+                $options = array('latitude' => $form_state['values']['latitude'],
+                  'longitude' => $form_state['values']['longitude']);
+                $record->options = json_encode($options);
+                break;
+              case DVW_TYPE_MAP_D3:
+                $options = array('keyfield' => $form_state['values']['keyfield'],
+                  'keytype' => $form_state['values']['keytype'],
+                  'baselayer' => $form_state['values']['baselayer']);
+                break;
+              case DVW_TYPE_PIE_FLOT:
+                $options = array('variable' => $form_state['values']['variable']);
+                $record->options = json_encode($options);
+                break;
+              case DVW_TYPE_BAR_FLOT:
+                $options = array('variable' => $form_state['values']['variable']);
+                $record->options = json_encode($options);
+                break;
+              case DVW_TYPE_HTML:
+                $record->options = $form_state['values']['html'];
+                break;
+            }
+            $result = drupal_write_record('dvw_summary_views', $record);            
             break;
-          case DVW_TYPE_MAP_D3:
-            $options = array('keyfield' => $form_state['values']['keyfield'],
-              'keytype' => $form_state['values']['keytype'],
-              'baselayer' => $form_state['values']['baselayer']);
-            break;
-          case DVW_TYPE_PIE_FLOT:
-            $options = array('variable' => $form_state['values']['variable']);
-            $record->options = json_encode($options);
-            break;
-          case DVW_TYPE_BAR_FLOT:
-            $options = array('variable' => $form_state['values']['variable']);
-            $record->options = json_encode($options);
-            break;
-          case DVW_TYPE_HTML:
-            $record->options = $form_state['values']['html'];
+          case DVW_OP_DELETE:
+            $svid = $form_state['values']['svid'];
+            db_query('DELETE FROM {dvw_summary_views} WHERE nid=%s and svid=%s', $nid, $svid);
+            drupal_set_message(t('Summary pane successfully deleted.'));
             break;
         }
-        $result = drupal_write_record('dvw_summary_views', $record);
+  
         drupal_goto(sprintf('admin/datavizwiz/edit/%s/summary_pane', $nid));
 }
 

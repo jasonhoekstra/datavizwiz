@@ -66,6 +66,13 @@ function datavizwiz_schema() {
         'default' => 0,
         'description' => 'Boolean if visible in summary',
       ),  
+      'detaillink' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Boolean if linked to detail in summary',
+      ),  
      'visible_summary' => array(
         'type' => 'int',
         'size' => 'tiny',
@@ -105,6 +112,13 @@ function datavizwiz_schema() {
         'not null' => FALSE,
         'default' => '',
         'description' => 'Special flag (lat, lon, etc) for the field.',
+      ),
+     'filter' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'Filter type',
       ),
     ),
     'indexes' => array(

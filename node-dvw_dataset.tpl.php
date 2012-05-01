@@ -28,6 +28,7 @@
 
     <div class="dvwArea" id="dvw-datafilters">
       <?php print theme('datavizwiz_datafilters', $node); ?>
+      <div style="clear: both" />
     </div>
     
     <div class="dvwArea" id="dvw-opendatalinks">

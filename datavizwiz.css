@@ -1,15 +1,27 @@
-/* #dvwTabs { padding: 0; margin: 0; clear: both; float: left; }
-#dvwTabs li { display: inline; cursor: pointer; }
-#dvwTabs li a { background: #ccc; padding: 10px; float:left; border-right: 1px solid #ccc; border-bottom: none; text-decoration: none; color: #000; font-weight: bold;}
-#dvwTabs li.active a { background: #eee; }
+form#datavizwiz-gen-filters input[type='text'] {
+  width: 125px;
+  height: 21px;
+}
 
-#dvwTabContent { clear: both;  width: 100%; height: 300px; }
+form#datavizwiz-gen-filters .form-item {
+  background-color: transparent;
+  border: none;
+  position: relative;
+  float: left;
+  padding: 0px 15px 0px 0px;
+}
 
-.dvwTab {  position: absolute; left: -20000px;  }
-*/
+form#datavizwiz-gen-filters label {
+  color: #000;
+  text-transform: capitalize;
+}
+
+form#datavizwiz-gen-filters input[type='submit'] {
+  float: left;
+  clear: both;
+}
 
 
-/* Example styles used for this demo */
 #dvwPanes {
 position:relative;
 width:100%;
@@ -78,5 +90,10 @@ left:0;
 
 #dvw-opendatalinks a {
   text-decoration: none !important;
+  
+}
+
+#dvw-resultcount {
+  padding-bottom: 10px;
   
 }

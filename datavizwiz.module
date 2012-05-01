@@ -113,7 +113,7 @@ function datavizwiz_gen_filters(&$form_state, $node) {
         $form[$row['field_name']] = array(
           '#type' => 'textfield', 
           '#title' => $row['display_name'],
-          '#size' => 15,
+          '#value' => $_GET[$row['field_name']],
         );
         break;
       case DVW_FILTER_DROPDOWN :
@@ -135,8 +135,6 @@ function datavizwiz_gen_filters(&$form_state, $node) {
     }
   }
   
-  
-
   $form['#method'] = "GET";
   $form['#token'] = FALSE;
   $form['#after_build'] = array('datavizwiz_gen_filters_unset_defaults');
@@ -160,6 +158,7 @@ function _datavizwiz_get_unique_values($datatable, $column) {
     $query = db_query("SELECT DISTINCT %s FROM {%s} ORDER BY %s", $column, $datatable, $column);
     $rows = _datavizwiz_get_rowarray($query);
     
+    $returnrows[''] = '';
     foreach ($rows as $row) {
       $returnrows[$row[$column]] = $row[$column];
     }
@@ -198,24 +197,31 @@ function theme_datavizwiz_datatable($node) {
   $page_size = $node->field_dvw_pagesize[0]['value'];
   
   $query = sprintf("
-      SELECT field_name, display_name, sortable 
+      SELECT field_name, display_name, sortable, filter 
       FROM {dvw_field_meta} 
       WHERE nid=%s AND visible_summary=1 
       ORDER BY weight_summary", $node->nid);
-  $sql = db_query($query);
-  $rows = _datavizwiz_get_rowarray($sql);
+  $rows = _datavizwiz_get_rowarray(db_query($query));
+  
+  $filters = array();
   
   if (count($rows) > 0) {
     // Get headers for summary table
     $headers = array();
     $id_counter = 1;
+    $column_names = '';
     foreach ($rows as $field) {
       $header = array();
-      $header['data'] = $field['field_name'];
+      $header['data'] = $field['display_name'];
+      $column_names .= $field['field_name'] . ',';
 
       if ($field['sortable'] == 1) {
         $header['field'] = $field['field_name'];
         $header['sort'] = 'asc';
+      }
+      
+      if (isset($field['filter']) && strlen($field['filter'])) {
+        $filters[$field['field_name']] = $field['filter'];
       }
 
       $header['id'] = 'dvwcol' . $id_counter;
@@ -223,20 +229,22 @@ function theme_datavizwiz_datatable($node) {
       $id_counter++;
     }
 
-    $column_names = '';
-    // Get the column names we need
-    foreach ($headers as $header) {
-      $column_names .= $header['data'] . ',';
-    }
-
     $column_names = substr($column_names, 0, strlen($column_names) - 1);
     $sql = sprintf("SELECT ImporterID,%s FROM {%s}", $column_names, $table_name);
+    $filterssql = _datavizwiz_get_where_clause($filters);
+    $sql .= $filterssql;
+    
+    $sqlcount = sprintf("SELECT COUNT(ImporterID) FROM {%s}", $table_name);
+    $sqlcount .= $filterssql;
+    $recordcount = db_result(db_query($sqlcount));
+    
     $sql .= tablesort_sql($headers);
     $query = pager_query($sql, $page_size);
 
     $tablerows = _datavizwiz_get_summaryarray($query);
 
-    $output = theme_table($headers, $tablerows);
+    $output = '<div id="dvw-resultcount">Result count: ' . $recordcount . '</div>';
+    $output .= theme_table($headers, $tablerows);
     $output .= theme('pager', NULL, 0);
   } else {
     if (user_access('adminster datavizwiz')) {
@@ -245,6 +253,24 @@ function theme_datavizwiz_datatable($node) {
   }
 
   return $output;
+}
+
+function _datavizwiz_get_where_clause($filters) {
+  $where = '';
+  
+  foreach ($filters as $filter => $value) {
+    $variable = $_GET[$filter];
+    if (isset($variable) && strlen($variable)) {
+      if (!strlen($where)) {
+        // If this is our first time adding a WHERE variable, let's setup the statement.
+        // Otherwise, we pass back an empty WHERE string if there are no variables.
+        $where .= ' WHERE (1=1)';
+      }
+      $where .= sprintf(" AND %s='%s'", $filter, $variable);
+    }
+  }
+  
+  return $where;
 }
 
 function _datavizwiz_display_detail_page($node, $data_table_name, $dataset_metadata) {

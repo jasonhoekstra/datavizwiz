@@ -95,6 +95,20 @@ function theme_datavizwiz_summarypanes($node) {
 }
 
 function theme_datavizwiz_datafilters($node) {
+  $form['test1'] = array(
+          '#type' => 'textfield', 
+    '#title' => 'Test 1',
+    '#size' => 15,
+  );
+  
+    $form['preview'] = array(
+      '#type' => 'button', 
+      '#value' => t('Filter'), 
+      '#weight' => 100,
+      );
+  
+  $output .= drupal_render($form);
+  return $output;
   
 }
 
@@ -471,7 +485,10 @@ function datavizwiz_theme() {
     'datavizwiz_fields_form' => array(
       'arguments' => array('form' => NULL),
     ),
-    'datavizwiz_sort_form' => array(
+    'datavizwiz_sort_summary_form' => array(
+      'arguments' => array('form' => NULL),
+    ),
+    'datavizwiz_sort_detail_form' => array(
       'arguments' => array('form' => NULL),
     ),
     'datavizwiz_summary_panes_form' => array(
@@ -623,7 +640,7 @@ function datavizwiz_menu() {
   );
 
   $items['admin/datavizwiz/edit/%/sort_summary'] = array(
-    'title' => 'Summary sort',
+    'title' => 'Summary page',
     'page callback' => 'datavizwiz_tab_sort_summary',
     'page arguments' => array(3),
     'access arguments' => array('access administration pages'),
@@ -635,7 +652,7 @@ function datavizwiz_menu() {
   );
 
   $items['admin/datavizwiz/edit/%/sort_detail'] = array(
-    'title' => 'Detail sort',
+    'title' => 'Detail page',
     'page callback' => 'datavizwiz_tab_sort_detail',
     'page arguments' => array(3),
     'access arguments' => array('access administration pages'),

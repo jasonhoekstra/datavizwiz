@@ -33,11 +33,11 @@ function datavizwiz_tab_manage_fields($nid) {
 }
 
 function datavizwiz_tab_sort_summary($nid) {
-  return drupal_get_form('datavizwiz_sort_form', DVW_SORT_SUMMARY, $nid);
+  return drupal_get_form('datavizwiz_sort_summary_form', $nid);
 }
 
 function datavizwiz_tab_sort_detail($nid) {
-  return drupal_get_form('datavizwiz_sort_form', DVW_SORT_DETAIL, $nid);
+  return drupal_get_form('datavizwiz_sort_detail_form', $nid);
 }
 
 // </editor-fold>
@@ -342,7 +342,7 @@ function datavizwiz_summary_pane_edit_form_submit(&$form, &$form_state) {
 // <editor-fold desc="Manage Fields">
 
 function datavizwiz_fields_form($frm, $nid) {
-  $headers = array('Field', 'Display', 'Sortable', 'Visible Summary', 'Visible Detail', 'Visible Data', 'Flag');
+  //$headers = array('Field', 'Display', 'Visible Summary', 'Visible Detail', 'Visible Data', 'Flag');
   $tablerows = _datavizwiz_get_dataset_metadata($nid, array('*'));
 
   $headerrows = array();
@@ -370,7 +370,6 @@ function datavizwiz_fields_form($frm, $nid) {
           $checked = '';
         }
         switch ($headerrow) {
-          case 'sortable' :
           case 'visible_summary' :
           case 'visible_detail' :
           case 'visible_data' :
@@ -389,10 +388,17 @@ function datavizwiz_fields_form($frm, $nid) {
               '#default_value' => $value,
             );
             break;
-          default :
+          case 'field_name' :
             $form[$tablerow['fid']][$tablerow['fid'] . '-' . $headerrow] = array(
               '#value' => $value,
             );
+            break;
+          case 'display_name' :
+            $form[$tablerow['fid']]['text-' . $tablerow['fid'] . '-' . $headerrow] = array(
+              '#type' => 'textfield',
+              '#default_value' => $value,
+              '#size' => 15,
+          );
         }
       }
     }
@@ -408,6 +414,27 @@ function datavizwiz_fields_form($frm, $nid) {
 
 function theme_datavizwiz_fields_form($form) {
   $rows = array();
+  
+  $row = array(array('header' => true ), 
+    array('header' => true ), 
+    array('data' => '<input type="checkbox" onClick="$(
+      function() {
+      var $checkbox = $(this).find(\'input[name*=visible_summary]\'); 
+      $checkbox.attr(\'checked\', !$checkbox.attr(\'checked\')); 
+      });" />', 'header' => true ), 
+    array('data' => '<input type="checkbox" onClick="$(
+      function() { 
+      var $checkbox = $(this).find(\'input[name*=visible_detail]\'); 
+      $checkbox.attr(\'checked\', !$checkbox.attr(\'checked\')); 
+      });" />', 'header' => true ),  
+    array('data' => '<input type="checkbox" onClick="$(
+      function() { 
+      var $checkbox = $(this).find(\'input[name*=visible_data]\'); 
+      $checkbox.attr(\'checked\', !$checkbox.attr(\'checked\')); 
+      });" />', 'header' => true ),   
+    array('header' => true ));
+  //$row['style'] = 'background-color:#FF0000;';
+  $rows[] = $row;
 
   foreach (element_children($form) as $key) {
     $row = array();
@@ -416,8 +443,7 @@ function theme_datavizwiz_fields_form($form) {
 
       //$row[] = '' . drupal_render($form[$key]['name']) . '';
       $row[] = array('data' => drupal_render($form[$key][$key . '-field_name']));
-      $row[] = array('data' => drupal_render($form[$key][$key . '-display_name']));
-      $row[] = array('data' => drupal_render($form[$key]['check-' . $key . '-sortable']));
+      $row[] = array('data' => drupal_render($form[$key]['text-' . $key . '-display_name']));
       $row[] = array('data' => drupal_render($form[$key]['check-' . $key . '-visible_summary']));
       $row[] = array('data' => drupal_render($form[$key]['check-' . $key . '-visible_detail']));
       $row[] = array('data' => drupal_render($form[$key]['check-' . $key . '-visible_data']));
@@ -435,9 +461,10 @@ function theme_datavizwiz_fields_form($form) {
   $header[] = t('Discount');
   $header[] = t('Created on');
 
-  $headers = array('Field', 'Display', 'Sortable', 'Include Summary', 'Include Detail', 'Include Data', 'Flag');
-
+  $headers = array('Field', 'Display Name', 'Include Summary', 'Include Detail', 'Include Data', 'Flag');
+ 
   $output = theme('table', $headers, $rows);
+  theme_table_select_header_cell();
   $output .= drupal_render($form);
   return $output;
 }
@@ -458,6 +485,13 @@ function datavizwiz_fields_form_submit($form, &$form_state) {
       $field = substr($form_key, $second_dash + 1, strlen($form_key) - $second_dash - 1);
       $row = array('fid' => $fid, $field => $form_value);
       drupal_write_record('dvw_field_meta', $row, 'fid');
+    }
+    if (substr($form_key, 0, 5) == 'text-') { 
+      $second_dash = strpos($form_key, '-', 5);
+      $fid = substr($form_key, 5, $second_dash - 5);
+      $field = substr($form_key, $second_dash + 1, strlen($form_key) - $second_dash - 1);
+      $row = array('fid' => $fid, $field => $form_value);
+      drupal_write_record('dvw_field_meta', $row, 'fid');
     }  
   }
   drupal_set_message(t('Dataset fields updated.'));
@@ -467,29 +501,113 @@ function datavizwiz_fields_form_submit($form, &$form_state) {
 
 // <editor-fold desc="Manage Sorts">
 
-function datavizwiz_sort_form($frm, $type, $nid) {
+function datavizwiz_sort_summary_form($frm, $nid) {
   $tablerows = _datavizwiz_get_dataset_metadata($nid, array('fid', 'field_name', 'display_name', 'weight_summary'));
 
-  $header = array(t('Field Name'), t('Display Name'), t('Weight'));
   $rows = array();
   $form['weights']['#tree'] = TRUE;
 
-  if ($type == DVW_SORT_SUMMARY) {
-    $sql = 'SELECT fid, field_name, display_name, weight_summary FROM {dvw_field_meta} WHERE nid = %s AND visible_summary = TRUE ORDER BY weight_summary';
-    $form['update_type'] = array(
-      '#type' => 'hidden',
-      '#value' => DVW_SORT_SUMMARY,
+  $sql = 'SELECT fid, field_name, display_name, weight_summary FROM {dvw_field_meta} WHERE nid = %s AND visible_summary = TRUE ORDER BY weight_summary';
+  $form['update_type'] = array(
+    '#type' => 'hidden',
+    '#value' => DVW_SORT_SUMMARY,
+  );
+  $field_name = 'weight_summary'; // used below
+
+  $result = db_query($sql, $nid);
+
+  while ($tablerow = db_fetch_array($result)) {
+    $fid = $tablerow['fid'];
+
+    $form[$fid]['field_name'] = array(
+      '#type' => 'markup',
+      '#value' => $tablerow['field_name'],
     );
-    $field_name = 'weight_summary'; // used below
-  }
-  else {
-    $sql = 'SELECT fid, field_name, display_name, weight_detail FROM {dvw_field_meta} WHERE nid = %s AND visible_detail = TRUE ORDER BY weight_detail';
-    $form['update_type'] = array(
-      '#type' => 'hidden',
-      '#value' => DVW_SORT_DETAIL,
+    $form[$fid]['display_name'] = array(
+      '#type' => 'markup',
+      '#value' => $tablerow['display_name'],
     );
-    $field_name = 'weight_detail'; // used below
+    $form[$fid]['filter'] = array(
+      '#type' => 'select',
+      //'#value' => $tablerow['display_name'],
+      '#options' => array(t('None'), t('Text Search'), t('Drop Down')),
+    );
+    $form[$fid]['sortable'] = array(
+      '#type' => 'checkbox',
+    );
+    $form[$fid]['detaillink'] = array(
+      '#type' => 'checkbox',
+    );
+    $form['weights'][$fid] = array(
+      '#type' => 'weight',
+      '#delta' => 30,
+      '#default_value' => $tablerow[$field_name],
+      '#attributes' => array('class' => 'weight'),
+    );
+    $form['weights'][$fid]['#attributes']['class'] = 'order-weight';
   }
+
+  $form['submit'] = array('#type' => 'submit', '#value' => t('Save Order'));
+  return $form;
+}
+
+function theme_datavizwiz_sort_summary_form($form) {
+  $header = array(t('Field Name'), t('Display Name'), t('Filter'), t('Sortable'),  t('Link to detail'), t('Weight'));
+
+  $rows = array();
+
+  foreach (element_children($form) as $key) {
+    $row = array();
+
+    if (is_numeric($key)) {
+      $row[] = array('data' => drupal_render($form[$key]['field_name']));
+      $row[] = array('data' => drupal_render($form[$key]['display_name']));
+      $row[] = array('data' => drupal_render($form[$key]['filter']));
+      $row[] = array('data' => drupal_render($form[$key]['sortable']));
+      $row[] = array('data' => drupal_render($form[$key]['detaillink']));
+      $row[] = array('data' => drupal_render($form['weights'][$key]));
+
+      $rows[] = array(
+        'data' => $row,
+        'class' => 'draggable',
+      );
+    }
+  }
+
+  $output = theme('table', $header, $rows, array('id' => 'field-order'));
+  $output .= drupal_render($form);
+
+  drupal_add_tabledrag('field-order', 'order', 'sibling', 'order-weight', NULL, NULL, FALSE);
+
+  return $output;
+}
+
+function datavizwiz_sort_summary_form_submit($form, &$form_state) {
+  foreach ($form_state['values']['weights'] as $id => $item) {
+    $record = new stdClass();
+    $record->weight_summary = $item;
+    $record->fid = $id;
+    drupal_write_record('dvw_field_meta', $record, 'fid');
+  }
+}
+
+// </editor-fold>
+
+// <editor-fold desc="Manage Sorts">
+
+function datavizwiz_sort_detail_form($frm, $nid) {
+  $tablerows = _datavizwiz_get_dataset_metadata($nid, array('fid', 'field_name', 'display_name', 'weight_summary'));
+
+  $rows = array();
+  $form['weights']['#tree'] = TRUE;
+
+  $sql = 'SELECT fid, field_name, display_name, weight_detail FROM {dvw_field_meta} WHERE nid = %s AND visible_detail = TRUE ORDER BY weight_detail';
+  $form['update_type'] = array(
+    '#type' => 'hidden',
+    '#value' => DVW_SORT_DETAIL,
+  );
+  $field_name = 'weight_detail'; // used below
+
   $result = db_query($sql, $nid);
 
   while ($tablerow = db_fetch_array($result)) {
@@ -516,7 +634,7 @@ function datavizwiz_sort_form($frm, $type, $nid) {
   return $form;
 }
 
-function theme_datavizwiz_sort_form($form) {
+function theme_datavizwiz_detail_sort_form($form) {
   $header = array(t('Field Name'), t('Display Name'), t('Weight'));
 
   $rows = array();
@@ -545,22 +663,16 @@ function theme_datavizwiz_sort_form($form) {
   return $output;
 }
 
-function datavizwiz_sort_form_submit($form, &$form_state) {
+function datavizwiz_sort_form_detail_submit($form, &$form_state) {
   foreach ($form_state['values']['weights'] as $id => $item) {
-    if ($form_state['values']['update_type'] == DVW_SORT_SUMMARY) {
-      $record = new stdClass();
-      $record->weight_summary = $item;
-      $record->fid = $id;
-      drupal_write_record('dvw_field_meta', $record, 'fid');
-    }
-    else {
-      $record = new stdClass();
-      $record->weight_detail = $item;
-      $record->fid = $id;
-      drupal_write_record('dvw_field_meta', $record, 'fid');
-    }
+    $record = new stdClass();
+    $record->weight_detail = $item;
+    $record->fid = $id;
+    drupal_write_record('dvw_field_meta', $record, 'fid');
   }
 }
+
+// </editor-fold>
 
 function _datavizwiz_get_pane_type_name($pane_type) {
   switch ($pane_type) {
@@ -596,5 +708,3 @@ function _datavizwiz_get_field_array($table_name) {
   
   return $columns;
 }
-
-// </editor-fold>

@@ -67,6 +67,16 @@ left:0;
   display: block;
 }
 
-.dvwarea {
+.dvwArea {
   padding-top: 12px;
+}
+
+#dvw-datafilters {
+  background-color: #eee;
+  padding: 10px 10px 10px 10px;
+}
+
+#dvw-opendatalinks a {
+  text-decoration: none !important;
+  
 }

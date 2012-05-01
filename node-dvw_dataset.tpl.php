@@ -1,7 +1,6 @@
 <?php 
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.js');
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.css');
-
 ?>
 <div id="node-<?php print $node->nid; ?>" class="datavizwiz node<?php if ($sticky) { print ' sticky'; } ?><?php if (!$status) { print ' node-unpublished'; } ?> clear-block">
 
@@ -20,22 +19,22 @@
     <?php print $content ?>
   </div>
 
-  <div class="dvwarea datadisplay">
+  <div class="dvwArea" id="dvw-datadisplay">
     <?php //print theme('datavizwiz_datadisplay', $node); ?>
     
-    <div class="dvwarea summarypanes">
+    <div class="dvwArea" id="dvw-summarypanes">
       <?php print theme('datavizwiz_summarypanes', $node); ?>
     </div>  
 
-    <div class="dvwarea datafilters">
+    <div class="dvwArea" id="dvw-datafilters">
       <?php print theme('datavizwiz_datafilters', $node); ?>
     </div>
     
-    <div class="dvwarea opendatalinks">
+    <div class="dvwArea" id="dvw-opendatalinks">
       <?php print theme('datavizwiz_opendatalinks', $node); ?>
     </div>
     
-    <div class="dvwarea datatable">
+    <div class="dvwArea" id="dvw-datatable">
       <?php print theme('datavizwiz_datatable', $node); ?>
     </div>
   </div>

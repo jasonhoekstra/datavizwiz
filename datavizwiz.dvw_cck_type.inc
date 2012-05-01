@@ -175,12 +175,102 @@ return $rows;',
   ),
   2 => 
   array (
+    'label' => 'Summary Pane Height',
+    'field_name' => 'field_dvm_summary_pane_height',
+    'type' => 'number_integer',
+    'widget_type' => 'number',
+    'change' => 'Change basic information',
+    'weight' => 0,
+    'description' => 'Height in pixels of the summary panes',
+    'default_value' => 
+    array (
+      0 => 
+      array (
+        'value' => '500',
+        '_error_element' => 'default_value_widget][field_dvm_summary_pane_height][0][value',
+      ),
+    ),
+    'default_value_php' => '',
+    'default_value_widget' => 
+    array (
+      'field_dvm_summary_pane_height' => 
+      array (
+        0 => 
+        array (
+          'value' => '500',
+          '_error_element' => 'default_value_widget][field_dvm_summary_pane_height][0][value',
+        ),
+      ),
+    ),
+    'group' => false,
+    'required' => 1,
+    'multiple' => '0',
+    'min' => '',
+    'max' => '',
+    'prefix' => '',
+    'suffix' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => '',
+    'op' => 'Save field settings',
+    'module' => 'number',
+    'widget_module' => 'number',
+    'columns' => 
+    array (
+      'value' => 
+      array (
+        'type' => 'int',
+        'not null' => false,
+        'sortable' => true,
+      ),
+    ),
+    'display_settings' => 
+    array (
+      'weight' => 0,
+      'parent' => '',
+      'label' => 
+      array (
+        'format' => 'above',
+      ),
+      'teaser' => 
+      array (
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      'full' => 
+      array (
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      4 => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      2 => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      3 => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+  ),
+  3 => 
+  array (
     'label' => 'CSV Download',
     'field_name' => 'field_dvw_download_csv',
     'type' => 'number_integer',
     'widget_type' => 'optionwidgets_onoff',
     'change' => 'Change basic information',
-    'weight' => 0,
+    'weight' => '1',
     'description' => '',
     'default_value' => 
     array (
@@ -221,7 +311,7 @@ return $rows;',
     ),
     'display_settings' => 
     array (
-      'weight' => 0,
+      'weight' => '1',
       'parent' => '',
       'label' => 
       array (
@@ -244,14 +334,14 @@ return $rows;',
       ),
     ),
   ),
-  3 => 
+  4 => 
   array (
     'label' => 'JSON Download',
     'field_name' => 'field_dvw_download_json',
     'type' => 'number_integer',
     'widget_type' => 'optionwidgets_onoff',
     'change' => 'Change basic information',
-    'weight' => '1',
+    'weight' => '2',
     'description' => '',
     'default_value' => 
     array (
@@ -292,7 +382,7 @@ return $rows;',
     ),
     'display_settings' => 
     array (
-      'weight' => '1',
+      'weight' => '2',
       'parent' => '',
       'label' => 
       array (
@@ -315,14 +405,14 @@ return $rows;',
       ),
     ),
   ),
-  4 => 
+  5 => 
   array (
     'label' => 'XML Download',
     'field_name' => 'field_dvw_download_xml',
     'type' => 'number_integer',
     'widget_type' => 'optionwidgets_onoff',
     'change' => 'Change basic information',
-    'weight' => '2',
+    'weight' => '3',
     'description' => 'XML Download',
     'default_value' => 
     array (
@@ -363,7 +453,7 @@ return $rows;',
     ),
     'display_settings' => 
     array (
-      'weight' => '2',
+      'weight' => '3',
       'parent' => '',
       'label' => 
       array (
@@ -390,10 +480,10 @@ return $rows;',
 $content['extra']  = array (
   'title' => '-5',
   'body_field' => '-3',
-  'revision_information' => '4',
-  'author' => '3',
-  'options' => '5',
-  'comment_settings' => '6',
+  'revision_information' => '5',
+  'author' => '4',
+  'options' => '6',
   'menu' => '-4',
   'path' => '7',
+  'custom_breadcrumbs' => '8',
 );

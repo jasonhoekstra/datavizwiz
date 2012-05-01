@@ -669,6 +669,9 @@ function theme_datavizwiz_sort_detail_form($form) {
     if (is_numeric($key)) {
       $row[] = array('data' => drupal_render($form[$key]['field_name']));
       $row[] = array('data' => drupal_render($form[$key]['display_name']));
+      $row[] = array('data' => drupal_render($form[$key]['detail_title']));
+      $row[] = array('data' => drupal_render($form[$key]['detail_subtitle']));
+      $row[] = array('data' => drupal_render($form[$key]['detail_wide']));
       $row[] = array('data' => drupal_render($form['weights'][$key]));
 
       $rows[] = array(

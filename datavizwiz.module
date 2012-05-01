@@ -799,6 +799,9 @@ function _datavizwiz_detail_page($metadata, $table_name, $importerID) {
   // Get headers for detail table
   $headers = array();
   $id_counter = 1;
+  
+  drupal_set_title('Detail Display');
+  
   foreach ($metadata as $field) {
     $header = array();
     if ($field['visible_detail'] == 1) {

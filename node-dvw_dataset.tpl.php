@@ -1,6 +1,14 @@
 <?php 
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.js');
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.css');
+  
+  if (isset($_GET['detail']) && strlen($_GET['detail'])) {
+    $detail_page = TRUE;
+  } else {
+    $detail_page = FALSE;
+  }
+  
+  
 ?>
 <div id="node-<?php print $node->nid; ?>" class="datavizwiz node<?php if ($sticky) { print ' sticky'; } ?><?php if (!$status) { print ' node-unpublished'; } ?> clear-block">
 
@@ -15,12 +23,14 @@
   <?php endif;?>
   </div>
 
-  <div class="content">
-    <?php print $content ?>
-  </div>
+  <?php if (!$detail_page) { ?>
+    <div class="content">
+      <?php print $content ?>
+    </div>
+  <?php } ?>
 
   <div class="dvwArea" id="dvw-datadisplay">
-    <?php if (isset($_GET['detail']) && strlen($_GET['detail'])) { ?>
+    <?php if ($detail_page) { ?>
       <div class="dvwArea" id="dvw-detail">
         <?php print theme('datavizwiz_detaildisplay', $node); ?>
       </div> 

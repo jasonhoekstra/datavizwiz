@@ -22,6 +22,10 @@ define('DVW_OP_ADD', 0);
 define('DVW_OP_EDIT', 1);
 define('DVW_OP_DELETE', 2);
 
+define('DVW_FILTER_NONE', '');
+define('DVW_FILTER_TEXT', 'TEXT');
+define('DVW_FILTER_DROPDOWN', 'DROPDOWN');
+define('DVW_FILTER_CHECKBOXES', 'CHECKBOXES');
 
 function theme_datavizwiz_datadisplay($node) {
 
@@ -95,21 +99,71 @@ function theme_datavizwiz_summarypanes($node) {
 }
 
 function theme_datavizwiz_datafilters($node) {
-  $form['test1'] = array(
-          '#type' => 'textfield', 
-    '#title' => 'Test 1',
-    '#size' => 15,
-  );
+  return drupal_get_form('datavizwiz_gen_filters', $node);;
+}
+
+function datavizwiz_gen_filters(&$form_state, $node) {
+    $query = db_query("SELECT field_name, display_name, filter FROM {dvw_field_meta} WHERE nid=%s AND filter <> '' AND filter IS NOT NULL", $node->nid);
   
-    $form['preview'] = array(
-      '#type' => 'button', 
+  $rows = _datavizwiz_get_rowarray($query);
+  
+  foreach ($rows as $row) {
+    switch ($row['filter']) {
+      case DVW_FILTER_TEXT :
+        $form[$row['field_name']] = array(
+          '#type' => 'textfield', 
+          '#title' => $row['display_name'],
+          '#size' => 15,
+        );
+        break;
+      case DVW_FILTER_DROPDOWN :
+        $options = _datavizwiz_get_unique_values($node->field_dvw_datatable[0]['value'], $row['field_name']);
+        $form[$row['field_name']] = array(
+          '#type' => 'select', 
+          '#title' => $row['display_name'],
+          '#value' => $_GET[$row['field_name']],
+          '#options' => $options,
+        );
+        break;
+      case DVW_FILTER_CHECKBOXES :
+        $options = _datavizwiz_get_unique_values($node->field_dvw_datatable[0]['value'], $row['field_name']);
+        $form[$row['field_name']] = array(
+          '#type' => 'checkboxes', 
+          '#title' => $row['display_name'],
+        );
+        break;
+    }
+  }
+  
+  
+
+  $form['#method'] = "GET";
+  $form['#token'] = FALSE;
+  $form['#after_build'] = array('datavizwiz_gen_filters_unset_defaults');
+  
+    $form['submit'] = array(
+      '#type' => 'submit', 
       '#value' => t('Filter'), 
+      '#name' => '',
       '#weight' => 100,
       );
-  
-  $output .= drupal_render($form);
-  return $output;
-  
+    
+    return $form;
+}
+
+function datavizwiz_gen_filters_unset_defaults($form){
+  unset($form['#build_id'], $form['form_build_id'], $form['form_id'], $form['op']);
+  return $form;
+}
+
+function _datavizwiz_get_unique_values($datatable, $column) {
+    $query = db_query("SELECT DISTINCT %s FROM {%s} ORDER BY %s", $column, $datatable, $column);
+    $rows = _datavizwiz_get_rowarray($query);
+    
+    foreach ($rows as $row) {
+      $returnrows[$row[$column]] = $row[$column];
+    }
+    return $returnrows;
 }
 
 function theme_datavizwiz_opendatalinks($node) {

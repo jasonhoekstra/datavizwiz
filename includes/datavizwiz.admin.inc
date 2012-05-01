@@ -93,24 +93,25 @@ function datavizwiz_summary_panes_form($frm, $nid) {
     $form['submit'] = array('#type' => 'submit', '#value' => t('Save Order'));    
   }
 
-      $form['add_panel'] = array(
-      '#type' => 'fieldset', 
-      '#title' => t('Add new pane'),
-      '#collapsible' => FALSE,
-    );
+  $form['add_panel'] = array(
+  '#type' => 'fieldset', 
+  '#title' => t('Add new pane'),
+  '#collapsible' => FALSE,
+  );
   
-        $form['add_panel']['type'] = array(
-        '#title' => t('Pane type'),
-        '#type' => 'select',
-        '#options' => array(
-          DVW_TYPE_HTML => t('Freeform - HTML Block'),
-          DVW_TYPE_PIE_FLOT => t('Graph - Flot Pie'),
-          DVW_TYPE_BAR_FLOT=> t('Graph - Flot Bar'),
-          DVW_TYPE_MAP_OPENLAYERS => t('Map - OpenLayers'),
-          DVW_TYPE_MAP_D3 => t('Map - D3'),
-          ),
-        '#attributes' => array('onchange' => 'submit_edit_form(this.selectedIndex)')
-      );  
+  $form['add_panel']['type'] = array(
+  '#title' => t('Pane type'),
+  '#type' => 'select',
+  '#options' => array(
+    DVW_TYPE_HTML => t('Freeform - HTML Block'),
+    DVW_TYPE_PIE_FLOT => t('Graph - Flot Pie'),
+    DVW_TYPE_BAR_FLOT=> t('Graph - Flot Bar'),
+    DVW_TYPE_MAP_OPENLAYERS => t('Map - OpenLayers'),
+    DVW_TYPE_MAP_D3 => t('Map - D3'),
+    ),
+  '#attributes' => array('onchange' => 'submit_edit_form(this.selectedIndex)')
+  );
+  
   $form['add_panel']['add'] = array('#type' => 'submit', '#value' => t('Add Pane'));
 
   return $form;
@@ -391,7 +392,11 @@ function datavizwiz_fields_form($frm, $nid) {
             $form[$tablerow['fid']]['select-' . $tablerow['fid'] . '-' . $headerrow] = array(
               '#type' => 'select',
               '#default_value' => $tablerow['filter'],
-              '#options' => array(t(''), t('Text Search'), t('Drop Down'), t('Checkboxes')),
+              '#options' => array(
+                DVW_FILTER_NONE => t(''), 
+                DVW_FILTER_TEXT => t('Text Search'), 
+                DVW_FILTER_DROPDOWN => t('Drop Down'), 
+                DVW_FILTER_CHECKBOXES => t('Checkboxes')),
             );
             break;
           case 'field_name' :

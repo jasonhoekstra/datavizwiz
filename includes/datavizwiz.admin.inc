@@ -514,8 +514,6 @@ function datavizwiz_fields_form_submit($form, &$form_state) {
 // <editor-fold desc="Manage Summary Sorts">
 
 function datavizwiz_sort_summary_form($frm, $nid) {
-  $tablerows = _datavizwiz_get_dataset_metadata($nid, array('fid', 'field_name', 'display_name', 'weight_summary', 'sortable', 'detaillink'));
-
   $rows = array();
   $form['weights']['#tree'] = TRUE;
   $form['sortable']['#tree'] = TRUE;
@@ -623,8 +621,6 @@ function datavizwiz_sort_summary_form_submit($form, &$form_state) {
 // <editor-fold desc="Manage Detail Sorts">
 
 function datavizwiz_sort_detail_form($frm, $nid) {
-  $tablerows = _datavizwiz_get_dataset_metadata($nid, array('fid', 'field_name', 'display_name', 'weight_summary'));
-
   $rows = array();
   $form['weights']['#tree'] = TRUE;
 
@@ -639,6 +635,7 @@ function datavizwiz_sort_detail_form($frm, $nid) {
 
   while ($tablerow = db_fetch_array($result)) {
     $fid = $tablerow['fid'];
+    $form[$fid] = '';
 
     $form[$fid]['field_name'] = array(
       '#type' => 'markup',
@@ -661,7 +658,7 @@ function datavizwiz_sort_detail_form($frm, $nid) {
   return $form;
 }
 
-function theme_datavizwiz_detail_sort_form($form) {
+function theme_datavizwiz_sort_detail_form($form) {
   $header = array(t('Field Name'), t('Display Name'), t('Weight'));
 
   $rows = array();

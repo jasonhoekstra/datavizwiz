@@ -27,17 +27,12 @@ define('DVW_FILTER_TEXT', 'TEXT');
 define('DVW_FILTER_DROPDOWN', 'DROPDOWN');
 define('DVW_FILTER_CHECKBOXES', 'CHECKBOXES');
 
-function theme_datavizwiz_datadisplay($node) {
 
-  $data_table_name = $node->field_dvw_datatable[0]['value'];
+function theme_datavizwiz_detaildisplay($node) {
+  $table_name = $node->field_dvw_datatable[0]['value'];
   $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
-
-  if (isset($_GET['detail'])) {
-    $output = _datavizwiz_display_detail_page($node, $data_table_name, $dataset_metadata);
-  }
-  else {
-    $output = _datavizwiz_display_summary_page($node, $data_table_name, $dataset_metadata);
-  }
+  $importerID = $_GET['detail'];
+  $output .= _datavizwiz_detail_page($dataset_metadata, $table_name, $importerID);
 
   return $output;
 }
@@ -139,12 +134,12 @@ function datavizwiz_gen_filters(&$form_state, $node) {
   $form['#token'] = FALSE;
   $form['#after_build'] = array('datavizwiz_gen_filters_unset_defaults');
   
-    $form['submit'] = array(
-      '#type' => 'submit', 
-      '#value' => t('Filter'), 
-      '#name' => '',
-      '#weight' => 100,
-      );
+  $form['submit'] = array(
+    '#type' => 'submit', 
+    '#value' => t('Filter'), 
+    '#name' => '',
+    '#weight' => 100,
+    );
     
     return $form;
 }
@@ -258,7 +253,7 @@ function theme_datavizwiz_datatable($node) {
 function _datavizwiz_get_where_clause($filters) {
   $where = '';
   
-  foreach ($filters as $filter => $value) {
+  foreach ($filters as $filter => $type) {
     $variable = $_GET[$filter];
     if (isset($variable) && strlen($variable)) {
       if (!strlen($where)) {
@@ -266,19 +261,19 @@ function _datavizwiz_get_where_clause($filters) {
         // Otherwise, we pass back an empty WHERE string if there are no variables.
         $where .= ' WHERE (1=1)';
       }
-      $where .= sprintf(" AND %s='%s'", $filter, $variable);
+      switch ($type) {
+        case DVW_FILTER_TEXT :
+          $where .= sprintf(" AND %s LIKE '%%%s%%'", $filter, $variable);
+          break;
+        case DVW_FILTER_DROPDOWN :
+        case DVW_FILTER_CHECKBOXES :
+          $where .= sprintf(" AND %s='%s'", $filter, $variable);
+          break;
+      }
     }
   }
-  
+
   return $where;
-}
-
-function _datavizwiz_display_detail_page($node, $data_table_name, $dataset_metadata) {
-  drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.css');
-  $importerID = $_GET['detail'];
-  $output .= _datavizwiz_detail_page($dataset_metadata, $data_table_name, $importerID);
-
-  return $output;
 }
 
 function _datavizwiz_get_summary_panes($nid) {
@@ -547,9 +542,9 @@ function datavizwiz_theme_registry_alter(&$theme_registry) {
 
 function datavizwiz_theme() {
   return array(
-    /* 'datavizwiz_datadisplay' => array(
+    'datavizwiz_detaildisplay' => array(
       'arguments' => array('node' => NULL),
-    ), */
+    ),
     'datavizwiz_summarypanes' => array(
       'arguments' => array('node' => NULL),
     ), 
@@ -800,16 +795,15 @@ function _datavizwiz_summary_table($nid, $table_name, $page_size) {
 
 }
 
-function _datavizwiz_detail_page($metadata, $table_name, $importerID) {
-
-  // Get headers for summary table
+function _datavizwiz_detail_page($metadata, $table_name, $importerID) {  
+  // Get headers for detail table
   $headers = array();
   $id_counter = 1;
   foreach ($metadata as $field) {
     $header = array();
     if ($field['visible_detail'] == 1) {
       $header['data'] = $field['field_name'];
-
+      $header['display_name'] = $field['display_name'];
       $header['id'] = 'dvwcol' . $id_counter;
       array_push($headers, $header);
       $id_counter++;
@@ -829,7 +823,14 @@ function _datavizwiz_detail_page($metadata, $table_name, $importerID) {
   $result = db_query(db_rewrite_sql($sql));
   if ($row = db_fetch_array($result)) {
     foreach ($row as $key => $value) {
-      $output .= '<div class="dvwDetail"><strong>' . $key . '</strong><p>' . $value . '</p></div>';
+      $column_name = '';
+      foreach ($headers as $header) {
+        if ($header['data'] == $key) {
+          $column_name = $header['display_name'];
+        }
+      }
+      
+      $output .= '<div class="dvwDetail"><strong>' . $column_name . '</strong><p>' . $value . '</p></div>';
     }
   }
 

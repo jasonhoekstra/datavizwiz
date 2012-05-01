@@ -20,24 +20,28 @@
   </div>
 
   <div class="dvwArea" id="dvw-datadisplay">
-    <?php //print theme('datavizwiz_datadisplay', $node); ?>
-    
-    <div class="dvwArea" id="dvw-summarypanes">
-      <?php print theme('datavizwiz_summarypanes', $node); ?>
-    </div>  
+    <?php if (isset($_GET['detail']) && strlen($_GET['detail'])) { ?>
+      <div class="dvwArea" id="dvw-detail">
+        <?php print theme('datavizwiz_detaildisplay', $node); ?>
+      </div> 
+    <?php } else { ?>
+      <div class="dvwArea" id="dvw-summarypanes">
+        <?php print theme('datavizwiz_summarypanes', $node); ?>
+      </div>  
 
-    <div class="dvwArea" id="dvw-datafilters">
-      <?php print theme('datavizwiz_datafilters', $node); ?>
-      <div style="clear: both" />
-    </div>
-    
-    <div class="dvwArea" id="dvw-opendatalinks">
-      <?php print theme('datavizwiz_opendatalinks', $node); ?>
-    </div>
-    
-    <div class="dvwArea" id="dvw-datatable">
-      <?php print theme('datavizwiz_datatable', $node); ?>
-    </div>
+      <div class="dvwArea" id="dvw-datafilters">
+        <?php print theme('datavizwiz_datafilters', $node); ?>
+        <div style="clear: both" />
+      </div>
+
+      <div class="dvwArea" id="dvw-opendatalinks">
+        <?php print theme('datavizwiz_opendatalinks', $node); ?>
+      </div>
+
+      <div class="dvwArea" id="dvw-datatable">
+        <?php print theme('datavizwiz_datatable', $node); ?>
+      </div>
+    <?php } ?>
   </div>
 
   <?php print $links; ?>

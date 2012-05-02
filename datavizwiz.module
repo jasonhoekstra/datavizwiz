@@ -98,7 +98,7 @@ function theme_datavizwiz_datafilters($node) {
 }
 
 function datavizwiz_gen_filters(&$form_state, $node) {
-    $query = db_query("SELECT field_name, display_name, filter FROM {dvw_field_meta} WHERE nid=%s AND filter <> '' AND filter IS NOT NULL", $node->nid);
+  $query = db_query("SELECT field_name, display_name, filter FROM {dvw_field_meta} WHERE nid=%s AND filter <> '' AND filter IS NOT NULL", $node->nid);
   
   $rows = _datavizwiz_get_rowarray($query);
   
@@ -263,11 +263,11 @@ function _datavizwiz_get_where_clause($filters) {
       }
       switch ($type) {
         case DVW_FILTER_TEXT :
-          $where .= sprintf(" AND %s LIKE '%%%s%%'", $filter, $variable);
+          $where .= sprintf(" AND `%s` LIKE '%%%s%%'", $filter, $variable);
           break;
         case DVW_FILTER_DROPDOWN :
         case DVW_FILTER_CHECKBOXES :
-          $where .= sprintf(" AND %s='%s'", $filter, $variable);
+          $where .= sprintf(" AND `%s`='%s'", $filter, $variable);
           break;
       }
     }
@@ -287,9 +287,11 @@ function _datavizwiz_get_summary_panes($nid) {
 function _datavizwiz_pane_map_openlayers($node, $index, $options) {
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.js');
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/theme/default/style.css');
-    
+  
   $pane_id = 'dvwmap' . $index;
   $opts = json_decode($options);
+
+  $querystring = _datavizwiz_get_querystring();
   
    $output .= '<div id="' . $pane_id . '" style="width: 100%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>';
    $script = '$(function() { var streets = new OpenLayers.Layer.XYZ(
@@ -331,7 +333,7 @@ map.setCenter(
     ), 4
 );
 
-  $.ajax({ url: "/dvwapi/'.$node->nid.'/geojson", success: handleGeoJSON, dataType: "json" });
+  $.ajax({ url: "/dvwapi/'.$node->nid.'/geojson?'.$querystring.'", success: handleGeoJSON, dataType: "json" });
 
       function handleGeoJSON(geodata) {
         console.log(geodata);
@@ -985,4 +987,50 @@ function _datavizwiz_get_database_name() {
   $db_name = explode("/",$db_url);
   $dbname = $db_name[count($db_name)-1];
   return $dbname;
+}
+
+
+// Taken from Drupal 7!!
+function _datavizwiz_drupal_get_query_parameters(array $query = NULL, array $exclude = array('q'), $parent = '') {
+  // Set defaults, if none given.
+  if (!isset($query)) {
+    $query = $_GET;
+  }
+  // If $exclude is empty, there is nothing to filter.
+  if (empty($exclude)) {
+    return $query;
+  }
+  elseif (!$parent) {
+    $exclude = array_flip($exclude);
+  }
+
+  $params = array();
+  foreach ($query as $key => $value) {
+    $string_key = ($parent ? $parent . '[' . $key . ']' : $key);
+    if (isset($exclude[$string_key])) {
+      continue;
+    }
+
+    if (is_array($value)) {
+      $params[$key] = drupal_get_query_parameters($value, $exclude, $string_key);
+    }
+    else {
+      $params[$key] = $value;
+    }
+  }
+
+  return $params;
+}
+
+function _datavizwiz_get_querystring() {
+  $query_parameters = _datavizwiz_drupal_get_query_parameters();
+  
+  $querystring = "";
+  foreach ($query_parameters as $param => $value) {
+    if (isset($value) && strlen($value)) {
+      $querystring .= '&' . $param . '=' . $value;
+    }
+  }
+  
+  return $querystring;
 }

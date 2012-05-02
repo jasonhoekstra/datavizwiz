@@ -39,13 +39,40 @@ function _datavizwiz_get_data_array($nid) {
     die;
   }
 
-  $result = db_query(sprintf('SELECT * FROM {%s}', $datatable));
+  $query = sprintf("
+      SELECT field_name, filter 
+      FROM {dvw_field_meta} 
+      WHERE nid=%s AND visible_data=1", $node->nid);
+  $colrows = _datavizwiz_get_rowarray(db_query($query));
+  
+  $filters = array();
+  
+  if (count($colrows)) {
+    foreach($colrows as $colrow) {
+      $colnames .= $colrow['field_name'] . ',';
+      
+      if (isset($colrow['filter']) && strlen($colrow['filter'])) {
+        $filters[$colrow['field_name']] = $colrow['filter'];
+      }
+    }
+    
+    $colnames = substr($colnames, 0, strlen($colnames) - 1);
 
-  while ($row = db_fetch_array($result)) {
-    $rows[] = $row;
+    $whereclause = _datavizwiz_get_where_clause($filters);
+    
+    // print_r($whereclause);
+    
+    $result = db_query(sprintf('SELECT ImporterID as RowID,%s FROM %s %s', $colnames, $datatable, $whereclause));
+ 
+    while ($row = db_fetch_array($result)) {
+      $rows[] = $row;
+    }
+
+    return $rows;
+  } else { 
+    echo 'No columns are defined for data export.';
+    die;
   }
-
-  return $rows;
 }
 
 function _datavizwiz_get_latlon_columns($nid) {
@@ -53,12 +80,11 @@ function _datavizwiz_get_latlon_columns($nid) {
 }
 
 function _datavizwiz_return_csv($rows) {
-  drupal_set_header("Content-type: text/csv");
+  //drupal_set_header("Content-type: text/csv");
   drupal_set_header("Cache-Control: no-store, no-cache");
-  drupal_set_header('Content-Disposition: attachment; filename="data.csv"');
+  //drupal_set_header('Content-Disposition: attachment; filename="data.csv"');
   
   $colnames = _datavizwiz_get_column_names($rows[0]);
-
   echo _datavizwiz_export_csv($rows, $colnames);
 }
 

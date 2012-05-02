@@ -686,8 +686,20 @@ function datavizwiz_menu() {
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_CALLBACK,
     'access callback'  => 'user_access',
-    'access arguments' => array('access datavizwiz'),
+    'access arguments' => array('adminster datavizwiz'),
     'page arguments' => array(3),
+  );
+  
+  $items['node/%/dataset'] = array(
+    'title' => 'Manage dataset',
+    'page callback' => 'datavizwiz_redirect_admin',
+    'page arguments' => array(2),
+    'access arguments' => array('access administration pages'),
+    'file' => 'includes/datavizwiz.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'access callback'  => '_datavizwiz_manage_dataset_menu_access', //special check to ensure node type = dvw_dataset
+    'access arguments' => array(1),
+    'weight' => 999,
   );
   
   $items['admin/datavizwiz/edit/%/fields'] = array(
@@ -698,20 +710,8 @@ function datavizwiz_menu() {
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'access callback'  => 'user_access',
-    'access arguments' => array('access datavizwiz'),
+    'access arguments' => array('adminster datavizwiz'),
     'weight' => -100,
-  );
-  
-  $items['node/%/dataset'] = array(
-    'title' => 'Manage dataset',
-    'page callback' => 'datavizwiz_redirect_admin',
-    'page arguments' => array(2),
-    'access arguments' => array('access administration pages'),
-    'file' => 'includes/datavizwiz.admin.inc',
-    'type' => MENU_LOCAL_TASK,
-    'access callback'  => 'user_access',
-    'access arguments' => array('access datavizwiz'),
-    'weight' => 999,
   );
 
   $items['admin/datavizwiz/edit/%/sort_summary'] = array(
@@ -722,7 +722,7 @@ function datavizwiz_menu() {
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'access callback'  => 'user_access',
-    'access arguments' => array('access datavizwiz'),
+    'access arguments' => array('adminster datavizwiz'),
     'weight' => -80,
   );
 
@@ -734,7 +734,7 @@ function datavizwiz_menu() {
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'access callback'  => 'user_access',
-    'access arguments' => array('access datavizwiz'),
+    'access arguments' => array('adminster datavizwiz'),
     'weight' => -60,
   );
   
@@ -742,11 +742,10 @@ function datavizwiz_menu() {
     'title' => 'Summary panes',
     'page callback' => 'datavizwiz_tab_summary_panes',
     'page arguments' => array(3),
-    'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'access callback'  => 'user_access',
-    'access arguments' => array('access datavizwiz'),
+    'access arguments' => array('adminster datavizwiz'),
     'weight' => -40,
   );
   
@@ -757,7 +756,7 @@ function datavizwiz_menu() {
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_CALLBACK,
     'access callback'  => 'user_access',
-    'access arguments' => array('access datavizwiz'),
+    'access arguments' => array('adminster datavizwiz'),
     'page arguments' => array(3,5,6),
     'weight' => -20,
   );
@@ -770,7 +769,7 @@ function datavizwiz_menu() {
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'access callback'  => 'user_access',
-    'access arguments' => array('access datavizwiz'),
+    'access arguments' => array('adminster datavizwiz'),
     'weight' => 100,
   );
   
@@ -781,10 +780,22 @@ function datavizwiz_menu() {
     'file' => 'includes/datavizwiz.api.inc',
     'type' => MENU_CALLBACK,
     'access callback'  => 'user_access',
-    'access arguments' => array('access datavizwiz'),
+    'access arguments' => array('adminster datavizwiz'),
   );  //TODO:  Add custom callback to check if published or if user has admin
 
   return $items;
+}
+
+function _datavizwiz_manage_dataset_menu_access($nid) {
+  $node = node_load($nid);
+  if (user_access('adminster datavizwiz') && $node->type == 'dvw_dataset' ) {
+    return true;
+  } else {
+    return false;
+  }
+   
+  
+  return true;
 }
 
 function datavizwiz_perm() {

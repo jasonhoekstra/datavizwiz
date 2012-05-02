@@ -94,6 +94,27 @@ function datavizwiz_schema() {
         'default' => 0,
         'description' => 'Boolean if visible in data stream (CSV/XML/JSON)',
       ),
+      'detail_title' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Boolean if this is the title in the detail page',
+      ),
+      'detail_subtitle' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Boolean if this is the sub-title in the detail page',
+      ),
+      'detail_wide' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Boolean if this displays wide in the detail page',
+      ),
      'weight_summary' => array(
         'type' => 'int',
         'not null' => TRUE,

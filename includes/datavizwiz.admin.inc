@@ -623,8 +623,9 @@ function datavizwiz_sort_summary_form_submit($form, &$form_state) {
 function datavizwiz_sort_detail_form($frm, $nid) {
   $rows = array();
   $form['weights']['#tree'] = TRUE;
-
-  $sql = 'SELECT fid, field_name, display_name, weight_detail FROM {dvw_field_meta} WHERE nid = %s AND visible_detail = TRUE ORDER BY weight_detail';
+  $form['detail_wide']['#tree'] = TRUE;
+  
+  $sql = 'SELECT fid, field_name, display_name, detail_title, detail_subtitle, detail_wide, weight_detail FROM {dvw_field_meta} WHERE nid = %s AND visible_detail = TRUE ORDER BY weight_detail';
   $form['update_type'] = array(
     '#type' => 'hidden',
     '#value' => DVW_SORT_DETAIL,
@@ -633,10 +634,15 @@ function datavizwiz_sort_detail_form($frm, $nid) {
 
   $result = db_query($sql, $nid);
 
+  $checked_title = false;
+  $checked_subtitle = false;
+  
   while ($tablerow = db_fetch_array($result)) {
     $fid = $tablerow['fid'];
     $form[$fid] = '';
-
+    if ($tablerow['detail_title']) { $checked_title = true; }
+    if ($tablerow['detail_subtitle']) { $checked_subtitle = true; }
+    
     $form[$fid]['field_name'] = array(
       '#type' => 'markup',
       '#value' => $tablerow['field_name'],
@@ -645,21 +651,53 @@ function datavizwiz_sort_detail_form($frm, $nid) {
       '#type' => 'markup',
       '#value' => $tablerow['display_name'],
     );
+    $form[$fid]['detail_title']= array(
+      '#type' => 'radio',
+      '#name' => 'detail_title',
+      '#return_value' => $fid,
+      '#attributes' => $tablerow['detail_title'] ? array('checked' => 'false') : '',
+    );
+    $form[$fid]['detail_subtitle'] = array(
+      '#type' => 'radio',
+      '#name' => 'detail_subtitle',
+      '#return_value' => $fid,
+      '#attributes' => $tablerow['detail_subtitle'] ? array('checked' => 'false') : '',
+    );
+    $form['detail_wide'][$fid] = array(
+      '#type' => 'checkbox',
+      '#default_value' => $tablerow['detail_wide'],
+    );
     $form['weights'][$fid] = array(
       '#type' => 'weight',
       '#delta' => 30,
-      '#default_value' => $tablerow[$field_name],
+      '#default_value' => $tablerow['weight_detail'],
       '#attributes' => array('class' => 'weight'),
     );
     $form['weights'][$fid]['#attributes']['class'] = 'order-weight';
   }
+  
+    $form[-1] = '';
+    $form[-1]['detail_title'] = array(
+      '#type' => 'radio',
+      '#name' => 'detail_title',
+      '#return_value' => -1,
+      '#description' => 'none',
+      '#attributes' => !$checked_title ? array('checked' => 'false') : '',
+    );
+    $form[-1]['detail_subtitle'] = array(
+      '#type' => 'radio',
+      '#name' => 'detail_subtitle',
+      '#return_value' => -1,
+      '#description' => 'none',
+      '#attributes' => !$checked_subtitle ? array('checked' => 'false') : '',
+    );
 
   $form['submit'] = array('#type' => 'submit', '#value' => t('Save Order'));
   return $form;
 }
 
 function theme_datavizwiz_sort_detail_form($form) {
-  $header = array(t('Field Name'), t('Display Name'), t('Weight'));
+  $header = array(t('Field Name'), t('Display Name'), t('Title'), t('Sub-title'), t('Wide Display'), t('Weight'));
 
   $rows = array();
 
@@ -671,12 +709,18 @@ function theme_datavizwiz_sort_detail_form($form) {
       $row[] = array('data' => drupal_render($form[$key]['display_name']));
       $row[] = array('data' => drupal_render($form[$key]['detail_title']));
       $row[] = array('data' => drupal_render($form[$key]['detail_subtitle']));
-      $row[] = array('data' => drupal_render($form[$key]['detail_wide']));
+      $row[] = array('data' => drupal_render($form['detail_wide'][$key]));
       $row[] = array('data' => drupal_render($form['weights'][$key]));
 
+      if ($key > 0) {
+        $class = 'draggable';
+      } else {
+        $class = '';
+      }
+      
       $rows[] = array(
         'data' => $row,
-        'class' => 'draggable',
+        'class' => $class,
       );
     }
   }
@@ -690,10 +734,18 @@ function theme_datavizwiz_sort_detail_form($form) {
   return $output;
 }
 
-function datavizwiz_sort_form_detail_submit($form, &$form_state) {
+function datavizwiz_sort_detail_form_submit($form, &$form_state) {
   foreach ($form_state['values']['weights'] as $id => $item) {
+    $wide_checked = false;
+    foreach($form_state['values']['detail_wide'] as $fid => $wide) {
+      if ($fid == $id && $wide) { $wide_checked = true; }
+    }
+     
     $record = new stdClass();
     $record->weight_detail = $item;
+    $record->detail_title = $form_state['values']['detail_title'] == $id ? 1 : 0;
+    $record->detail_subtitle = $form_state['values']['detail_subtitle'] == $id ? 1 : 0;
+    $record->detail_wide = $wide_checked;
     $record->fid = $id;
     drupal_write_record('dvw_field_meta', $record, 'fid');
   }

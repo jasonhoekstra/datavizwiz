@@ -192,7 +192,7 @@ function theme_datavizwiz_datatable($node) {
   $page_size = $node->field_dvw_pagesize[0]['value'];
   
   $query = sprintf("
-      SELECT field_name, display_name, sortable, filter 
+      SELECT field_name, display_name, sortable 
       FROM {dvw_field_meta} 
       WHERE nid=%s AND visible_summary=1 
       ORDER BY weight_summary", $node->nid);
@@ -214,10 +214,6 @@ function theme_datavizwiz_datatable($node) {
         $header['field'] = $field['field_name'];
         $header['sort'] = 'asc';
       }
-      
-      if (isset($field['filter']) && strlen($field['filter'])) {
-        $filters[$field['field_name']] = $field['filter'];
-      }
 
       $header['id'] = 'dvwcol' . $id_counter;
       array_push($headers, $header);
@@ -226,7 +222,7 @@ function theme_datavizwiz_datatable($node) {
 
     $column_names = substr($column_names, 0, strlen($column_names) - 1);
     $sql = sprintf("SELECT ImporterID,%s FROM {%s}", $column_names, $table_name);
-    $filterssql = _datavizwiz_get_where_clause($filters);
+    $filterssql = _datavizwiz_get_where_clause_by_node_id($node->nid);
     $sql .= $filterssql;
     
     $sqlcount = sprintf("SELECT COUNT(ImporterID) FROM {%s}", $table_name);
@@ -250,7 +246,22 @@ function theme_datavizwiz_datatable($node) {
   return $output;
 }
 
-function _datavizwiz_get_where_clause($filters) {
+function _datavizwiz_get_where_clause_by_node_id($nid) {
+  
+  $query = sprintf("
+      SELECT field_name, filter 
+      FROM {dvw_field_meta} 
+      WHERE nid=%s AND filter IS NOT NULL AND filter != ''", $nid);
+  $rows = _datavizwiz_get_rowarray(db_query($query));
+  
+  $filters = array();
+  
+  foreach ($rows as $field) {
+    if (isset($field['filter']) && strlen($field['filter'])) {
+      $filters[$field['field_name']] = $field['filter'];
+    }
+  }
+  
   $where = '';
   
   foreach ($filters as $filter => $type) {
@@ -275,6 +286,8 @@ function _datavizwiz_get_where_clause($filters) {
 
   return $where;
 }
+
+
 
 function _datavizwiz_get_summary_panes($nid) {
   $query = "SELECT type, name, options FROM {dvw_summary_views} 
@@ -451,13 +464,11 @@ function _datavizwiz_pane_flot($node, $index, $options, $type) {
   $opts = json_decode($options);
   $variable = $opts->variable;
   $table_name = $node->field_dvw_datatable[0]['value'];
+  $whereclause = _datavizwiz_get_where_clause_by_node_id($node->nid);
   
-  $sql = db_query(sprintf('SELECT %s, Count(*) as SumTotal FROM %s group by %s ORDER BY SumTotal DESC', $variable, $table_name, $variable));
-  $rows = _datavizwiz_get_rowarray($sql);
-
-
+  $sql = sprintf('SELECT %s, Count(*) as SumTotal FROM %s %s group by %s ORDER BY SumTotal DESC', $variable, $table_name, $whereclause, $variable);
+  $rows = _datavizwiz_get_rowarray(db_query($sql));
   
-
   $pane = 'dvwpane' . $index;
 
   if ($type == DVW_TYPE_PIE_FLOT) {
@@ -1024,13 +1035,13 @@ function _datavizwiz_drupal_get_query_parameters(array $query = NULL, array $exc
 
 function _datavizwiz_get_querystring() {
   $query_parameters = _datavizwiz_drupal_get_query_parameters();
-  
+
   $querystring = "";
   foreach ($query_parameters as $param => $value) {
     if (isset($value) && strlen($value)) {
       $querystring .= '&' . $param . '=' . $value;
     }
   }
-  
+
   return $querystring;
 }

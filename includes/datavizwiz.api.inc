@@ -40,7 +40,7 @@ function _datavizwiz_get_data_array($nid) {
   }
 
   $query = sprintf("
-      SELECT field_name, filter 
+      SELECT field_name 
       FROM {dvw_field_meta} 
       WHERE nid=%s AND visible_data=1", $node->nid);
   $colrows = _datavizwiz_get_rowarray(db_query($query));
@@ -50,18 +50,11 @@ function _datavizwiz_get_data_array($nid) {
   if (count($colrows)) {
     foreach($colrows as $colrow) {
       $colnames .= $colrow['field_name'] . ',';
-      
-      if (isset($colrow['filter']) && strlen($colrow['filter'])) {
-        $filters[$colrow['field_name']] = $colrow['filter'];
-      }
     }
     
     $colnames = substr($colnames, 0, strlen($colnames) - 1);
 
-    $whereclause = _datavizwiz_get_where_clause($filters);
-    
-    // print_r($whereclause);
-    
+    $whereclause = _datavizwiz_get_where_clause_by_node_id($nid);
     $result = db_query(sprintf('SELECT ImporterID as RowID,%s FROM %s %s', $colnames, $datatable, $whereclause));
  
     while ($row = db_fetch_array($result)) {

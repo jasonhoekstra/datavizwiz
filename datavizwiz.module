@@ -357,13 +357,31 @@ map.setCenter(
     "externalProjection": wgs84,
     "internalProjection": diff
   });
+  
+        var style = new OpenLayers.Style({
+            pointRadius: "${radius}",
+            fillColor: "#66ccff",
+            fillOpacity: 0.8,
+            strokeColor: "#3366cc",
+            strokeWidth: 2,
+            strokeOpacity: 0.8
+        }, {
+            context: {
+                radius: function(feature) {
+                    return Math.min(feature.attributes.count, 20) + 3;
+                }
+            }
+        });
+  
         var vector_layer = new OpenLayers.Layer.Vector("Locations", {
           projection: "EPSG:4326",
           strategies: [
-            new OpenLayers.Strategy.Cluster()
-          ]
+            new OpenLayers.Strategy.Cluster() //{distance: 15, threshold: 3}
+          ],
+          styleMap: new OpenLayers.StyleMap({"default": style})
          }
         ); 
+        
         map.addLayer(vector_layer);
         vector_layer.addFeatures(geojson_format.read(geodata));
         console.log(map);

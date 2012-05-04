@@ -160,26 +160,30 @@ function _datavizwiz_get_unique_values($datatable, $column) {
     return $returnrows;
 }
 
-function theme_datavizwiz_opendatalinks($node) {
+function theme_datavizwiz_opendatalinks($node) {  
+  if ($node->field_dvw_download_csv[0]['value'] == 1) {
+    $icon_csv = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/csv.png' . '"/> ';
+    $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'csv');
+    $icon_csv = $link . $icon_csv . "</a>";
+  }
   
-  // $icon_opendata = '<img src="' . drupal_get_path('module', 'datavizwiz') . '/images/opendata.png' . '"/> ';
-  $icon_csv = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/csv.png' . '"/> ';
-  $icon_geojson = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/geojson.png' . '"/> ';
-  $icon_json = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/json.png' . '"/> ';
-  $icon_xml = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/xml.png' . '"/> ';
+  if ($node->field_dvw_download_geojson[0]['value'] == 1) {
+    $icon_geojson = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/geojson.png' . '"/> ';
+    $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'geojson');
+    $icon_geojson = $link . $icon_geojson . "</a>";
+  }
   
-  $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'csv');
-  $icon_csv = $link . $icon_csv . "</a>";
+  if ($node->field_dvw_download_json[0]['value'] == 1) {
+    $icon_json = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/json.png' . '"/> ';
+    $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'json');
+    $icon_json = $link . $icon_json . "</a>";
+  }
   
-  $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'geojson');
-  $icon_geojson = $link . $icon_geojson . "</a>";
-  
-  $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'json');
-  $icon_json = $link . $icon_json . "</a>";
-  
-  $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'xml');
-  $icon_xml = $link . $icon_xml . "</a>";
-  
+  if ($node->field_dvw_download_xml[0]['value'] == 1) {
+    $icon_xml = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/xml.png' . '"/> ';
+    $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'xml');
+    $icon_xml = $link . $icon_xml . "</a>";
+  }
   
   
   

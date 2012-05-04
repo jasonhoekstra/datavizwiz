@@ -276,7 +276,7 @@ return $rows;',
     array (
       0 => 
       array (
-        'value' => 'No',
+        'value' => 1,
       ),
     ),
     'default_value_php' => '',
@@ -284,7 +284,7 @@ return $rows;',
     array (
       'field_dvw_download_csv' => 
       array (
-        'value' => false,
+        'value' => true,
       ),
     ),
     'group' => false,
@@ -336,8 +336,8 @@ return $rows;',
   ),
   4 => 
   array (
-    'label' => 'JSON Download',
-    'field_name' => 'field_dvw_download_json',
+    'label' => 'GeoJSON Download',
+    'field_name' => 'field_dvw_download_geojson',
     'type' => 'number_integer',
     'widget_type' => 'optionwidgets_onoff',
     'change' => 'Change basic information',
@@ -347,13 +347,13 @@ return $rows;',
     array (
       0 => 
       array (
-        'value' => 'No',
+        'value' => NULL,
       ),
     ),
     'default_value_php' => '',
     'default_value_widget' => 
     array (
-      'field_dvw_download_json' => 
+      'field_dvw_download_geojson' => 
       array (
         'value' => false,
       ),
@@ -366,7 +366,7 @@ return $rows;',
     'prefix' => '',
     'suffix' => '',
     'allowed_values' => '0|No
-1|JSON Download',
+1|GeoJSON Download',
     'allowed_values_php' => '',
     'op' => 'Save field settings',
     'module' => 'number',
@@ -403,30 +403,45 @@ return $rows;',
         'format' => 'default',
         'exclude' => 0,
       ),
+      2 => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      3 => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
     ),
   ),
   5 => 
   array (
-    'label' => 'XML Download',
-    'field_name' => 'field_dvw_download_xml',
+    'label' => 'JSON Download',
+    'field_name' => 'field_dvw_download_json',
     'type' => 'number_integer',
     'widget_type' => 'optionwidgets_onoff',
     'change' => 'Change basic information',
     'weight' => '3',
-    'description' => 'XML Download',
+    'description' => '',
     'default_value' => 
     array (
       0 => 
       array (
-        'value' => 'No',
+        'value' => 1,
       ),
     ),
     'default_value_php' => '',
     'default_value_widget' => 
     array (
-      'field_dvw_download_xml' => 
+      'field_dvw_download_json' => 
       array (
-        'value' => false,
+        'value' => true,
       ),
     ),
     'group' => false,
@@ -437,7 +452,7 @@ return $rows;',
     'prefix' => '',
     'suffix' => '',
     'allowed_values' => '0|No
-1|XML Download',
+1|JSON Download',
     'allowed_values_php' => '',
     'op' => 'Save field settings',
     'module' => 'number',
@@ -476,14 +491,85 @@ return $rows;',
       ),
     ),
   ),
+  6 => 
+  array (
+    'label' => 'XML Download',
+    'field_name' => 'field_dvw_download_xml',
+    'type' => 'number_integer',
+    'widget_type' => 'optionwidgets_onoff',
+    'change' => 'Change basic information',
+    'weight' => '4',
+    'description' => 'XML Download',
+    'default_value' => 
+    array (
+      0 => 
+      array (
+        'value' => 1,
+      ),
+    ),
+    'default_value_php' => '',
+    'default_value_widget' => 
+    array (
+      'field_dvw_download_xml' => 
+      array (
+        'value' => true,
+      ),
+    ),
+    'group' => false,
+    'required' => 1,
+    'multiple' => '0',
+    'min' => '',
+    'max' => '',
+    'prefix' => '',
+    'suffix' => '',
+    'allowed_values' => '0|No
+1|XML Download',
+    'allowed_values_php' => '',
+    'op' => 'Save field settings',
+    'module' => 'number',
+    'widget_module' => 'optionwidgets',
+    'columns' => 
+    array (
+      'value' => 
+      array (
+        'type' => 'int',
+        'not null' => false,
+        'sortable' => true,
+      ),
+    ),
+    'display_settings' => 
+    array (
+      'weight' => '4',
+      'parent' => '',
+      'label' => 
+      array (
+        'format' => 'above',
+      ),
+      'teaser' => 
+      array (
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      'full' => 
+      array (
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      4 => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+  ),
 );
 $content['extra']  = array (
   'title' => '-5',
   'body_field' => '-3',
-  'revision_information' => '5',
-  'author' => '4',
-  'options' => '6',
+  'revision_information' => '6',
+  'author' => '5',
+  'options' => '7',
   'menu' => '-4',
-  'path' => '7',
-  'custom_breadcrumbs' => '8',
+  'path' => '8',
+  'custom_breadcrumbs' => '9',
 );

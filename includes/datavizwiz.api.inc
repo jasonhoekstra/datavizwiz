@@ -1,25 +1,33 @@
 <?php
 
 function datavizwiz_api($nid, $operation) {
+  $node = node_load($nid);
   $rows = _datavizwiz_get_data_array($nid);
 
   switch (strtolower($operation)) {
     case 'csv':
-      _datavizwiz_return_csv($rows);
+      if ($node->field_dvw_download_csv[0]['value'] == 1) {
+        _datavizwiz_return_csv($rows);
+      }
       break;
     case 'geojson':
+      // Skipping the check for geojson as its required for maps and only exposes lat/lons and title
       $latloncols = _datavizwiz_get_latlon_cols($nid);
       _datavizwiz_return_geojson($rows, $latloncols);
       break;
     case 'json':
-      _datavizwiz_return_json($rows);
+      if ($node->field_dvw_download_json[0]['value'] == 1) {
+        _datavizwiz_return_json($rows);
+      }
       break;
     case 'd3json':
-      echo 
-      _datavizwiz_return_d3_json($rows);
+      // Backing away from this, refactor for OpenLayers chrolopeth
+      // _datavizwiz_return_d3_json($rows);
       break;
     case 'xml':
-      _datavizwiz_return_xml($rows);
+      if ($node->field_dvw_download_xml[0]['value'] == 1) {
+        _datavizwiz_return_xml($rows);
+      }
       break;
     default:
       echo 'Invalid operation';

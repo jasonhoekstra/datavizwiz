@@ -48,7 +48,10 @@ function theme_datavizwiz_summarypanes($node) {
     $index = 0;
     $setActive = FALSE;
     foreach ($summary_panes as $pane) {
-         $output .= sprintf('<li class="dvwMenu"><a href="pane-%s">%s</a></li>', $index, $pane['name']);     
+         // Sanitize $pane['name']. This is user input from
+         // admin/datavizwiz/edit/%/summary_pane.
+         $pane_name = check_plain($pane['name']);
+         $output .= sprintf('<li class="dvwMenu"><a href="pane-%s">%s</a></li>', $index, $pane_name);     
 
       $index++;
     }
@@ -97,34 +100,47 @@ function theme_datavizwiz_datafilters($node) {
   return drupal_get_form('datavizwiz_gen_filters', $node);;
 }
 
+/**
+ * @param $form_state
+ *
+ * @param $node
+ *  Node object. datavizwiz node.
+ * 
+ * @return $form
+ *  Form API form array.
+ */
 function datavizwiz_gen_filters(&$form_state, $node) {
   $query = db_query("SELECT field_name, display_name, filter FROM {dvw_field_meta} WHERE nid=%s AND filter <> '' AND filter IS NOT NULL", $node->nid);
   
+  // $rows is an array of fields marked as "filterable" for user-defined filtering.
   $rows = _datavizwiz_get_rowarray($query);
   
   foreach ($rows as $row) {
+    $table_name = check_plain($node->field_dvw_datatable[0]['value']);
+    $field_name = check_plain($row['field_name']);
+    $display_name = check_plain($row['display_name']);
     switch ($row['filter']) {
       case DVW_FILTER_TEXT :
         $form[$row['field_name']] = array(
           '#type' => 'textfield', 
-          '#title' => $row['display_name'],
-          '#value' => $_GET[$row['field_name']],
+          '#title' => $display_name,
+          '#value' => $field_name,
         );
         break;
       case DVW_FILTER_DROPDOWN :
-        $options = _datavizwiz_get_unique_values($node->field_dvw_datatable[0]['value'], $row['field_name']);
-        $form[$row['field_name']] = array(
+        $options = _datavizwiz_get_unique_values($table_name, $field_name);
+        $form[$field_name] = array(
           '#type' => 'select', 
           '#title' => $row['display_name'],
-          '#value' => $_GET[$row['field_name']],
+          '#value' => $_GET[$field_name],
           '#options' => $options,
         );
         break;
       case DVW_FILTER_CHECKBOXES :
-        $options = _datavizwiz_get_unique_values($node->field_dvw_datatable[0]['value'], $row['field_name']);
-        $form[$row['field_name']] = array(
+        $options = _datavizwiz_get_unique_values($table_name, $field_name);
+        $form[$field_name] = array(
           '#type' => 'checkboxes', 
-          '#title' => $row['display_name'],
+          '#title' => $display_name,
         );
         break;
     }
@@ -297,12 +313,27 @@ function _datavizwiz_get_summary_panes($nid) {
   return $rows;
 }
 
-function _datavizwiz_pane_map_openlayers($node, $index, $options) {
+/**
+ * @param $node
+ *  Node object.
+ *
+ * @param $index
+ *  Integer. Pane order.
+ *
+ * @param $options 
+ *  String. (Optional) JSON options for whatever pane is.
+ * 
+ * @return $output
+ *  HTML
+ */
+function _datavizwiz_pane_map_openlayers($node, $index, $options = NULL) {
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.js');
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/theme/default/style.css');
   
   $pane_id = 'dvwmap' . $index;
-  $opts = json_decode($options);
+  if ($options) {
+    $opts = json_decode($options);
+  }
 
   $querystring = _datavizwiz_get_querystring();
   
@@ -371,7 +402,8 @@ map.setCenter(
 });
 ';
     
-  $tablename = $node->field_dvw_datatable[0]['value'];
+  // Sanitize $tablename, CCK input for good measure.
+  $tablename = check_plain($node->field_dvw_datatable[0]['value']);
   $lat = $opts->latitude;
   $lon = $opts->longitude;
     
@@ -457,13 +489,31 @@ $('#svg').html('test');
   return $output;
 }
 
-function _datavizwiz_pane_flot($node, $index, $options, $type) {
+/**
+ * @param $node
+ *  Node object.
+ *
+ * @param $index
+ *  Integer. Pane order.
+ *
+ * @param $options 
+ *  String. (Optional) JSON options for whatever pane is.
+ * 
+ * @param $type
+ *  String. Constant, either DVW_TYPE_BAR_FLOT or DVW_TYPE_PIE_FLOT.
+ * 
+ * @return $output
+ *  HTML
+ */
+function _datavizwiz_pane_flot($node, $index, $options = NULL, $type) {
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.min.js');
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.pie.min.js');
   
-  $opts = json_decode($options);
+  if ($options) {
+    $opts = json_decode($options);
+  }
   $variable = $opts->variable;
-  $table_name = $node->field_dvw_datatable[0]['value'];
+  $table_name = check_plain($node->field_dvw_datatable[0]['value']);
   $whereclause = _datavizwiz_get_where_clause_by_node_id($node->nid);
   
   $sql = sprintf('SELECT %s, Count(*) as SumTotal FROM %s %s group by %s ORDER BY SumTotal DESC', $variable, $table_name, $whereclause, $variable);
@@ -473,7 +523,8 @@ function _datavizwiz_pane_flot($node, $index, $options, $type) {
 
   if ($type == DVW_TYPE_PIE_FLOT) {
   foreach ($rows as $row) {
-    $data .= '{label:"' . $row[$variable] . ' (' . $row["SumTotal"]  .')", data:' . $row["SumTotal"] . '},';
+    $row_variable = check_plain($row[$variable]);
+    $data .= '{label:"' . $row_variable . ' (' . $row["SumTotal"]  .')", data:' . $row["SumTotal"] . '},';
   }
   
   drupal_add_js('$(function() {
@@ -491,15 +542,15 @@ function _datavizwiz_pane_flot($node, $index, $options, $type) {
     ', 'inline');
   } else {
     // Type is DVW_TYPE_BAR_FLOT
-      $tickcount=0;
-  foreach ($rows as $row) {
-    
-    $data .= sprintf('[%s,%s],', $tickcount,$row["SumTotal"]);
- 
-    
-    $ticks .= sprintf('[%s,"%s"],', $tickcount,$row[$variable]);
-    $tickcount++;
-  }
+    $tickcount=0;
+    foreach ($rows as $row) {
+      $row_variable = check_plain($row[$variable]);
+      
+      $data .= sprintf('[%s,%s],', $tickcount,$row["SumTotal"]);
+   
+      $ticks .= sprintf('[%s,"%s"],', $tickcount,$row_variable);
+      $tickcount++;
+    }
   
   drupal_add_js('$(function() {$.plot(
    $("#'. $pane .'"),
@@ -536,8 +587,21 @@ function _datavizwiz_pane_flot($node, $index, $options, $type) {
   return $output;
 }
 
+/**
+ * @param $node
+ *  Node object.
+ *
+ * @param $index
+ *  Integer. Pane order.
+ *
+ * @param $options 
+ *  HTML
+ * 
+ * @return $output
+ *  HTML
+ */
 function _datavizwiz_pane_html($node, $index, $options) {
-  return $options;
+  return check_markup($options);
 }
 
 function datavizwiz_theme_registry_alter(&$theme_registry) {
@@ -553,6 +617,9 @@ function datavizwiz_theme_registry_alter(&$theme_registry) {
   array_unshift($theme_registry[$template]['theme paths'], $originalpath, $modulepath);
 }
 
+/**
+ * Implements hook_theme().
+ */
 function datavizwiz_theme() {
   return array(
     'datavizwiz_detaildisplay' => array(
@@ -691,6 +758,9 @@ function datavizwiz_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
+/**
+ * Implements hook_menu().
+ */
 function datavizwiz_menu() {
   $items['admin/datavizwiz/edit/%'] = array(
     'title' => 'Manage dataset',
@@ -857,6 +927,9 @@ function _datavizwiz_detail_page($metadata, $table_name, $importerID) {
         }
       }
       
+      // Sanitize $value, this is user-generated, uploaded in CSV file. 
+      // We don't want to allow HTML, JS, etc.
+      $value = check_plain($value);
       $output .= '<div class="dvwDetail"><strong>' . $column_name . '</strong><p>' . $value . '</p></div>';
     }
   }

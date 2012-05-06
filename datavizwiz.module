@@ -845,8 +845,9 @@ function _datavizwiz_detail_page($metadata, $table_name, $importerID) {
   // Get headers for detail table
   $headers = array();
   $id_counter = 1;
-  
-  drupal_set_title('Detail Display');
+ 
+  $title = '';
+  $subtitle = '';
   
   foreach ($metadata as $field) {
     $header = array();
@@ -854,11 +855,16 @@ function _datavizwiz_detail_page($metadata, $table_name, $importerID) {
       $header['data'] = $field['field_name'];
       $header['display_name'] = $field['display_name'];
       $header['id'] = 'dvwcol' . $id_counter;
+      
+      if ($field['detail_title'] == 1) {
+        $title = $field['field_name'];
+      }  
+      
       array_push($headers, $header);
       $id_counter++;
     }
   }
-
+  
   $column_names = '';
   // Get the column names we need
   foreach ($headers as $header) {
@@ -876,7 +882,12 @@ function _datavizwiz_detail_page($metadata, $table_name, $importerID) {
       foreach ($headers as $header) {
         if ($header['data'] == $key) {
           $column_name = $header['display_name'];
+          $db_name = $header['data'];
         }
+      }
+      
+      if ((strlen($title) > 0) && $title == $db_name) {
+        drupal_set_title($value);
       }
       
       $output .= '<div class="dvwDetail"><strong>' . $column_name . '</strong><p>' . $value . '</p></div>';

@@ -227,10 +227,33 @@ function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
 }
 
 function _datavizwiz_summary_pane_edit_map_openlayers_form(&$form, $node) {
-  $field_array = _datavizwiz_get_field_array($node->field_dvw_datatable[0]['value']);
+  $field_array = _datavizwiz_get_field_array($node->field_dvw_datatable[0]['value'], TRUE);
   
   $form['type'] = array('#type' => 'hidden',
     '#value' => DVW_TYPE_MAP_OPENLAYERS);
+  
+  $form['variable'] = array('#type' => 'select',
+    '#title' => t('Title field'),
+    '#options' => $field_array,
+  );
+  
+  /* $form['circle_color'] = array('#type' => 'textfield',
+  '#title' => t('Point color'));
+
+  $form['circle_outline'] = array('#type' => 'textfield',
+  '#title' => t('Point outline color'));
+    
+  $form['highlight_color'] = array('#type' => 'textfield',
+  '#title' => t('Selected point color'));
+      
+  $form['highlight_outline'] = array('#type' => 'textfield',
+  '#title' => t('Selected point color')); */
+  
+  
+  $form['clustering'] = array('#type' => 'checkbox',
+    '#title' => t('Point Clustering?'),
+  );
+  
   
   return $form;
 }
@@ -247,7 +270,7 @@ function _datavizwiz_summary_pane_edit_flot_form(&$form, $node, $chart_type) {
   $form['variable'] = array('#type' => 'select',
   '#title' => t('Chart variable'),
   '#options' => $field_array,
-        );
+  );
   
   return $form;
 }
@@ -719,11 +742,15 @@ function _datavizwiz_get_pane_type_name($pane_type) {
   }
 }
 
-function _datavizwiz_get_field_array($table_name) {
+function _datavizwiz_get_field_array($table_name, $none_option = FALSE) {
   $columns = array();
   
   $sql = sprintf('SHOW COLUMNS FROM %s', $table_name);
   $results = db_query($sql);
+  
+  if ($none_option) {
+    $columns["(none)"] = "(none)";
+  }
   
   while ($column = db_fetch_array($results)) {
     if ($column['Field'] != 'ImporterID') {

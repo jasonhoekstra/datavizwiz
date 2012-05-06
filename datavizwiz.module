@@ -74,9 +74,9 @@ function theme_datavizwiz_summarypanes($node) {
           break;
       }
       
-            if (!$setActive) { 
-              $output .= sprintf('<div id="pane-%s" class="dvwContent dvwActive" style="width: 100%%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px">%s</div>', $index, $content);
-              $setActive = TRUE;
+      if (!$setActive) { 
+        $output .= sprintf('<div id="pane-%s" class="dvwContent dvwActive" style="width: 100%%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px">%s</div>', $index, $content);
+        $setActive = TRUE;
       } else {
          $output .= sprintf('<div id="pane-%s" class="dvwContent" style="width: 100%%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px">%s</div>', $index, $content);    
       }
@@ -301,8 +301,6 @@ function _datavizwiz_get_where_clause_by_node_id($nid) {
   return $where;
 }
 
-
-
 function _datavizwiz_get_summary_panes($nid) {
   $query = "SELECT type, name, options FROM {dvw_summary_views} 
       WHERE nid=%s ORDER BY pane_order";
@@ -327,6 +325,7 @@ function _datavizwiz_get_summary_panes($nid) {
 function _datavizwiz_pane_map_openlayers($node, $index, $options = NULL) {
   //drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/firebug-lite.js');
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.js');
+  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/scripts/datavizwiz_openlayers.js');  
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/theme/default/style.css');
   
   $pane_id = 'dvwmap' . $index;
@@ -337,131 +336,11 @@ function _datavizwiz_pane_map_openlayers($node, $index, $options = NULL) {
   $querystring = _datavizwiz_get_querystring();
   
    $output .= '<div id="' . $pane_id . '" style="width: 100%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>
-<div id="infobox-0" style="position: absolute; bottom: 10px; right: 10px; padding: 10px; background-color: black; z-index: 10000; opacity: .8; color: #ffffff">asdf</div>     
+<div id="dvw-infobox" style="position: absolute; bottom: 10px; right: 10px; padding: 10px; background-color: black; z-index: 10000; opacity: .8; color: #ffffff">asdf</div>     
 ';
-   $script = 'var selectControl;
-var selectedFeature;
-$(function() { var streets = new OpenLayers.Layer.XYZ(
-    "MapBox Streets",
-    [
-        "http://a.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
-        "http://b.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
-        "http://c.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
-        "http://d.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png"
-    ], {
-        sphericalMercator: true,
-        wrapDateLine: true,
-        transitionEffect: "resize",
-        buffer: 1,
-        numZoomLevels: 17
-    }
-  );
-
-  var map = new OpenLayers.Map({
-      div: "' . $pane_id . '",
-      layers: [streets],
-      projection: "EPSG:4326",
-      zoom: 4,
-      controls: [
-          new OpenLayers.Control.Navigation({
-              dragPanOptions: {
-                  enableKinetic: true
-              }
-          }),
-          new OpenLayers.Control.Attribution(),
-          new OpenLayers.Control.Zoom()
-      ]
-  });
-
-map.setCenter(
-    new OpenLayers.LonLat(-98.35, 39.50).transform(
-        new OpenLayers.Projection("EPSG:4326"),
-        map.getProjectionObject()
-    ), 4
-);
-
-  $.ajax({ url: "/dvwapi/'.$node->nid.'/geojson?'.$querystring.'", success: handleGeoJSON, dataType: "json" });
-
-    //  *** this fires when you move over a feature ***
-    function onFeatureSelect(feature) {       
-        $("#infobox-0").show();
-        console.log(feature);
-        
-        var htmlString = "";
-        for (i=0; i<feature.cluster.length; i++) {
-          htmlString = htmlString + feature.cluster[i].attributes.popupContent + "<br/>";
-        }
-        
-        $("#infobox-0").html(htmlString);
-    }
-
-
-    //  *** this fires when you move off a feature ***
-    function onFeatureUnselect(feature) {
-        $("#infobox-0").html("");
-        $("#infobox-0").hide();
-    }
-
-      function handleGeoJSON(geodata) {
-        console.log(geodata);
-        baseProjection = map.projection; 
-        wgs84 = new OpenLayers.Projection("EPSG:4326");
-                diff = new OpenLayers.Projection("EPSG:900913");
-        var geojson_format = new OpenLayers.Format.GeoJSON({
-    "externalProjection": wgs84,
-    "internalProjection": diff
-  });
   
-        var style = new OpenLayers.Style({
-            pointRadius: "${radius}",
-            fillColor: "#66ccff",
-            fillOpacity: 0.8,
-            strokeColor: "#3366cc",
-            strokeWidth: 2,
-            strokeOpacity: 0.8
-        }, {
-            context: {
-                radius: function(feature) {
-                    return Math.min(feature.attributes.count, 20) + 3;
-                }
-            }
-        });
-
-        var selectedStyle = new OpenLayers.Style({
-            fillColor: "#cccc33",
-            strokeColor: "#cc66cc",
-        });
-
-
-
-        var vector_layer = new OpenLayers.Layer.Vector("Locations", {
-          projection: "EPSG:4326",
-          strategies: [
-            new OpenLayers.Strategy.Cluster() //{distance: 15, threshold: 3}
-          ],
-          styleMap: new OpenLayers.StyleMap({"default": style, "select": selectedStyle })
-         }
-        ); 
-
-        map.addLayer(vector_layer);
-        var vector_data = geojson_format.read(geodata);
-        console.log(vector_data);
-        vector_layer.addFeatures(vector_data);
-        
-// Used to display the dialog popup
-
-
-selectControl = new OpenLayers.Control.SelectFeature(vector_layer,
-    {
-        hover: true,
-        onSelect: onFeatureSelect,
-        onUnselect: onFeatureUnselect 
-    });
-    map.addControl(selectControl);
-    selectControl.activate();
-      }
-}); 
-';
+  $geoDataURL = "/dvwapi/".$node->nid."/geojson?".$querystring;
+  $script = "$(function() { initOpenLayersMap('" . $pane_id . "','" . $geoDataURL . "') });"; 
     
   // Sanitize $tablename, CCK input for good measure.
   $tablename = check_plain($node->field_dvw_datatable[0]['value']);
@@ -1070,7 +949,6 @@ function _datavizwiz_get_database_name() {
   $dbname = $db_name[count($db_name)-1];
   return $dbname;
 }
-
 
 // Taken from Drupal 7!!
 function _datavizwiz_drupal_get_query_parameters(array $query = NULL, array $exclude = array('q'), $parent = '') {

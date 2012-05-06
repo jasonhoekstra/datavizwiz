@@ -3,6 +3,9 @@
 function datavizwiz_api($nid, $operation) {
   $node = node_load($nid);
   $rows = _datavizwiz_get_data_array($nid);
+  // Since we're returning user controlled open data, allow this to be accessed
+  // by cross-site domains.
+  drupal_set_header('Access-Control-Allow-Origin: *');
 
   switch (strtolower($operation)) {
     case 'csv':
@@ -122,7 +125,8 @@ function _datavizwiz_return_geojson($rows, $latloncols) {
 
         $feature->id = $row['ImporterID'];
         $properties = new stdClass();
-        $properties->popupContent = 'Test';
+        $random_string = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',5)),0,5);
+        $properties->popupContent = $random_string;
         $feature->properties = $properties;
 
         $geojson[] = $feature;

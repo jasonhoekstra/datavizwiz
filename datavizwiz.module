@@ -342,7 +342,9 @@ function _datavizwiz_pane_map_openlayers($node, $index, $options = NULL) {
 
   $querystring = _datavizwiz_get_querystring();
   
-   $output .= '<div id="' . $pane_id . '" style="width: 100%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>';
+   $output .= '<div id="' . $pane_id . '" style="width: 100%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>
+<div id="infobox-0" style="position: absolute; bottom: 10px; right: 10px; padding: 10px; background-color: black; z-index: 10000; opacity: .8; color: #ffffff">asdf</div>     
+';
    $script = 'var selectControl;
 var selectedFeature;
 $(function() { var streets = new OpenLayers.Layer.XYZ(
@@ -360,8 +362,6 @@ $(function() { var streets = new OpenLayers.Layer.XYZ(
         numZoomLevels: 17
     }
   );
-
-console.log("hi");
 
   var map = new OpenLayers.Map({
       div: "' . $pane_id . '",
@@ -388,29 +388,25 @@ map.setCenter(
 
   $.ajax({ url: "/dvwapi/'.$node->nid.'/geojson?'.$querystring.'", success: handleGeoJSON, dataType: "json" });
 
-        function onPopupClose(evt) {
-            selectControl.unselect(selectedFeature);
+    //  *** this fires when you move over a feature ***
+    function onFeatureSelect(feature) {       
+        $("#infobox-0").show();
+        console.log(feature);
+        
+        var htmlString = "";
+        for (i=0; i<feature.cluster.length; i++) {
+          htmlString = htmlString + feature.cluster[i].attributes.popupContent + "<br/>";
         }
         
+        $("#infobox-0").html(htmlString);
+    }
 
-        function onFeatureSelect(feature) {
-            selectedFeature = feature;
-            console.log(selectedFeature);
-            popup = new OpenLayers.Popup.FramedCloud("locs", 
-                                     feature.geometry.getBounds().getCenterLonLat(),
-                                     null,
-                                     "test",
-                                     null, true, onPopupClose);
-            feature.popup = popup;
-            popup.autoSize = true;
-            map.addPopup(popup);
-        }
-        function onFeatureUnselect(feature) {
-            map.removePopup(feature.popup);
-            feature.popup.destroy();
-            feature.popup = null;
-        }   
 
+    //  *** this fires when you move off a feature ***
+    function onFeatureUnselect(feature) {
+        $("#infobox-0").html("");
+        $("#infobox-0").hide();
+    }
 
       function handleGeoJSON(geodata) {
         console.log(geodata);
@@ -436,31 +432,41 @@ map.setCenter(
                 }
             }
         });
-  
+
+        var selectedStyle = new OpenLayers.Style({
+            fillColor: "#cccc33",
+            strokeColor: "#cc66cc",
+        });
+
+
+
         var vector_layer = new OpenLayers.Layer.Vector("Locations", {
           projection: "EPSG:4326",
           strategies: [
             new OpenLayers.Strategy.Cluster() //{distance: 15, threshold: 3}
           ],
-          styleMap: new OpenLayers.StyleMap({"default": style})
+          styleMap: new OpenLayers.StyleMap({"default": style, "select": selectedStyle })
          }
         ); 
-        
+
         map.addLayer(vector_layer);
-        vector_layer.addFeatures(geojson_format.read(geodata));
+        var vector_data = geojson_format.read(geodata);
+        console.log(vector_data);
+        vector_layer.addFeatures(vector_data);
         
 // Used to display the dialog popup
 
 
 selectControl = new OpenLayers.Control.SelectFeature(vector_layer,
     {
+        hover: true,
         onSelect: onFeatureSelect,
         onUnselect: onFeatureUnselect 
     });
     map.addControl(selectControl);
     selectControl.activate();
       }
-});
+}); 
 ';
     
   // Sanitize $tablename, CCK input for good measure.

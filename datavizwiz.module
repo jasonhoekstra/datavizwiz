@@ -331,6 +331,7 @@ function _datavizwiz_get_summary_panes($nid) {
  *  HTML
  */
 function _datavizwiz_pane_map_openlayers($node, $index, $options = NULL) {
+  //drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/firebug-lite.js');
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.js');
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/theme/default/style.css');
   
@@ -342,7 +343,9 @@ function _datavizwiz_pane_map_openlayers($node, $index, $options = NULL) {
   $querystring = _datavizwiz_get_querystring();
   
    $output .= '<div id="' . $pane_id . '" style="width: 100%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>';
-   $script = '$(function() { var streets = new OpenLayers.Layer.XYZ(
+   $script = 'var selectControl;
+var selectedFeature;
+$(function() { var streets = new OpenLayers.Layer.XYZ(
     "MapBox Streets",
     [
         "http://a.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
@@ -357,6 +360,8 @@ function _datavizwiz_pane_map_openlayers($node, $index, $options = NULL) {
         numZoomLevels: 17
     }
   );
+
+console.log("hi");
 
   var map = new OpenLayers.Map({
       div: "' . $pane_id . '",
@@ -382,6 +387,30 @@ map.setCenter(
 );
 
   $.ajax({ url: "/dvwapi/'.$node->nid.'/geojson?'.$querystring.'", success: handleGeoJSON, dataType: "json" });
+
+        function onPopupClose(evt) {
+            selectControl.unselect(selectedFeature);
+        }
+        
+
+        function onFeatureSelect(feature) {
+            selectedFeature = feature;
+            console.log(selectedFeature);
+            popup = new OpenLayers.Popup.FramedCloud("locs", 
+                                     feature.geometry.getBounds().getCenterLonLat(),
+                                     null,
+                                     "test",
+                                     null, true, onPopupClose);
+            feature.popup = popup;
+            popup.autoSize = true;
+            map.addPopup(popup);
+        }
+        function onFeatureUnselect(feature) {
+            map.removePopup(feature.popup);
+            feature.popup.destroy();
+            feature.popup = null;
+        }   
+
 
       function handleGeoJSON(geodata) {
         console.log(geodata);
@@ -419,7 +448,17 @@ map.setCenter(
         
         map.addLayer(vector_layer);
         vector_layer.addFeatures(geojson_format.read(geodata));
-        console.log(map);
+        
+// Used to display the dialog popup
+
+
+selectControl = new OpenLayers.Control.SelectFeature(vector_layer,
+    {
+        onSelect: onFeatureSelect,
+        onUnselect: onFeatureUnselect 
+    });
+    map.addControl(selectControl);
+    selectControl.activate();
       }
 });
 ';

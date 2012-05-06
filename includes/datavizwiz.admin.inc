@@ -49,7 +49,6 @@ function datavizwiz_summary_panes_form($frm, $nid) {
   $result = db_query($sql);
 
   $form['delete']['#tree'] = TRUE;
-  $form['edit']['#tree'] = TRUE;
   
   $form['nid'] = array('#type' => 'hidden', '#value' => $nid);
  
@@ -72,12 +71,6 @@ function datavizwiz_summary_panes_form($frm, $nid) {
       '#delta' => 10,
       '#default_value' => $tablerow['pane_order'],
       '#attributes' => array('class' => 'weight'),
-    );
-    $form['edit'][$svid] = array(
-      '#type' => 'image_button',
-      '#name' => 'edit-' . $svid,
-      '#src' => drupal_get_path('module', 'datavizwiz') . '/images/edit.png',
-      '#return_value' => 'edit-' . $svid,
     );
     $form['delete'][$svid] = array(
       '#type' => 'image_button',
@@ -118,7 +111,7 @@ function datavizwiz_summary_panes_form($frm, $nid) {
 }
 
 function theme_datavizwiz_summary_panes_form($form) {
-  $header = array(t('Type'), t('Pane Name'), t('Weight'), t('Edit'), t('Delete'));
+  $header = array(t('Type'), t('Pane Name'), t('Weight'), t('Delete'));
 
   $rows = array();
 
@@ -129,7 +122,6 @@ function theme_datavizwiz_summary_panes_form($form) {
       $row[] = array('data' => drupal_render($form[$key]['type']));
       $row[] = array('data' => drupal_render($form[$key]['name']));
       $row[] = array('data' => drupal_render($form['weights'][$key]));
-      $row[] = array('data' => drupal_render($form['edit'][$key]));
       $row[] = array('data' => drupal_render($form['delete'][$key]));
 
       $rows[] = array(
@@ -167,11 +159,6 @@ function datavizwiz_summary_panes_form_submit($form, &$form_state) {
       break;
     case 'Add':
       $url = sprintf('admin/datavizwiz/edit/%s/summary_pane/%s/%s', $nid, 'add', $form_state['values']['type']);
-      drupal_goto($url);
-      break;
-    case 'edi':
-      $svid = drupal_substr($form_state['clicked_button']['#value'], 5);
-      $url = sprintf('admin/datavizwiz/edit/%s/summary_pane/%s/%s', $nid, 'edit', $svid);
       drupal_goto($url);
       break;
     case 'del':

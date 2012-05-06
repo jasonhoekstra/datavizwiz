@@ -118,14 +118,13 @@ function datavizwiz_gen_filters(&$form_state, $node) {
         $form[$row['field_name']] = array(
           '#type' => 'textfield', 
           '#title' => $display_name,
-          '#value' => $field_name,
         );
         break;
       case DVW_FILTER_DROPDOWN :
         $options = _datavizwiz_get_unique_values($table_name, $field_name);
         $form[$field_name] = array(
           '#type' => 'select', 
-          '#title' => $row['display_name'],
+          '#title' => $display_name,
           '#value' => $_GET[$field_name],
           '#options' => $options,
         );
@@ -336,19 +335,17 @@ function _datavizwiz_pane_map_openlayers($node, $index, $options = NULL) {
   $querystring = _datavizwiz_get_querystring();
   
    $output .= '<div id="' . $pane_id . '" style="width: 100%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>
-<div id="dvw-infobox" style="position: absolute; bottom: 10px; right: 10px; padding: 10px; background-color: black; z-index: 10000; opacity: .8; color: #ffffff">asdf</div>     
+<div id="dvw-infobox"></div>     
 ';
-  
-  $geoDataURL = "/dvwapi/".$node->nid."/geojson?".$querystring;
-  $script = "$(function() { initOpenLayersMap('" . $pane_id . "','" . $geoDataURL . "') });"; 
     
   // Sanitize $tablename, CCK input for good measure.
   $tablename = check_plain($node->field_dvw_datatable[0]['value']);
   $lat = $opts->latitude;
   $lon = $opts->longitude;
-    
-  drupal_add_js($script, 'inline');
   
+  $geoDataURL = "/dvwapi/".$node->nid."/geojson?".$querystring;
+  $script = "$(function() { initOpenLayersMap('" . $pane_id . "','" . $geoDataURL . "') });";
+  drupal_add_js($script, 'inline');
   
   return $output;
 }

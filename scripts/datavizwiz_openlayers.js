@@ -66,8 +66,8 @@ function onFeatureSelect(feature) {
 
 //  *** this fires when you move off a feature ***
 function onFeatureUnselect(feature) {
-  $("#infobox-0").html("");
-  $("#infobox-0").hide();
+  $("#dvw-infobox").html("");
+  $("#dvw-infobox").hide();
 }
 
 function handleGeoJSON(geodata) {

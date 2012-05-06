@@ -232,28 +232,10 @@ function _datavizwiz_summary_pane_edit_map_openlayers_form(&$form, $node) {
   $form['type'] = array('#type' => 'hidden',
     '#value' => DVW_TYPE_MAP_OPENLAYERS);
   
-  $form['variable'] = array('#type' => 'select',
+  $form['title_field'] = array('#type' => 'select',
     '#title' => t('Title field'),
     '#options' => $field_array,
   );
-  
-  /* $form['circle_color'] = array('#type' => 'textfield',
-  '#title' => t('Point color'));
-
-  $form['circle_outline'] = array('#type' => 'textfield',
-  '#title' => t('Point outline color'));
-    
-  $form['highlight_color'] = array('#type' => 'textfield',
-  '#title' => t('Selected point color'));
-      
-  $form['highlight_outline'] = array('#type' => 'textfield',
-  '#title' => t('Selected point color')); */
-  
-  
-  $form['clustering'] = array('#type' => 'checkbox',
-    '#title' => t('Point Clustering?'),
-  );
-  
   
   return $form;
 }
@@ -301,6 +283,8 @@ function datavizwiz_summary_pane_edit_form_submit(&$form, &$form_state) {
 
       switch ($pane_type) {
         case DVW_TYPE_MAP_OPENLAYERS:
+          $options = array('title_field' => $form_state['values']['title_field']);
+          $record->options = json_encode($options);
           break;
         case DVW_TYPE_PIE_FLOT:
           $options = array('variable' => $form_state['values']['variable']);

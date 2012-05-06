@@ -75,10 +75,6 @@ function _datavizwiz_get_data_array($nid) {
   }
 }
 
-function _datavizwiz_get_latlon_columns($nid) {
-  
-}
-
 function _datavizwiz_return_csv($rows) {
   //drupal_set_header("Content-type: text/csv");
   drupal_set_header("Cache-Control: no-store, no-cache");
@@ -91,6 +87,22 @@ function _datavizwiz_return_csv($rows) {
 function _datavizwiz_return_geojson($rows, $latloncols) {
   drupal_set_header("Content-type: application/json");
   drupal_set_header("Cache-Control: no-store, no-cache");
+  
+  // If this request is coming from an OpenLayers summary view, we'll get a
+  // ID of the summary in the form of ol_id in the querystring.  If it's
+  // present, let's find the title field for the geoJSON return.
+  $summary_viewid = check_plain($_GET['ol_id']);
+  $title_field = '';
+  if (is_numeric($summary_viewid)) {
+    $sql = 'SELECT options FROM {dvw_summary_views} WHERE svid=%s';
+    $result = db_query($sql, $summary_viewid);
+    $record = db_fetch_object($result);
+    if ($record) {
+      $options = json_decode($record->options);
+      $title_field = $options->title_field;
+    }
+  }
+  
   
   if (count($latloncols) != 2) {
     $return = "Latitude and longitude is not defined for this data set.";
@@ -119,12 +131,18 @@ function _datavizwiz_return_geojson($rows, $latloncols) {
         $geometry->coordinates = array((float) $row[$loncol], (float) $row[$latcol]);
         $feature->geometry = $geometry;
 
-        $feature->id = $row['ImporterID'];
+        $feature->id = $row['RowID'];
         $properties = new stdClass();
-        $random_string = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',5)),0,5);
-        $properties->popupContent = $random_string;
-        $feature->properties = $properties;
-
+        
+        if (strlen($title_field)) {
+          if ($row[$title_field] != null) {
+            $properties->popupContent = $row[$title_field];
+          } else {
+            $properties->popupContent = '';
+          }
+          $feature->properties = $properties;
+        }
+        
         $geojson[] = $feature;
       }
 

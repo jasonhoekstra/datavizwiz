@@ -53,15 +53,17 @@ function initOpenLayersMap(pane_id, geoDataSource) {
 
 //  *** this fires when you move over a feature ***
 function onFeatureSelect(feature) {       
-  $("#dvw-infobox").show();
-  console.log(feature);
-        
   var htmlString = "";
   for (i=0; i<feature.cluster.length; i++) {
     htmlString = htmlString + feature.cluster[i].attributes.popupContent + "<br/>";
   }
+  
+  if (htmlString != "") {
+    $("#dvw-infobox").show();
+    $("#dvw-infobox").html(htmlString); 
+  }
         
-  $("#dvw-infobox").html(htmlString);
+
 }
 
 //  *** this fires when you move off a feature ***

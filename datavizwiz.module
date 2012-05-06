@@ -45,11 +45,10 @@ function theme_datavizwiz_summarypanes($node) {
     $index = 0;
     $setActive = FALSE;
     foreach ($summary_panes as $pane) {
-         // Sanitize $pane['name']. This is user input from
-         // admin/datavizwiz/edit/%/summary_pane.
-         $pane_name = check_plain($pane['name']);
-         $output .= sprintf('<li class="dvwMenu"><a href="pane-%s">%s</a></li>', $index, $pane_name);     
-
+      // Sanitize $pane['name']. This is user input from
+      // admin/datavizwiz/edit/%/summary_pane.
+      $pane_name = check_plain($pane['name']);
+      $output .= sprintf('<li class="dvwMenu"><a href="pane-%s">%s</a></li>', $index, $pane_name);
       $index++;
     }
     $output .= '</ul>';
@@ -61,7 +60,7 @@ function theme_datavizwiz_summarypanes($node) {
     foreach ($summary_panes as $pane) {
       switch ($pane['type']) {
         case DVW_TYPE_MAP_OPENLAYERS:
-          $content = _datavizwiz_pane_map_openlayers($node, $index, $pane['options']);
+          $content = _datavizwiz_pane_map_openlayers($node, $index, $pane['svid'], $pane['options']);
           break;
         case DVW_TYPE_PIE_FLOT:
           $content = _datavizwiz_pane_flot($node, $index, $pane['options'], DVW_TYPE_PIE_FLOT);
@@ -301,7 +300,7 @@ function _datavizwiz_get_where_clause_by_node_id($nid) {
 }
 
 function _datavizwiz_get_summary_panes($nid) {
-  $query = "SELECT type, name, options FROM {dvw_summary_views} 
+  $query = "SELECT svid, type, name, options FROM {dvw_summary_views} 
       WHERE nid=%s ORDER BY pane_order";
   $sql = db_query($query, $nid);
   $rows = _datavizwiz_get_rowarray($sql);
@@ -315,14 +314,16 @@ function _datavizwiz_get_summary_panes($nid) {
  * @param $index
  *  Integer. Pane order.
  *
+ * @param $svid
+ *  Integer. Summary ID from database.
+ *
  * @param $options 
  *  String. (Optional) JSON options for whatever pane is.
  * 
  * @return $output
  *  HTML
  */
-function _datavizwiz_pane_map_openlayers($node, $index, $options = NULL) {
-  //drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/firebug-lite.js');
+function _datavizwiz_pane_map_openlayers($node, $index, $svid, $options = NULL) {
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.js');
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/scripts/datavizwiz_openlayers.js');  
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/theme/default/style.css');
@@ -334,7 +335,7 @@ function _datavizwiz_pane_map_openlayers($node, $index, $options = NULL) {
 
   $querystring = _datavizwiz_get_querystring();
   
-   $output .= '<div id="' . $pane_id . '" style="width: 100%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>
+  $output .= '<div id="' . $pane_id . '" style="width: 100%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>
 <div id="dvw-infobox"></div>     
 ';
     
@@ -342,6 +343,9 @@ function _datavizwiz_pane_map_openlayers($node, $index, $options = NULL) {
   $tablename = check_plain($node->field_dvw_datatable[0]['value']);
   $lat = $opts->latitude;
   $lon = $opts->longitude;
+  
+  // Pass along the summary pane ID so GeoJSON API can pick out the title field.
+  $querystring .= '&ol_id=' . $svid;
   
   $geoDataURL = "/dvwapi/".$node->nid."/geojson?".$querystring;
   $script = "$(function() { initOpenLayersMap('" . $pane_id . "','" . $geoDataURL . "') });";
@@ -947,7 +951,7 @@ function _datavizwiz_get_database_name() {
   return $dbname;
 }
 
-// Taken from Drupal 7!!
+// Taken from Drupal 7
 function _datavizwiz_drupal_get_query_parameters(array $query = NULL, array $exclude = array('q'), $parent = '') {
   // Set defaults, if none given.
   if (!isset($query)) {

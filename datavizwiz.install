@@ -101,13 +101,6 @@ function datavizwiz_schema() {
         'default' => 0,
         'description' => 'Boolean if this is the title in the detail page',
       ),
-      'detail_subtitle' => array(
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 0,
-        'description' => 'Boolean if this is the sub-title in the detail page',
-      ),
       'detail_wide' => array(
         'type' => 'int',
         'size' => 'tiny',

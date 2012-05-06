@@ -4,15 +4,12 @@
  * Comment is published.
  */
 define('DVW_TYPE_MAP_OPENLAYERS', 'MAP_OPENLAYERS');
-define('DVW_TYPE_MAP_D3', 'MAP_D3');
 define('DVW_TYPE_PIE_FLOT', 'PIE_FLOT');
 define('DVW_TYPE_BAR_FLOT', 'BAR_FLOT');
 define('DVW_TYPE_HTML', 'HTML');
 
 define('DVW_SORT_SUMMARY', 0);
 define('DVW_SORT_DETAIL', 1);
-
-define('DVW_D3_BASEMAP_US_STATES', 'US_MAP');
 
 define('DVW_FLAG_LATITUDE', 'LAT');
 define('DVW_FLAG_LONGITUDE', 'LON');
@@ -65,9 +62,6 @@ function theme_datavizwiz_summarypanes($node) {
       switch ($pane['type']) {
         case DVW_TYPE_MAP_OPENLAYERS:
           $content = _datavizwiz_pane_map_openlayers($node, $index, $pane['options']);
-          break;
-        case DVW_TYPE_MAP_D3:
-          $content = _datavizwiz_pane_map_d3($node, $index, $pane['options']);
           break;
         case DVW_TYPE_PIE_FLOT:
           $content = _datavizwiz_pane_flot($node, $index, $pane['options'], DVW_TYPE_PIE_FLOT);
@@ -473,82 +467,6 @@ selectControl = new OpenLayers.Control.SelectFeature(vector_layer,
   $tablename = check_plain($node->field_dvw_datatable[0]['value']);
   $lat = $opts->latitude;
   $lon = $opts->longitude;
-    
-  drupal_add_js($script, 'inline');
-  
-  
-  return $output;
-}
-
-function _datavizwiz_pane_map_d3($node, $index, $options) {
-  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/d3.js');
-  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/d3.geo.js');
-  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/d3.quantize.js');  
-  drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/poverty.css');  
-  
-
-  $pane_id = 'dvwmap-' . $index;
-  $opts = json_decode($options);
-  
-   $output .= '<div id="' . $pane_id . '" style="width: 100%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>';
-   //$pane_id = 'd3map';
-   
-    $script = "
-
-    var data; // loaded asynchronously
-      
-$(function() {
-
-
-      var path = d3.geo.path();
-
-      var svg = d3.select('#" . $pane_id . "')
-        .append('svg');
-
-      var states = svg.append('g')
-          .attr('id', 'states')
-          .attr('class', 'JCols');
-
-$('#svg').html('test');
-
-      d3.json('/" . drupal_get_path('module', 'datavizwiz') . "/geodata/us-states.json', function(json) {
-        states.selectAll('path')
-            .data(json.features)
-          .enter().append('path')
-            .attr('class', data ? quantize : null)
-            .attr('d', path);
-      });
-      
-      d3.json('/dvwapi/" . $node->nid . "/d3json', function(json) {
-        data = json;
-        states.selectAll('path')
-            .attr('class', quantize)
-
-            .on('mouseover', function(){ 
-          thisstate = d3.select(this);
-          states.selectAll('path').attr('class',quantize3); 
-          thisstate.attr('class',quantize); 
-          svg.append('text')
-            .attr('transform', 'translate(20,100)')
-            .style('font-size','26px')
-            .text( data[thisstate.property('__data__').id] + ' %' );
-          svg.append('text')
-            .attr('transform', 'translate(20,70)')
-            .style('font-size','26px')
-            .text( 'Poverty rate:' );
-        })
-            .on('mouseout', function(){
-          svg.selectAll('text').text('');
-          states.selectAll('path').attr('class',quantize); 
-        });
-
-});
-
-";
-    
-  $tablename = $node->field_dvw_datatable[0]['value'];    
-    
-   $script .= '});';
     
   drupal_add_js($script, 'inline');
   

@@ -103,11 +103,11 @@ function datavizwiz_summary_panes_form($frm, $nid) {
   '#title' => t('Pane type'),
   '#type' => 'select',
   '#options' => array(
-    DVW_TYPE_HTML => t('Freeform - HTML Block'),
+    DVW_TYPE_MAP_OPENLAYERS => t('Map - OpenLayers'),
     DVW_TYPE_PIE_FLOT => t('Graph - Flot Pie'),
     DVW_TYPE_BAR_FLOT=> t('Graph - Flot Bar'),
-    DVW_TYPE_MAP_OPENLAYERS => t('Map - OpenLayers'),
-    DVW_TYPE_MAP_D3 => t('Map - D3'),
+    DVW_TYPE_HTML => t('Freeform - HTML Block'),
+
     ),
   '#attributes' => array('onchange' => 'submit_edit_form(this.selectedIndex)')
   );
@@ -195,11 +195,7 @@ function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
         case DVW_TYPE_MAP_OPENLAYERS:
           drupal_set_title('Add Pane - OpenLayers Map');
           $form = _datavizwiz_summary_pane_edit_map_openlayers_form($form, $node);
-          break;
-        case DVW_TYPE_MAP_D3:
-          drupal_set_title('Add Pane - D3 Map');
-          $form = _datavizwiz_summary_pane_edit_map_d3_form($form, $node);
-          break;        
+          break;       
         case DVW_TYPE_PIE_FLOT:
           drupal_set_title('Add Pane - Pie Chart (Flot)');
           $form = _datavizwiz_summary_pane_edit_flot_form($form, $node, DVW_TYPE_PIE_FLOT);
@@ -235,32 +231,6 @@ function _datavizwiz_summary_pane_edit_map_openlayers_form(&$form, $node) {
   
   $form['type'] = array('#type' => 'hidden',
     '#value' => DVW_TYPE_MAP_OPENLAYERS);
-  
-  return $form;
-}
-
-function _datavizwiz_summary_pane_edit_map_d3_form(&$form, $node) {
-  $field_array = _datavizwiz_get_field_array($node->field_dvw_datatable[0]['value']);
-  
-  $form['type'] = array('#type' => 'hidden',
-    '#value' => DVW_TYPE_MAP_D3);
-  
-  $form['keyfield'] = array('#type' => 'select',
-    '#title' => t('Key field'),
-    '#options' => $field_array,
-          );
-
-    $form['keytype'] = array('#type' => 'select',
-    '#title' => t('Key type'),
-    '#options' => array('FIPS' =>  t('US State FIPS'),
-      'STATE_NAME' => t('US State Name'),
-      'STATE_ABBR' => t('US State Abbrevation')),
-          );
-
-    $form['baselayer'] = array('#type' => 'select',
-    '#title' => t('Base layer'),
-    '#options' => array(DVW_D3_BASEMAP_US_STATES => t('US State Map')),
-          );
   
   return $form;
 }
@@ -308,11 +278,6 @@ function datavizwiz_summary_pane_edit_form_submit(&$form, &$form_state) {
 
       switch ($pane_type) {
         case DVW_TYPE_MAP_OPENLAYERS:
-          break;
-        case DVW_TYPE_MAP_D3:
-          $options = array('keyfield' => $form_state['values']['keyfield'],
-            'keytype' => $form_state['values']['keytype'],
-            'baselayer' => $form_state['values']['baselayer']);
           break;
         case DVW_TYPE_PIE_FLOT:
           $options = array('variable' => $form_state['values']['variable']);
@@ -625,7 +590,7 @@ function datavizwiz_sort_detail_form($frm, $nid) {
   $form['weights']['#tree'] = TRUE;
   $form['detail_wide']['#tree'] = TRUE;
   
-  $sql = 'SELECT fid, field_name, display_name, detail_title, detail_subtitle, detail_wide, weight_detail FROM {dvw_field_meta} WHERE nid = %s AND visible_detail = TRUE ORDER BY weight_detail';
+  $sql = 'SELECT fid, field_name, display_name, detail_title, detail_wide, weight_detail FROM {dvw_field_meta} WHERE nid = %s AND visible_detail = TRUE ORDER BY weight_detail';
   $form['update_type'] = array(
     '#type' => 'hidden',
     '#value' => DVW_SORT_DETAIL,
@@ -641,7 +606,6 @@ function datavizwiz_sort_detail_form($frm, $nid) {
     $fid = $tablerow['fid'];
     $form[$fid] = '';
     if ($tablerow['detail_title']) { $checked_title = true; }
-    if ($tablerow['detail_subtitle']) { $checked_subtitle = true; }
     
     $form[$fid]['field_name'] = array(
       '#type' => 'markup',
@@ -657,12 +621,6 @@ function datavizwiz_sort_detail_form($frm, $nid) {
       '#return_value' => $fid,
       '#attributes' => $tablerow['detail_title'] ? array('checked' => 'false') : '',
     );
-    $form[$fid]['detail_subtitle'] = array(
-      '#type' => 'radio',
-      '#name' => 'detail_subtitle',
-      '#return_value' => $fid,
-      '#attributes' => $tablerow['detail_subtitle'] ? array('checked' => 'false') : '',
-    );
     $form['detail_wide'][$fid] = array(
       '#type' => 'checkbox',
       '#default_value' => $tablerow['detail_wide'],
@@ -676,28 +634,21 @@ function datavizwiz_sort_detail_form($frm, $nid) {
     $form['weights'][$fid]['#attributes']['class'] = 'order-weight';
   }
   
-    $form[-1] = '';
-    $form[-1]['detail_title'] = array(
-      '#type' => 'radio',
-      '#name' => 'detail_title',
-      '#return_value' => -1,
-      '#description' => 'none',
-      '#attributes' => !$checked_title ? array('checked' => 'false') : '',
-    );
-    $form[-1]['detail_subtitle'] = array(
-      '#type' => 'radio',
-      '#name' => 'detail_subtitle',
-      '#return_value' => -1,
-      '#description' => 'none',
-      '#attributes' => !$checked_subtitle ? array('checked' => 'false') : '',
-    );
+  $form[-1] = '';
+  $form[-1]['detail_title'] = array(
+    '#type' => 'radio',
+    '#name' => 'detail_title',
+    '#return_value' => -1,
+    '#description' => 'none',
+    '#attributes' => !$checked_title ? array('checked' => 'false') : '',
+  );
 
   $form['submit'] = array('#type' => 'submit', '#value' => t('Save Order'));
   return $form;
 }
 
 function theme_datavizwiz_sort_detail_form($form) {
-  $header = array(t('Field Name'), t('Display Name'), t('Title'), t('Sub-title'), t('Wide Display'), t('Weight'));
+  $header = array(t('Field Name'), t('Display Name'), t('Title'), t('Wide Display'), t('Weight'));
 
   $rows = array();
 
@@ -708,7 +659,6 @@ function theme_datavizwiz_sort_detail_form($form) {
       $row[] = array('data' => drupal_render($form[$key]['field_name']));
       $row[] = array('data' => drupal_render($form[$key]['display_name']));
       $row[] = array('data' => drupal_render($form[$key]['detail_title']));
-      $row[] = array('data' => drupal_render($form[$key]['detail_subtitle']));
       $row[] = array('data' => drupal_render($form['detail_wide'][$key]));
       $row[] = array('data' => drupal_render($form['weights'][$key]));
 
@@ -744,7 +694,6 @@ function datavizwiz_sort_detail_form_submit($form, &$form_state) {
     $record = new stdClass();
     $record->weight_detail = $item;
     $record->detail_title = $form_state['values']['detail_title'] == $id ? 1 : 0;
-    $record->detail_subtitle = $form_state['values']['detail_subtitle'] == $id ? 1 : 0;
     $record->detail_wide = $wide_checked;
     $record->fid = $id;
     drupal_write_record('dvw_field_meta', $record, 'fid');
@@ -757,9 +706,6 @@ function _datavizwiz_get_pane_type_name($pane_type) {
   switch ($pane_type) {
     case DVW_TYPE_MAP_OPENLAYERS:
       return 'OpenLayers Map';
-      break;
-    case DVW_TYPE_MAP_D3:
-      return 'D3 Map';
       break;
     case DVW_TYPE_PIE_FLOT:
       return 'Pie Chart (Flot)';

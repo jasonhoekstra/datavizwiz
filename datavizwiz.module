@@ -233,7 +233,7 @@ function theme_datavizwiz_datatable($node) {
       $output .= theme('pager', NULL, 0);
     } else {
       if (user_access('adminster datavizwiz')) {
-        drupal_set_message(t('This dataset has not yet been initatilzed.  Visit the "Edit Dataset" tab to define summary fields to display below.'), 'warning');
+        drupal_set_message(t('This dataset has not yet been initatilzed.  Visit the "Manage Dataset" tab to define summary fields to display below.'), 'warning');
       }
     }
   }
@@ -748,9 +748,8 @@ function datavizwiz_form_alter(&$form, &$form_state, $form_id) {
  */
 function datavizwiz_menu() {
   $items['admin/datavizwiz/edit/%'] = array(
-    'title' => 'Manage dataset',
+    'title' => 'Manage Dataset',
     'page callback' => 'datavizwiz_tab_manage_fields',
-    'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_CALLBACK,
     'access callback'  => 'user_access',
@@ -759,10 +758,10 @@ function datavizwiz_menu() {
   );
   
   $items['node/%/dataset'] = array(
-    'title' => 'Manage dataset',
+    'title' => 'Manage Dataset',
     'page callback' => 'datavizwiz_redirect_admin',
     'page arguments' => array(2),
-    'access arguments' => array('access administration pages'),
+    'access arguments' => array('adminster datavizwiz'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'access callback'  => '_datavizwiz_manage_dataset_menu_access', //special check to ensure node type = dvw_dataset
@@ -771,10 +770,9 @@ function datavizwiz_menu() {
   );
   
   $items['admin/datavizwiz/edit/%/fields'] = array(
-    'title' => 'Manage fields',
+    'title' => 'Manage Fields',
     'page callback' => 'datavizwiz_tab_manage_fields',
     'page arguments' => array(3),
-    'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'access callback'  => 'user_access',
@@ -783,7 +781,7 @@ function datavizwiz_menu() {
   );
 
   $items['admin/datavizwiz/edit/%/sort_summary'] = array(
-    'title' => 'Summary page',
+    'title' => 'Summary Page',
     'page callback' => 'datavizwiz_tab_sort_summary',
     'page arguments' => array(3),
     'access arguments' => array('access administration pages'),
@@ -795,7 +793,7 @@ function datavizwiz_menu() {
   );
 
   $items['admin/datavizwiz/edit/%/sort_detail'] = array(
-    'title' => 'Detail page',
+    'title' => 'Detail Page',
     'page callback' => 'datavizwiz_tab_sort_detail',
     'page arguments' => array(3),
     'access arguments' => array('access administration pages'),
@@ -807,7 +805,7 @@ function datavizwiz_menu() {
   );
   
   $items['admin/datavizwiz/edit/%/summary_pane'] = array(
-    'title' => 'Summary panes',
+    'title' => 'Summary Panes',
     'page callback' => 'datavizwiz_tab_summary_panes',
     'page arguments' => array(3),
     'file' => 'includes/datavizwiz.admin.inc',
@@ -830,10 +828,9 @@ function datavizwiz_menu() {
   );
   
   $items['admin/datavizwiz/edit/%/view'] = array(
-    'title' => 'View dataset',
+    'title' => 'View Dataset',
     'page callback' => 'datavizwiz_redirect_view',
     'page arguments' => array(3),
-    'access arguments' => array('access administration pages'),
     'file' => 'includes/datavizwiz.admin.inc',
     'type' => MENU_LOCAL_TASK,
     'access callback'  => 'user_access',

@@ -228,11 +228,8 @@ function _datavizwiz_summary_pane_edit_map_openlayers_form(&$form, $node) {
 }
 
 function _datavizwiz_summary_pane_edit_flot_form(&$form, $node, $chart_type) {
-  
-  
   $field_array = _datavizwiz_get_field_array($node->field_dvw_datatable[0]['value']);
-  
-  
+
   $form['type'] = array('#type' => 'hidden',
     '#value' => $chart_type);
   

@@ -1,96 +1,267 @@
 <?php
 
 /**
- * Comment is published.
+ * DataVizWiz types for the summary panes.
  */
 define('DVW_TYPE_MAP_OPENLAYERS', 'MAP_OPENLAYERS');
 define('DVW_TYPE_PIE_FLOT', 'PIE_FLOT');
 define('DVW_TYPE_BAR_FLOT', 'BAR_FLOT');
 define('DVW_TYPE_HTML', 'HTML');
 
+/**
+ * DataVizWiz types for sorting summary or detail.
+ */
 define('DVW_SORT_SUMMARY', 0);
 define('DVW_SORT_DETAIL', 1);
 
+/**
+ * DataVizWiz types for field metadata.
+ */
 define('DVW_FLAG_LATITUDE', 'LAT');
 define('DVW_FLAG_LONGITUDE', 'LON');
 define('DVW_FLAG_NONE', '');
 
+/**
+ * DataVizWiz types for summary pane operations (add, edit, delete).
+ */
 define('DVW_OP_ADD', 0);
 define('DVW_OP_EDIT', 1);
 define('DVW_OP_DELETE', 2);
 
+/**
+ * DataVizWiz types for data filters.
+ */
 define('DVW_FILTER_NONE', '');
 define('DVW_FILTER_TEXT', 'TEXT');
 define('DVW_FILTER_DROPDOWN', 'DROPDOWN');
 define('DVW_FILTER_CHECKBOXES', 'CHECKBOXES');
 
+/**
+ * DataVizWiz type for custom CCK node.
+ */
+define('DVW_NODE_TYPE', 'dvw_dataset');
 
-function theme_datavizwiz_detaildisplay($node) {
-  $table_name = $node->field_dvw_datatable[0]['value'];
-  $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
-  $importerID = $_GET['detail'];
-  $output .= _datavizwiz_detail_page($dataset_metadata, $table_name, $importerID);
-
-  return $output;
-}
-
+/**
+ * Theme function for the displaying the summary panes.
+ * 
+ * @param $node
+ *  Node.  The data set we'll be displaying.
+ * 
+ * @return $output
+ * String.  HTML of summary panes. 
+ */
 function theme_datavizwiz_summarypanes($node) {
+  // Display only if node type is DataVizWiz data set custom CCK type.
+  if ($node->type == DVW_NODE_TYPE) {
     $summary_panes = _datavizwiz_get_summary_panes($node->nid);
 
-  if (count($summary_panes) > 0) {
-// First, display the tabs.
-    $output .= '<div id="dvwPanes">';
-    $output .= '<div id="dvwTabs">';
-    $output .= '<ul class="dvwMenu">';
-    $index = 0;
-    $setActive = FALSE;
-    foreach ($summary_panes as $pane) {
-      // Sanitize $pane['name']. This is user input from
-      // admin/datavizwiz/edit/%/summary_pane.
-      $pane_name = check_plain($pane['name']);
-      $output .= sprintf('<li class="dvwMenu"><a href="pane-%s">%s</a></li>', $index, $pane_name);
-      $index++;
-    }
-    $output .= '</ul>';
-    $output .= '</div>';
+    if (count($summary_panes) > 0) {
+  // First, display the tabs.
+      $output .= '<div id="dvwPanes">';
+      $output .= '<div id="dvwTabs">';
+      $output .= '<ul class="dvwMenu">';
+      $index = 0;
+      $setActive = FALSE;
+      foreach ($summary_panes as $pane) {
+        // Sanitize $pane['name']. This is user input from
+        // admin/datavizwiz/edit/%/summary_pane.
+        $pane_name = check_plain($pane['name']);
+        $output .= sprintf('<li class="dvwMenu"><a href="pane-%s">%s</a></li>', $index, $pane_name);
+        $index++;
+      }
+      $output .= '</ul>';
+      $output .= '</div>';
 
-    // Second, display the panes.
-    $index = 0;
-    $output .= '<div id="dvwTabContent" style="width: 100%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px" class="dvwContent">';
-    foreach ($summary_panes as $pane) {
-      switch ($pane['type']) {
-        case DVW_TYPE_MAP_OPENLAYERS:
-          $content = _datavizwiz_pane_map_openlayers($node, $index, $pane['svid'], $pane['options']);
-          break;
-        case DVW_TYPE_PIE_FLOT:
-          $content = _datavizwiz_pane_flot($node, $index, $pane['options'], DVW_TYPE_PIE_FLOT);
-          break;
-        case DVW_TYPE_BAR_FLOT:
-          $content = _datavizwiz_pane_flot($node, $index, $pane['options'], DVW_TYPE_BAR_FLOT);
-          break;
-        case DVW_TYPE_HTML:
-          $content = _datavizwiz_pane_html($node, $index, $pane['options']);
-          break;
+      // Second, display the panes.
+      $index = 0;
+      $output .= '<div id="dvwTabContent" style="width: 100%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px" class="dvwContent">';
+      foreach ($summary_panes as $pane) {
+        switch ($pane['type']) {
+          case DVW_TYPE_MAP_OPENLAYERS:
+            $content = _datavizwiz_pane_map_openlayers($node, $index, $pane['svid'], $pane['options']);
+            break;
+          case DVW_TYPE_PIE_FLOT:
+            $content = _datavizwiz_pane_flot($node, $index, $pane['options'], DVW_TYPE_PIE_FLOT);
+            break;
+          case DVW_TYPE_BAR_FLOT:
+            $content = _datavizwiz_pane_flot($node, $index, $pane['options'], DVW_TYPE_BAR_FLOT);
+            break;
+          case DVW_TYPE_HTML:
+            $content = _datavizwiz_pane_html($node, $index, $pane['options']);
+            break;
+        }
+
+        if (!$setActive) { 
+          $output .= sprintf('<div id="pane-%s" class="dvwContent dvwActive" style="width: 100%%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px">%s</div>', $index, $content);
+          $setActive = TRUE;
+        } else {
+          $output .= sprintf('<div id="pane-%s" class="dvwContent" style="width: 100%%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px">%s</div>', $index, $content);    
+        }
+
+        $index++;
       }
-      
-      if (!$setActive) { 
-        $output .= sprintf('<div id="pane-%s" class="dvwContent dvwActive" style="width: 100%%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px">%s</div>', $index, $content);
-        $setActive = TRUE;
-      } else {
-         $output .= sprintf('<div id="pane-%s" class="dvwContent" style="width: 100%%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px">%s</div>', $index, $content);    
-      }
-      
-      $index++;
+      $output .= '</div>';
     }
-    $output .= '</div>';
+    $output .= '</div>';    
+  } else {
+    
   }
-  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Theme function for the data filters as defined by user in admin.
+ * 
+ * @param $node
+ *  Node.  The data set we'll be displaying.
+ * 
+ * @return $output
+ * String.  HTML of the data filters. 
+ */
+function theme_datavizwiz_datafilters($node) {
+  // Display only if node type is DataVizWiz data set custom CCK type.
+  if ($node->type == DVW_NODE_TYPE) {
+    return drupal_get_form('datavizwiz_gen_filters', $node);
+  } else {
+    return '';
+  }
+}
+
+/**
+ * Theme function for the data table displayed on the summary page.
+ * 
+ * @param $node
+ *  Node.  The data set we'll be displaying.
+ * 
+ * @return $output
+ * String.  HTML of the open data icons. 
+ */
+function theme_datavizwiz_opendatalinks($node) {
+    // Display only if node type is DataVizWiz data set custom CCK type.
+  if ($node->type == DVW_NODE_TYPE) {
+    if ($node->field_dvw_download_csv[0]['value'] == 1) {
+      $icon_csv = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/csv.png' . '"/> ';
+      $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'csv');
+      $icon_csv = $link . $icon_csv . "</a>";
+    }
+
+    if ($node->field_dvw_download_geojson[0]['value'] == 1) {
+      $icon_geojson = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/geojson.png' . '"/> ';
+      $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'geojson');
+      $icon_geojson = $link . $icon_geojson . "</a>";
+    }
+
+    if ($node->field_dvw_download_json[0]['value'] == 1) {
+      $icon_json = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/json.png' . '"/> ';
+      $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'json');
+      $icon_json = $link . $icon_json . "</a>";
+    }
+
+    if ($node->field_dvw_download_xml[0]['value'] == 1) {
+      $icon_xml = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/xml.png' . '"/> ';
+      $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'xml');
+      $icon_xml = $link . $icon_xml . "</a>";
+    }
+  }
+  
+  
+  
+  return $icon_csv . $icon_geojson . $icon_json . $icon_xml;
+}
+
+/**
+ * Theme function for the data table displayed on the summary page.
+ * 
+ * @param $node
+ *  Node.  The data set we'll be displaying.
+ * 
+ * @return $output
+ *  String.  HTML of the summary data table. 
+ */
+function theme_datavizwiz_datatable($node) {
+  // Display only if node type is DataVizWiz data set custom CCK type.
+  if ($node->type == DVW_NODE_TYPE) {
+    $table_name = $node->field_dvw_datatable[0]['value'];
+    $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
+    $page_size = $node->field_dvw_pagesize[0]['value'];
+
+    $query = sprintf("
+        SELECT field_name, display_name, sortable 
+        FROM {dvw_field_meta} 
+        WHERE nid=%s AND visible_summary=1 
+        ORDER BY weight_summary", $node->nid);
+    $rows = _datavizwiz_get_rowarray(db_query($query));
+
+    $filters = array();
+
+    if (count($rows) > 0) {
+      // Get headers for summary table
+      $headers = array();
+      $id_counter = 1;
+      $column_names = '';
+      foreach ($rows as $field) {
+        $header = array();
+        $header['data'] = $field['display_name'];
+        $column_names .= $field['field_name'] . ',';
+
+        if ($field['sortable'] == 1) {
+          $header['field'] = $field['field_name'];
+          $header['sort'] = 'asc';
+        }
+
+        $header['id'] = 'dvwcol' . $id_counter;
+        array_push($headers, $header);
+        $id_counter++;
+      }
+
+      $column_names = substr($column_names, 0, strlen($column_names) - 1);
+      $sql = sprintf("SELECT ImporterID,%s FROM {%s}", $column_names, $table_name);
+      $filterssql = _datavizwiz_get_where_clause_by_node_id($node->nid);
+      $sql .= $filterssql;
+
+      $sqlcount = sprintf("SELECT COUNT(ImporterID) FROM {%s}", $table_name);
+      $sqlcount .= $filterssql;
+      $recordcount = db_result(db_query($sqlcount));
+
+      $sql .= tablesort_sql($headers);
+      $query = pager_query($sql, $page_size);
+
+      $tablerows = _datavizwiz_get_summaryarray($query);
+
+      $output = '<div id="dvw-resultcount">Result count: ' . $recordcount . '</div>';
+      $output .= theme_table($headers, $tablerows);
+      $output .= theme('pager', NULL, 0);
+    } else {
+      if (user_access('adminster datavizwiz')) {
+        drupal_set_message(t('This dataset has not yet been initatilzed.  Visit the "Edit Dataset" tab to define summary fields to display below.'), 'warning');
+      }
+    }
+  }
 
   return $output;
 }
 
-function theme_datavizwiz_datafilters($node) {
-  return drupal_get_form('datavizwiz_gen_filters', $node);;
+/**
+ * Theme function for the displaying the detail page.
+ * 
+ * @param $node
+ *  Node.  The data set we'll be displaying.
+ * 
+ * @return $output
+ * String.  HTML of detail page. 
+ */
+function theme_datavizwiz_detaildisplay($node) {
+    // Display only if node type is DataVizWiz data set custom CCK type.
+  if ($node->type == DVW_NODE_TYPE) {
+    $table_name = $node->field_dvw_datatable[0]['value'];
+    $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
+    $importerID = $_GET['detail'];
+    if (is_numeric($importerID)) {
+      $output .= _datavizwiz_detail_page($dataset_metadata, $table_name, $importerID);
+    }
+  }
+  
+  return $output;
 }
 
 /**
@@ -168,96 +339,19 @@ function _datavizwiz_get_unique_values($datatable, $column) {
     return $returnrows;
 }
 
-function theme_datavizwiz_opendatalinks($node) {  
-  if ($node->field_dvw_download_csv[0]['value'] == 1) {
-    $icon_csv = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/csv.png' . '"/> ';
-    $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'csv');
-    $icon_csv = $link . $icon_csv . "</a>";
-  }
-  
-  if ($node->field_dvw_download_geojson[0]['value'] == 1) {
-    $icon_geojson = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/geojson.png' . '"/> ';
-    $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'geojson');
-    $icon_geojson = $link . $icon_geojson . "</a>";
-  }
-  
-  if ($node->field_dvw_download_json[0]['value'] == 1) {
-    $icon_json = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/json.png' . '"/> ';
-    $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'json');
-    $icon_json = $link . $icon_json . "</a>";
-  }
-  
-  if ($node->field_dvw_download_xml[0]['value'] == 1) {
-    $icon_xml = '<img border="0" src="/' . drupal_get_path('module', 'datavizwiz') . '/images/xml.png' . '"/> ';
-    $link = sprintf('<a href="/dvwapi/%s/%s">', $node->nid, 'xml');
-    $icon_xml = $link . $icon_xml . "</a>";
-  }
-  
-  
-  
-  return $icon_csv . $icon_geojson . $icon_json . $icon_xml;
-}
-
-function theme_datavizwiz_datatable($node) {
-  $table_name = $node->field_dvw_datatable[0]['value'];
-  $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
-  $page_size = $node->field_dvw_pagesize[0]['value'];
-  
-  $query = sprintf("
-      SELECT field_name, display_name, sortable 
-      FROM {dvw_field_meta} 
-      WHERE nid=%s AND visible_summary=1 
-      ORDER BY weight_summary", $node->nid);
-  $rows = _datavizwiz_get_rowarray(db_query($query));
-  
-  $filters = array();
-  
-  if (count($rows) > 0) {
-    // Get headers for summary table
-    $headers = array();
-    $id_counter = 1;
-    $column_names = '';
-    foreach ($rows as $field) {
-      $header = array();
-      $header['data'] = $field['display_name'];
-      $column_names .= $field['field_name'] . ',';
-
-      if ($field['sortable'] == 1) {
-        $header['field'] = $field['field_name'];
-        $header['sort'] = 'asc';
-      }
-
-      $header['id'] = 'dvwcol' . $id_counter;
-      array_push($headers, $header);
-      $id_counter++;
-    }
-
-    $column_names = substr($column_names, 0, strlen($column_names) - 1);
-    $sql = sprintf("SELECT ImporterID,%s FROM {%s}", $column_names, $table_name);
-    $filterssql = _datavizwiz_get_where_clause_by_node_id($node->nid);
-    $sql .= $filterssql;
-    
-    $sqlcount = sprintf("SELECT COUNT(ImporterID) FROM {%s}", $table_name);
-    $sqlcount .= $filterssql;
-    $recordcount = db_result(db_query($sqlcount));
-    
-    $sql .= tablesort_sql($headers);
-    $query = pager_query($sql, $page_size);
-
-    $tablerows = _datavizwiz_get_summaryarray($query);
-
-    $output = '<div id="dvw-resultcount">Result count: ' . $recordcount . '</div>';
-    $output .= theme_table($headers, $tablerows);
-    $output .= theme('pager', NULL, 0);
-  } else {
-    if (user_access('adminster datavizwiz')) {
-      drupal_set_message(t('This dataset has not yet been initatilzed.  Visit the "Edit Dataset" tab to define summary fields to display below.'), 'warning');
-    }
-  }
-
-  return $output;
-}
-
+/**
+ * Generates a dynamic WHERE clause from querystring parameters.
+ * User defines which fields are filterable for each node, so
+ * WHERE clause can contain columns in which the end user has specified.
+ * This method is used for summary panes (maps/graphs), summary table and
+ * downloadable data/API.
+ * 
+ * @param $nid
+ *  Integer.  Node ID.
+ * 
+ * @return $where.
+ *  String.  WHERE clause. 
+ */
 function _datavizwiz_get_where_clause_by_node_id($nid) {
   
   $query = sprintf("
@@ -278,18 +372,25 @@ function _datavizwiz_get_where_clause_by_node_id($nid) {
   
   foreach ($filters as $filter => $type) {
     $variable = $_GET[$filter];
+    // Sanitize user input.
+    $variable = check_plain($variable);
+    
     if (isset($variable) && strlen($variable)) {
       if (!strlen($where)) {
         // If this is our first time adding a WHERE variable, let's setup the statement.
         // Otherwise, we pass back an empty WHERE string if there are no variables.
+        // WHERE (1=1) is used because it provides a string which can be appended
+        // to easily by adding an AND and the filter condition.
         $where .= ' WHERE (1=1)';
       }
       switch ($type) {
         case DVW_FILTER_TEXT :
+          // If this is a text filter, add a LIKE statement with % wildcards.
           $where .= sprintf(" AND `%s` LIKE '%%%s%%'", $filter, $variable);
           break;
         case DVW_FILTER_DROPDOWN :
         case DVW_FILTER_CHECKBOXES :
+          // If this is a dropdown or checkbox filter, add an EQUALS statement
           $where .= sprintf(" AND `%s`='%s'", $filter, $variable);
           break;
       }
@@ -299,6 +400,15 @@ function _datavizwiz_get_where_clause_by_node_id($nid) {
   return $where;
 }
 
+/**
+ * Return the summary panes as defined by the user for a dataset.
+ * 
+ * @param $nid
+ *  Integer. Node ID.
+ *
+ * @return $rows
+ *  Array.  Information about summary panes.
+ */
 function _datavizwiz_get_summary_panes($nid) {
   $query = "SELECT svid, type, name, options FROM {dvw_summary_views} 
       WHERE nid=%s ORDER BY pane_order";
@@ -308,6 +418,8 @@ function _datavizwiz_get_summary_panes($nid) {
 }
 
 /**
+ * Outputs content for summary pane type OpenLayers maps.
+ * 
  * @param $node
  *  Node object.
  *
@@ -318,7 +430,7 @@ function _datavizwiz_get_summary_panes($nid) {
  *  Integer. Summary ID from database.
  *
  * @param $options 
- *  String. (Optional) JSON options for whatever pane is.
+ *  String. (Optional) JSON array of options as defined by user in admin.
  * 
  * @return $output
  *  HTML
@@ -355,6 +467,8 @@ function _datavizwiz_pane_map_openlayers($node, $index, $svid, $options = NULL) 
 }
 
 /**
+ * Outputs content for summary pane type flot graphs.
+ * 
  * @param $node
  *  Node object.
  *
@@ -362,7 +476,7 @@ function _datavizwiz_pane_map_openlayers($node, $index, $svid, $options = NULL) 
  *  Integer. Pane order.
  *
  * @param $options 
- *  String. (Optional) JSON options for whatever pane is.
+ *  String. (Optional) JSON array of options as defined by user in admin.
  * 
  * @param $type
  *  String. Constant, either DVW_TYPE_BAR_FLOT or DVW_TYPE_PIE_FLOT.
@@ -385,62 +499,76 @@ function _datavizwiz_pane_flot($node, $index, $options = NULL, $type) {
   $rows = _datavizwiz_get_rowarray(db_query($sql));
   
   $pane = 'dvwpane' . $index;
+  
+  // The user will specify a variable to display in the graph.  Below will grab
+  // the user specified "display name" from the metadata table.
+  $rows_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('field_name', 'display_name'));
+  foreach ($rows_metadata as $row_metadata) {
+    if ($row_metadata->field_name == $variable) {
+      $variable_displayname = check_plain($row_metadata->display_name);
+    }
+  }
 
   if ($type == DVW_TYPE_PIE_FLOT) {
-  foreach ($rows as $row) {
-    $row_variable = check_plain($row[$variable]);
-    $data .= '{label:"' . $row_variable . ' (' . $row["SumTotal"]  .')", data:' . $row["SumTotal"] . '},';
-  }
-  
-  drupal_add_js('$(function() {
-    $.plot($("#' . $pane .'"), [ ' . $data . ' ]
-    , {
-    series: { pie: { show: true } },
-    legend: { show: true },
-    grid: {
-    clickable: true
-    }
-    }
-    );
-    } );
-
-    ', 'inline');
-  } else {
-    // Type is DVW_TYPE_BAR_FLOT
-    $tickcount=0;
+    $color_scale = array('#F7FBFF','#DEEBF7','#C6DBEF','#9ECAE1','#6BAED6','#4292C6','#2171B5','#08519C','#08306B');
+    
+    $scale_counter = 0;
+    $scale_max = count($color_scale);
+    
     foreach ($rows as $row) {
       $row_variable = check_plain($row[$variable]);
-      
-      $data .= sprintf('[%s,%s],', $tickcount,$row["SumTotal"]);
-   
-      $ticks .= sprintf('[%s,"%s"],', $tickcount,$row_variable);
-      $tickcount++;
+      $data .= sprintf('{label:"%s (%s)", data:%s},', $row_variable, $row["SumTotal"], $row["SumTotal"]);
     }
-  
-  drupal_add_js('$(function() {$.plot(
-   $("#'. $pane .'"),
-   [
+
+    drupal_add_js('$(function() {
+      $.plot($("#' . $pane .'"), [ ' . $data . ' ]
+      , {
+      series: { pie: { show: true } },
+      legend: { show: true },
+      grid: {
+      clickable: true
+      }
+      }
+      );
+      } );
+
+      ', 'inline');
+    } else {
+      // Type is DVW_TYPE_BAR_FLOT
+      $tickcount=0;
+      foreach ($rows as $row) {
+        $row_variable = check_plain($row[$variable]);
+
+        $data .= sprintf('[%s,%s],', $tickcount,$row["SumTotal"]);
+
+        $ticks .= sprintf('[%s,"%s"],', $tickcount,$row_variable);
+        $tickcount++;
+      }
+
+    drupal_add_js('$(function() {$.plot(
+    $("#'. $pane .'"),
+    [
+      {
+        label: "' . $variable_displayname . '",
+        data: [ ' . $data . ' ],
+                color: "#00f",
+        bars: {
+          show: true,
+          barWidth: 0.2,
+          align: "center"
+        }   
+      }
+    ],
     {
-      label: "Total Things Per Year",
-      data: [ ' . $data . ' ],
-              color: "#00f",
-      bars: {
-        show: true,
-        barWidth: 0.2,
-        align: "center"
+      xaxis: {
+        ticks: [
+    '. $ticks .'
+        ]
       }   
     }
- ],
- {
-   xaxis: {
-     ticks: [
-'. $ticks .'
-     ]
-   }   
- }
-);
-});
-', 'inline');
+    );
+    });
+    ', 'inline');
   }
   //return theme_table(array('One', 'Two'), $rows, array('id' => 'experiment'));
 
@@ -453,6 +581,8 @@ function _datavizwiz_pane_flot($node, $index, $options = NULL, $type) {
 }
 
 /**
+ * Outputs content for summary pane type freeform HTML.
+ * 
  * @param $node
  *  Node object.
  *
@@ -460,7 +590,7 @@ function _datavizwiz_pane_flot($node, $index, $options = NULL, $type) {
  *  Integer. Pane order.
  *
  * @param $options 
- *  HTML
+ *  User defined HTML.
  * 
  * @return $output
  *  HTML
@@ -542,12 +672,6 @@ function _datavizwiz_add_tabhtml() {
             </div>
         </div>
     </div>';
-}
-
-function _datavizwiz_quick_json() {
-  $options = array();
-  $options['latitude-field'] = 'latitude';
-  $options['longitude-field'] = 'longitude';
 }
 
 function _datavizwiz_add_javascript($markers) {
@@ -817,44 +941,6 @@ function _datavizwiz_detail_page($metadata, $table_name, $importerID) {
   return $output;
 }
 
-function _datavizwiz_experiment_pie_table() {
-  $sql = db_query("SELECT AbsolutePriority, Count(*) as SumTotal FROM import_oii_2011_i3 group by AbsolutePriority");
-  $rows = _datavizwiz_get_rowarray($sql);
-
-  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.min.js');
-  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.pie.min.js');
-
-
-
-
-  foreach ($rows as $row) {
-    $data .= '{label:"' . $row["AbsolutePriority"] . '", data:' . $row["SumTotal"] . '},';
-  }
-
-
-  drupal_add_js('$(function() {
-    $.plot($("#placeholder"), [ ' . $data . ' ]
-    , {
-    series: { pie: { show: true } },
-    legend: { show: true },
-    grid: {
-    clickable: true
-    }
-    }
-    );
-    } );
-
-    ', 'inline');
-
-  //return theme_table(array('One', 'Two'), $rows, array('id' => 'experiment'));
-
-  return '<div id="placeholder" style="width:100%;height:300px"></div>
-    <style type="text/css">div.legend table { width: 350px; } </style>
-    <div style=”position: absolute; left: -2000px;”>
-<div id=”initialPlaceHolder” style=”width:600px;height:300px”></div>
-</div>';
-}
-
 function _datavizwiz_map($rows) {
   $markers .= sprintf("markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(%s,%s),icon.clone()));\n", $row['Longitude'], $row['Latitude']);
   _datavizwiz_add_javascript($markers);
@@ -869,10 +955,12 @@ function _datavizwiz_get_dataset_metadata($nid, $field_array) {
 }
 
 /**
- * Helper method to get columns in a table.  drupal_schema_fields_sql won't work as the imported
+ * Helper method to get columns in an imported data table.  
+ * Note: drupal_schema_fields_sql won't work as the imported
  * tables are not part of Drupal's schema.
  * 
  * @param type $table_name 
+ *  String.  Table name.
  */
 function _datavizwiz_get_columns_in_table($table_name) {
   $dbname = _datavizwiz_get_database_name();
@@ -885,6 +973,15 @@ function _datavizwiz_get_columns_in_table($table_name) {
   return _datavizwiz_get_rowarray($sql);
 }
 
+/** 
+ * Obtain the latitude and longitude columns as determined by user.
+ * 
+ * @param $nid
+ *  Integer.  Node id.
+ * @return
+ *  Array.  Latitude and longitude column names.
+ *  
+ */
 function _datavizwiz_get_latlon_cols($nid) {
   $query = db_query("SELECT fid, field_name, flag
     FROM {dvw_field_meta} 
@@ -893,6 +990,11 @@ function _datavizwiz_get_latlon_cols($nid) {
   return _datavizwiz_get_rowarray($query);
 }
 
+/**
+ * Return only tables that created by Importer module (prefixed with "import_").
+ * 
+ * @return array 
+ */
 function _datavizwiz_get_import_tables() {
   $dbname = _datavizwiz_get_database_name();
     
@@ -952,6 +1054,9 @@ function _datavizwiz_get_database_name() {
 }
 
 // Taken from Drupal 7
+/*
+ * 
+ */
 function _datavizwiz_drupal_get_query_parameters(array $query = NULL, array $exclude = array('q'), $parent = '') {
   // Set defaults, if none given.
   if (!isset($query)) {

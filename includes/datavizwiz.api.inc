@@ -6,6 +6,7 @@ function datavizwiz_api($nid, $operation) {
   // Since we're returning user controlled open data, allow this to be accessed
   // by cross-site domains.
   drupal_set_header('Access-Control-Allow-Origin: *');
+  drupal_set_header("Cache-Control: no-store, no-cache");
 
   switch (strtolower($operation)) {
     case 'csv':
@@ -76,9 +77,8 @@ function _datavizwiz_get_data_array($nid) {
 }
 
 function _datavizwiz_return_csv($rows) {
-  //drupal_set_header("Content-type: text/csv");
-  drupal_set_header("Cache-Control: no-store, no-cache");
-  //drupal_set_header('Content-Disposition: attachment; filename="data.csv"');
+  drupal_set_header("Content-type: text/csv");
+  drupal_set_header('Content-Disposition: attachment; filename="data.csv"');
   
   $colnames = _datavizwiz_get_column_names($rows[0]);
   echo _datavizwiz_export_csv($rows, $colnames);
@@ -86,7 +86,6 @@ function _datavizwiz_return_csv($rows) {
 
 function _datavizwiz_return_geojson($rows, $latloncols) {
   drupal_set_header("Content-type: application/json");
-  drupal_set_header("Cache-Control: no-store, no-cache");
   
   // If this request is coming from an OpenLayers summary view, we'll get a
   // ID of the summary in the form of ol_id in the querystring.  If it's
@@ -156,11 +155,15 @@ function _datavizwiz_return_geojson($rows, $latloncols) {
 }
 
 function _datavizwiz_return_json($rows) {
+  drupal_set_header("Content-type: application/json");
+
   // Drupal function: drupal_json does not return valid JSON
   echo json_encode($rows);
 }
 
 function _datavizwiz_return_xml($rows) {
+  drupal_set_header("Content-type: application/xml");
+
   $colnames = _datavizwiz_get_column_names($rows[0]);
   $xml = simplexml_load_string("<dataset></dataset>");
 

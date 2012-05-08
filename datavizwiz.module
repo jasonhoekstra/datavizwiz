@@ -504,20 +504,28 @@ function _datavizwiz_pane_flot($node, $index, $options = NULL, $type) {
   // the user specified "display name" from the metadata table.
   $rows_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('field_name', 'display_name'));
   foreach ($rows_metadata as $row_metadata) {
-    if ($row_metadata->field_name == $variable) {
-      $variable_displayname = check_plain($row_metadata->display_name);
+    if ($row_metadata['field_name'] == $variable) {
+      $variable_displayname = check_plain($row_metadata['display_name']);
     }
   }
 
   if ($type == DVW_TYPE_PIE_FLOT) {
     $color_scale = array('#F7FBFF','#DEEBF7','#C6DBEF','#9ECAE1','#6BAED6','#4292C6','#2171B5','#08519C','#08306B');
-    
     $scale_counter = 0;
-    $scale_max = count($color_scale);
+    $scale_max = count($color_scale) - 1;
+    // Let's start in the higher end of the scale (darker colors) if less then the scale max;
+    if (count($rows) < $scale_max) {
+      $scale_counter = $scale_max - count($rows);
+    }
     
     foreach ($rows as $row) {
       $row_variable = check_plain($row[$variable]);
-      $data .= sprintf('{label:"%s (%s)", data:%s},', $row_variable, $row["SumTotal"], $row["SumTotal"]);
+      $data .= sprintf('{label:"%s (%s)", data:%s, color:"%s"},', $row_variable, $row["SumTotal"], $row["SumTotal"], $color_scale[$scale_counter]);
+      if ($scale_counter == $scale_max) {
+        $scale_counter = 0;
+      } else {
+        $scale_counter++;
+      }
     }
 
     drupal_add_js('$(function() {
@@ -548,29 +556,17 @@ function _datavizwiz_pane_flot($node, $index, $options = NULL, $type) {
     drupal_add_js('$(function() {$.plot(
     $("#'. $pane .'"),
     [
-      {
-        label: "' . $variable_displayname . '",
-        data: [ ' . $data . ' ],
-                color: "#00f",
-        bars: {
-          show: true,
-          barWidth: 0.2,
-          align: "center"
-        }   
+      { label: "' . $variable_displayname . '",
+        data: [ ' . $data . ' ], 
+        color: "#08519C",
+        bars: { show: true, barWidth: 0.2, align: "center" }   
       }
     ],
-    {
-      xaxis: {
-        ticks: [
-    '. $ticks .'
-        ]
-      }   
-    }
+    { xaxis: { ticks: [ '. $ticks .' ] } }
     );
     });
     ', 'inline');
   }
-  //return theme_table(array('One', 'Two'), $rows, array('id' => 'experiment'));
 
   return '<div id="' . $pane .'" style="width:100%;height:' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>
     <style type="text/css">div.legend table { width: 350px; } </style>

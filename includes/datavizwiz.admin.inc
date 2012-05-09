@@ -467,15 +467,15 @@ function datavizwiz_fields_form_submit($form, &$form_state) {
 
 // </editor-fold>
 
-// <editor-fold desc="Manage Summary Sorts">
+// <editor-fold desc="Manage Summary Page">
 
 function datavizwiz_sort_summary_form($frm, $nid) {
   $rows = array();
   $form['weights']['#tree'] = TRUE;
   $form['sortable']['#tree'] = TRUE;
-  $form['detaillink']['#tree'] = TRUE;
+  $form['detail_link']['#tree'] = TRUE;
   
-  $sql = 'SELECT fid, field_name, display_name, weight_summary, sortable, detaillink FROM {dvw_field_meta} WHERE nid = %s AND visible_summary = TRUE ORDER BY weight_summary';
+  $sql = 'SELECT fid, field_name, display_name, weight_summary, sortable, detail_link FROM {dvw_field_meta} WHERE nid = %s AND visible_summary = TRUE ORDER BY weight_summary';
   $form['update_type'] = array(
     '#type' => 'hidden',
     '#value' => DVW_SORT_SUMMARY,
@@ -500,9 +500,9 @@ function datavizwiz_sort_summary_form($frm, $nid) {
       '#type' => 'checkbox',
       '#default_value' => $tablerow['sortable'],
     );
-    $form['detaillink'][$fid] = array(
+    $form['detail_link'][$fid] = array(
       '#type' => 'checkbox',
-      '#default_value' => $tablerow['detaillink'],
+      '#default_value' => $tablerow['detail_link'],
     );
     $form['weights'][$fid] = array(
       '#type' => 'weight',
@@ -518,10 +518,9 @@ function datavizwiz_sort_summary_form($frm, $nid) {
 }
 
 function theme_datavizwiz_sort_summary_form($form) {
-  $header = array(t('Field Name'), t('Display Name'), t('Sortable'), t('Link to detail'), t('Weight'));
+  $header = array(t('Field Name'), t('Display Name'), t('Sortable'), t('Link to Detail'), t('Weight'));
 
   $rows = array();
-
   foreach (element_children($form) as $key) {
     $row = array();
 
@@ -529,7 +528,7 @@ function theme_datavizwiz_sort_summary_form($form) {
       $row[] = array('data' => drupal_render($form['field_name'][$key]));
       $row[] = array('data' => drupal_render($form['display_name'][$key]));
       $row[] = array('data' => drupal_render($form['sortable'][$key]));
-      $row[] = array('data' => drupal_render($form['detaillink'][$key]));
+      $row[] = array('data' => drupal_render($form['detail_link'][$key]));
       $row[] = array('data' => drupal_render($form['weights'][$key]));
 
       $rows[] = array(
@@ -562,9 +561,9 @@ function datavizwiz_sort_summary_form_submit($form, &$form_state) {
     drupal_write_record('dvw_field_meta', $record, 'fid');
   }
   
-  foreach ($form_state['values']['detaillink'] as $id => $item) {
+  foreach ($form_state['values']['detail_link'] as $id => $item) {
     $record = new stdClass();
-    $record->detaillink = $item;
+    $record->detail_link = $item;
     $record->fid = $id;
     drupal_write_record('dvw_field_meta', $record, 'fid');
   }
@@ -574,7 +573,7 @@ function datavizwiz_sort_summary_form_submit($form, &$form_state) {
 
 // </editor-fold>
 
-// <editor-fold desc="Manage Detail Sorts">
+// <editor-fold desc="Manage Detail Page">
 
 function datavizwiz_sort_detail_form($frm, $nid) {
   $rows = array();

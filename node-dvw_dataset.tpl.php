@@ -1,5 +1,6 @@
 <?php 
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/scripts/datavizwiz.js');
+  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/excanvas.compiled.js');
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/datavizwiz.css');
   
   if (isset($_GET['detail']) && strlen($_GET['detail'])) {

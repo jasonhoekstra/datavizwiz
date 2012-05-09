@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Implementation of hook_install().
+ * Implements hook_install().
  */
 function datavizwiz_install() {
   // Install database schema
@@ -22,14 +22,14 @@ function datavizwiz_install() {
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function datavizwiz_uninstall() {
   drupal_uninstall_schema('datavizwiz');
 }
 
 /**
- * Implementation of hook_schema().
+ * Implements hook_schema().
  */
 function datavizwiz_schema() {
   $schema['dvw_field_meta'] = array(
@@ -107,6 +107,13 @@ function datavizwiz_schema() {
         'not null' => TRUE,
         'default' => 0,
         'description' => 'Boolean if this displays wide in the detail page',
+      ),
+      'detail_link' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Boolean if this displays a link to the detail page',
       ),
      'weight_summary' => array(
         'type' => 'int',

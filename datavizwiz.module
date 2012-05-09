@@ -186,7 +186,7 @@ function theme_datavizwiz_datatable($node) {
     $page_size = $node->field_dvw_pagesize[0]['value'];
 
     $query = sprintf("
-        SELECT field_name, display_name, sortable 
+        SELECT field_name, display_name, sortable, detail_title, detail_link 
         FROM {dvw_field_meta} 
         WHERE nid=%s AND visible_summary=1 
         ORDER BY weight_summary", $node->nid);
@@ -199,6 +199,7 @@ function theme_datavizwiz_datatable($node) {
       $headers = array();
       $id_counter = 1;
       $column_names = '';
+      $detail_linked_columns = array();
       foreach ($rows as $field) {
         $header = array();
         $header['data'] = $field['display_name'];
@@ -207,6 +208,16 @@ function theme_datavizwiz_datatable($node) {
         if ($field['sortable'] == 1) {
           $header['field'] = $field['field_name'];
           $header['sort'] = 'asc';
+        }
+        
+        // If the user marked off field as linked to detail page, let's put it 
+        // in an array for when building the display.
+        if ($field['detail_title'] == 1) {
+          $title_columns = array_push($detail_linked_columns, $field['field_name']);
+        }
+        
+        if ($field['detail_link']) {
+          array_push($detail_linked_columns, $field['field_name']);
         }
 
         $header['id'] = 'dvwcol' . $id_counter;
@@ -226,7 +237,7 @@ function theme_datavizwiz_datatable($node) {
       $sql .= tablesort_sql($headers);
       $query = pager_query($sql, $page_size);
 
-      $tablerows = _datavizwiz_get_summaryarray($query);
+      $tablerows = _datavizwiz_get_summaryarray($query, $detail_linked_columns);
 
       $output = '<div id="dvw-resultcount">Result count: ' . $recordcount . '</div>';
       $output .= theme_table($headers, $tablerows);
@@ -530,16 +541,10 @@ function _datavizwiz_pane_flot($node, $index, $options = NULL, $type) {
 
     drupal_add_js('$(function() {
       $.plot($("#' . $pane .'"), [ ' . $data . ' ]
-      , {
-      series: { pie: { show: true } },
-      legend: { show: true },
-      grid: {
-      clickable: true
-      }
-      }
-      );
-      } );
-
+      , { series: { pie: { show: true } },
+        legend: { show: true },
+        grid: { clickable: true } }
+      ); } );
       ', 'inline');
     } else {
       // Type is DVW_TYPE_BAR_FLOT
@@ -557,7 +562,7 @@ function _datavizwiz_pane_flot($node, $index, $options = NULL, $type) {
     $("#'. $pane .'"),
     [
       { label: "' . $variable_displayname . '",
-        data: [ ' . $data . ' ], 
+        data: [' . $data . '], 
         color: "#08519C",
         bars: { show: true, barWidth: 0.2, align: "center" }   
       }
@@ -643,11 +648,6 @@ function datavizwiz_theme() {
   );
 }
 
-function datavizwiz_graph() {
-  //return '';
-  return _datavizwiz_experiment_pie_table();
-}
-
 function _datavizwiz_add_tabhtml() {
   return '<div class="tabs">
         <ul id="dvwTabs">
@@ -707,24 +707,14 @@ function _datavizwiz_add_javascript($markers) {
  */
 function datavizwiz_nodeapi(&$node, $op, $arg = NULL) {
   switch ($op) {
-//    case 'load':
-//      $node->private = db_result(db_query('SELECT private FROM {node_access_example} WHERE nid = %d', $node->nid));
-//      break;
     case 'insert':
       if ($node->type == 'dvw_dataset') {
         $table_name = $node->field_dvw_datatable[0]['value'];
         $field_set = _datavizwiz_get_columns_in_table($table_name);
 
         _datavizwiz_add_columns_to_meta_table($node->nid, $field_set);
-        //drupal_goto('datavizwiz/edit', $node->nid);
       }
       break;
-//    case 'update':
-//      db_query('UPDATE {node_access_example} SET private = %d WHERE nid = %d', $node->private, $node->nid);
-//      break;
-//    case 'delete':
-//      db_query('DELETE FROM {node_access_example} WHERE nid = %d', $node->nid);
-//      break;
   }
 }
 
@@ -736,10 +726,6 @@ function datavizwiz_form_alter(&$form, &$form_state, $form_id) {
     foreach ($tables as $table) {
       array_push($tablenames, array($table['table_name'] => $table['table_name']));
     }
-
-
-    // $form['field_dvw_datatable']['#type'] = 'select';
-    // $form['field_dvw_datatable']['#options'] = $tablenames;
   }
 }
 
@@ -863,12 +849,11 @@ function _datavizwiz_manage_dataset_menu_access($nid) {
   return true;
 }
 
+/**
+ * Implements hook_perm.
+ */
 function datavizwiz_perm() {
   return array('adminster datavizwiz');
-}
-
-function _datavizwiz_summary_table($nid, $table_name, $page_size) {
-
 }
 
 function _datavizwiz_detail_page($metadata, $table_name, $importerID) {  
@@ -1008,18 +993,21 @@ function _datavizwiz_get_rowarray($dbquery) {
   return $rows;
 }
 
-function _datavizwiz_get_summaryarray($dbquery) {
+function _datavizwiz_get_summaryarray($dbquery, $detail_linked_columns) {
   $rows = array();
 
   while ($row = db_fetch_array($dbquery)) {
     $importerID = $row['ImporterID'];
+    // Remove the ImporterID column as not for display
     $row = array_slice($row, 1, count($row) - 1, TRUE);
-    $keys = array_keys($row);
-    $first_cell = $keys[0];
-    $row[$first_cell] = '<a href="?detail=' . $importerID . '">' . $row[$first_cell] . '</a>';
+    
+    // Link each user defined linked column to the detail page.
+    foreach ($detail_linked_columns as $detail_linked_column) {
+      $row[$detail_linked_column] = '<a href="?detail=' . $importerID . '">' . $row[$detail_linked_column] . '</a>';
+    }
+    
     array_push($rows, $row);
   }
-
   return $rows;
 }
 

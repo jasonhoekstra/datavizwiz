@@ -867,50 +867,77 @@ function _datavizwiz_detail_page($metadata, $table_name, $importerID) {
   foreach ($metadata as $field) {
     $header = array();
     if ($field['visible_detail'] == 1) {
-      $header['data'] = $field['field_name'];
+      $header['field_name'] = $field['field_name'];
       $header['display_name'] = $field['display_name'];
+      $header['detail_wide'] = $field['detail_wide'];
+      $header['weight_detail'] = $field['weight_detail'];
       $header['id'] = 'dvwcol' . $id_counter;
-      
+
       if ($field['detail_title'] == 1) {
         $title = $field['field_name'];
-      }  
+      }
       
       array_push($headers, $header);
       $id_counter++;
     }
   }
   
-  $column_names = '';
-  // Get the column names we need
+  // Sort array (TODO: optimize)
+  $min_value = 999;
+  $max_value = -999;
   foreach ($headers as $header) {
-    $column_names .= $header['data'] . ',';
+    if ($header['weight_detail'] < $min_value) {
+      $min_value = $header['weight_detail'];
+    }
+    if ($header['weight_detail'] > $max_value) {
+      $max_value = $header['weight_detail'];
+    }
   }
+  
+  $temp_array = array();
+  for ($i = $min_value; $i <= $max_value; $i++) {
+    foreach ($headers as $header) {
+      if ($header['weight_detail'] == $i) {
+        array_push($temp_array, $header);
+      }
+    } 
+  }
+  
+  $headers = $temp_array;
 
+  
+  
+  $column_names = '';
+  // Get the column names we need from the database
+  foreach ($headers as $header) {
+    $column_names .= $header['field_name'] . ',';
+  }
+  // Remove trailing comma
   $column_names = substr($column_names, 0, strlen($column_names) - 1);
   $sql = sprintf("SELECT %s FROM {%s} WHERE ImporterID=%s", $column_names, $table_name, $importerID);
 
-
   $result = db_query(db_rewrite_sql($sql));
   if ($row = db_fetch_array($result)) {
-    foreach ($row as $key => $value) {
-      $column_name = '';
-      foreach ($headers as $header) {
-        if ($header['data'] == $key) {
-          $column_name = $header['display_name'];
-          $db_name = $header['data'];
-        }
+    
+    foreach ($headers as $header) {
+      $column_name = $header['display_name'];
+      // If this is marked by the user as a "wide" column, 
+      // let's add it to the CSS.
+      if ($header['detail_wide']) {
+        $wide = ' wide';
+      } else {
+        $wide = '';
       }
 
-      // Sanitize $value, this is user-generated, uploaded in CSV file. 
-      // We don't want to allow HTML, JS, etc.
-      $value = check_plain($value);
+      // Sanitize $value, this is user-generated uploaded in CSV file.  HTML ok.
+      $value = check_markup($row[$header['field_name']]);
       // If the user designated a field from the database as the title, 
       // display it on the detail page.  Otherwise, leave it as the default.
-      if ((strlen($title) > 0) && $title == $db_name) {
+      if ((strlen($title) > 0) && $title == $header['field_name']) {
         drupal_set_title($value);
-      }
-      
-      $output .= '<div class="dvwDetail"><strong>' . $column_name . '</strong><p>' . $value . '</p></div>';
+      } else {
+        $output .= sprintf('<div class="dvwDetail%s"><strong>%s</strong><p>%s</p></div>', $wide, $column_name, $value);
+      }     
     }
   }
 

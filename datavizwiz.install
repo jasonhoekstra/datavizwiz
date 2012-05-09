@@ -65,14 +65,7 @@ function datavizwiz_schema() {
         'not null' => TRUE,
         'default' => 0,
         'description' => 'Boolean if visible in summary',
-      ),  
-      'detaillink' => array(
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 0,
-        'description' => 'Boolean if linked to detail in summary',
-      ),  
+      ), 
      'visible_summary' => array(
         'type' => 'int',
         'size' => 'tiny',

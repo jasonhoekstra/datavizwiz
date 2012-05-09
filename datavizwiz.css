@@ -79,8 +79,12 @@ left:0;
   display: block;
 }
 
-.dvwArea {
-  padding-top: 12px;
+.dvwDetail + .wide {
+  width: 98%;
+}
+
+#dvw-detail {
+  padding-bottom: 50px; 
 }
 
 #dvw-datafilters {

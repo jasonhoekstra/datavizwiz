@@ -347,7 +347,7 @@ return $rows;',
     array (
       0 => 
       array (
-        'value' => NULL,
+        'value' => 1,
       ),
     ),
     'default_value_php' => '',
@@ -355,7 +355,7 @@ return $rows;',
     array (
       'field_dvw_download_geojson' => 
       array (
-        'value' => false,
+        'value' => true,
       ),
     ),
     'group' => false,

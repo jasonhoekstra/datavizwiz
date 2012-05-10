@@ -19,11 +19,7 @@
   <h2><a href="<?php print $node_url ?>" title="<?php print $title ?>"><?php print $title ?></a></h2>
 <?php endif; ?>
 
-  <?php if ($terms): ?>
-    <div class="terms terms-inline"><?php print $terms ?></div>
-  <?php endif;?>
-  </div>
-
+  <?php if (!$teaser) { // Don't display the data visualization if a teaser view. '?>
   <?php if (!$detail_page) { ?>
     <div class="content">
       <?php print $content ?>
@@ -52,14 +48,20 @@
       <div class="dvwArea" id="dvw-datatable">
         <?php print theme('datavizwiz_datatable', $node); ?>
       </div>
-    <?php } ?>
+    <?php } // detail ?>
   </div>
-
+  <?php } // teaser ?>
+    
   <?php print $links; ?>
 
   <div class="meta">
   <?php if ($submitted): ?>
     <p><span class="submitted">Last updated: <?php print $submitted ?></span></p>
   <?php endif; ?>
+    
+  <?php if ($terms): ?>
+    <div class="terms terms-inline"><?php print $terms ?></div>
+  <?php endif;?>
+  </div>
 
 </div>

@@ -19,6 +19,7 @@ define('DVW_SORT_DETAIL', 1);
  */
 define('DVW_FLAG_LATITUDE', 'LAT');
 define('DVW_FLAG_LONGITUDE', 'LON');
+define('DVW_FLAG_CURRENCY', 'CURRENCY');
 define('DVW_FLAG_NONE', '');
 
 /**
@@ -81,10 +82,10 @@ function theme_datavizwiz_summarypanes($node) {
             $content = _datavizwiz_pane_map_openlayers($node, $index, $pane['svid'], $pane['options']);
             break;
           case DVW_TYPE_PIE_FLOT:
-            $content = _datavizwiz_pane_flot($node, $index, $pane['options'], DVW_TYPE_PIE_FLOT);
+            $content = _datavizwiz_pane_flot($node, $index, DVW_TYPE_PIE_FLOT, $pane['options']);
             break;
           case DVW_TYPE_BAR_FLOT:
-            $content = _datavizwiz_pane_flot($node, $index, $pane['options'], DVW_TYPE_BAR_FLOT);
+            $content = _datavizwiz_pane_flot($node, $index, DVW_TYPE_BAR_FLOT, $pane['options']);
             break;
           case DVW_TYPE_HTML:
             $content = _datavizwiz_pane_html($node, $index, $pane['options']);
@@ -495,7 +496,7 @@ function _datavizwiz_pane_map_openlayers($node, $index, $svid, $options = NULL) 
  * @return $output
  *  HTML
  */
-function _datavizwiz_pane_flot($node, $index, $options = NULL, $type) {
+function _datavizwiz_pane_flot($node, $index, $type, $options = NULL) {
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.min.js');
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/charting/flot/jquery.flot.pie.min.js');
   
@@ -529,18 +530,25 @@ function _datavizwiz_pane_flot($node, $index, $options = NULL, $type) {
       $scale_counter = $scale_max - count($rows);
     }
     
+    $data_array = array();
     foreach ($rows as $row) {
       $row_variable = check_plain($row[$variable]);
-      $data .= sprintf('{label:"%s (%s)", data:%s, color:"%s"},', $row_variable, $row["SumTotal"], $row["SumTotal"], $color_scale[$scale_counter]);
+      $data_object = new stdClass();
+      $data_object->label = sprintf('%s (%s)', $row_variable, $row["SumTotal"]);
+      $data_object->data = intval($row["SumTotal"]);
+      $data_object->color = $color_scale[$scale_counter];
+      array_push($data_array, $data_object);
+
       if ($scale_counter == $scale_max) {
         $scale_counter = 0;
       } else {
         $scale_counter++;
       }
     }
+    $data = json_encode($data_array);
 
     drupal_add_js('$(function() {
-      $.plot($("#' . $pane .'"), [ ' . $data . ' ]
+      $.plot($("#' . $pane .'"), ' . $data . '
       , { series: { pie: { show: true } },
         legend: { show: true },
         grid: { clickable: true } }
@@ -871,6 +879,7 @@ function _datavizwiz_detail_page($metadata, $table_name, $importerID) {
       $header['display_name'] = $field['display_name'];
       $header['detail_wide'] = $field['detail_wide'];
       $header['weight_detail'] = $field['weight_detail'];
+      $header['flag'] = $field['flag'];
       $header['id'] = 'dvwcol' . $id_counter;
 
       if ($field['detail_title'] == 1) {
@@ -902,11 +911,9 @@ function _datavizwiz_detail_page($metadata, $table_name, $importerID) {
       }
     } 
   }
-  
+  // Assign sorted $temp_array back to $headers array
   $headers = $temp_array;
 
-  
-  
   $column_names = '';
   // Get the column names we need from the database
   foreach ($headers as $header) {
@@ -930,12 +937,19 @@ function _datavizwiz_detail_page($metadata, $table_name, $importerID) {
       }
 
       // Sanitize $value, this is user-generated uploaded in CSV file.  HTML ok.
-      $value = check_markup($row[$header['field_name']]);
+      $value = $row[$header['field_name']];
       // If the user designated a field from the database as the title, 
       // display it on the detail page.  Otherwise, leave it as the default.
       if ((strlen($title) > 0) && $title == $header['field_name']) {
         drupal_set_title($value);
       } else {
+        if ($header['flag'] == DVW_FLAG_CURRENCY && is_numeric($value)) {
+          //TODO:  Find correct format for currency
+          $value = money_format('TODO: Find format!!', $value);
+          
+        }
+        
+        $value = check_markup($value);
         $output .= sprintf('<div class="dvwDetail%s"><strong>%s</strong><p>%s</p></div>', $wide, $column_name, $value);
       }     
     }

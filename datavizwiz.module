@@ -67,7 +67,7 @@ function theme_datavizwiz_summarypanes($node) {
         // Sanitize $pane['name']. This is user input from
         // admin/datavizwiz/edit/%/summary_pane.
         $pane_name = check_plain($pane['name']);
-        $output .= sprintf('<li class="dvwMenu"><a href="pane-%s">%s</a></li>', $index, $pane_name);
+        $output .= sprintf('<li class="dvwMenu"><a href="#" id="pane-%s">%s</a></li>', $index, $pane_name);
         $index++;
       }
       $output .= '</ul>';
@@ -93,10 +93,10 @@ function theme_datavizwiz_summarypanes($node) {
         }
 
         if (!$setActive) { 
-          $output .= sprintf('<div id="pane-%s" class="dvwContent dvwActive" style="width: 100%%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px">%s</div>', $index, $content);
+          $output .= sprintf('<div id="infopane-%s" class="dvwContent dvwActive" style="width: 100%%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px">%s</div>', $index, $content);
           $setActive = TRUE;
         } else {
-          $output .= sprintf('<div id="pane-%s" class="dvwContent" style="width: 100%%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px">%s</div>', $index, $content);    
+          $output .= sprintf('<div id="infopane-%s" class="dvwContent" style="width: 100%%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px">%s</div>', $index, $content);    
         }
 
         $index++;
@@ -654,28 +654,6 @@ function datavizwiz_theme() {
       'arguments' => array('form' => NULL),
     ),
   );
-}
-
-function _datavizwiz_add_tabhtml() {
-  return '<div class="tabs">
-        <ul id="dvwTabs">
-            <li class="active"><a href="#first">Map</a></li>
-            <li><a href="#second">Pie</a></li>
-            <li><a href="#third">Bar</a></li>
-        </ul>
-        <div id="dvwTabContent">
-            <div id="first" class="dvwTab">
-            <div id="datamap" style="height: 300px; width: 600px;"></div>
-            </div>
-            <div id="second" class="dvwTab" style="height: 300px; width: 600px;">' .
-          _datavizwiz_experiment_pie_table() .
-          '</div>
-            <div id="third" class="dvwTab" style="height: 300px; width: 600px;">
-                <h2>Third</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-            </div>
-        </div>
-    </div>';
 }
 
 function _datavizwiz_add_javascript($markers) {

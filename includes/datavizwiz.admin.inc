@@ -338,8 +338,9 @@ function datavizwiz_fields_form($frm, $nid) {
             $form[$tablerow['fid']]['select-' . $tablerow['fid'] . '-' . $headerrow] = array(
               '#type' => 'select',
               '#options' => array(DVW_FLAG_NONE => '', 
-                DVW_FLAG_LATITUDE => 'lat', 
-                DVW_FLAG_LONGITUDE => 'lon',
+                DVW_FLAG_CURRENCY => 'currency',
+                DVW_FLAG_LATITUDE => 'latitude', 
+                DVW_FLAG_LONGITUDE => 'lonitude',
                 ),
               '#default_value' => $value,
             );

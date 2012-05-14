@@ -816,8 +816,8 @@ function datavizwiz_menu() {
     'page arguments' => array(1,2),
     'file' => 'includes/datavizwiz.api.inc',
     'type' => MENU_CALLBACK,
-    'access callback'  => 'user_access',
-    'access arguments' => array('adminster datavizwiz'),
+    'access callback'  => '_datavizwiz_api_access',
+    'access arguments' => array(1,2), //array(TRUE), //array('adminster datavizwiz'),
   );  //TODO:  Add custom callback to check if published or if user has admin
 
   return $items;
@@ -1099,4 +1099,42 @@ function _datavizwiz_get_querystring() {
   }
 
   return $querystring;
+}
+
+function _datavizwiz_api_access($node_id, $api_type) {
+  $node = node_load($node_id);
+  $has_access = FALSE;
+  
+  // If user is admin, allow API access
+  if (user_access('adminster datavizwiz')) { 
+    $has_access = TRUE;
+  } else {
+    // If user has access to content (anon should) and the node is published,
+    // let's check to see what APIs have been enabled.
+    if (user_access('access content') && $node->status) {
+      switch (strtolower($api_type)) {
+        case 'csv':
+          if ($node->field_dvw_download_csv[0]['value'] == 1) {
+            $has_access = TRUE;
+            }
+        break;
+        case 'geojson':
+          // Skipping the check for geojson as its required for maps and only exposes lat/lons and title
+          // Access content and published checks performed above.
+            $has_access = TRUE;
+        break;
+        case 'json':
+          if ($node->field_dvw_download_json[0]['value'] == 1) {
+            $has_access = TRUE;
+          }
+        break;
+        case 'xml':
+          if ($node->field_dvw_download_xml[0]['value'] == 1) {
+            $has_access = TRUE;
+          }
+        break;
+      }
+    }
+  }
+  return $has_access;
 }

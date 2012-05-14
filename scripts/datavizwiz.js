@@ -4,15 +4,13 @@ $(document).ready(function(){
  
 function initTabs() {
   $('#dvwTabs a').bind('click',function(e) {
-    e.preventDefault();
+    event.preventDefault ? event.preventDefault() : event.returnValue = false;
     var thref = $(this).attr("id").replace(/#/, '');
     thref = 'info' + thref;
     $('#dvwTabs a').removeClass('dvwActive');
     $(this).addClass('dvwActive');
     //$('#dvwTabContent div.dvwContent').removeClass('dvwActive');
     $('#dvwTabContent div.dvwContent').css('left', '-20000px');
-    //$('#'+thref).addClass('dvwActive');
-        $('#'+thref).css('left', '0px');
-    //alert(thref);
+    $('#'+thref).css('left', '0px');
   });
 }

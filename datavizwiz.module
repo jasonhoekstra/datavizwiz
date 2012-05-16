@@ -546,6 +546,7 @@ function _datavizwiz_pane_flot($node, $index, $type, $options = NULL) {
       }
     }
     $data = json_encode($data_array);
+    dsm($data);
 
     drupal_add_js('$(function() {
       $.plot($("#' . $pane .'"), ' . $data . '
@@ -572,7 +573,7 @@ function _datavizwiz_pane_flot($node, $index, $type, $options = NULL) {
       { label: "' . $variable_displayname . '",
         data: [' . $data . '], 
         color: "#08519C",
-        bars: { show: true, barWidth: 0.2, align: "center" }   
+        bars: { show: true, barWidth: 0.3, align: "center" }   
       }
     ],
     { xaxis: { ticks: [ '. $ticks .' ] } }
@@ -581,12 +582,7 @@ function _datavizwiz_pane_flot($node, $index, $type, $options = NULL) {
     ', 'inline');
   }
 
-  return '<div id="' . $pane .'" style="width:100%;height:' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>
-    <style type="text/css">div.legend table { width: 350px; } </style>
-<div id=”initialPlaceHolder” style=”width:100%;height:' . $node->field_dvm_summary_pane_height[0]['value'] . 'px”></div>';
-  
-  
-  return $output;
+  return '<div id="' . $pane .'" style="width:100%;height:' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>';
 }
 
 /**

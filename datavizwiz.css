@@ -28,8 +28,9 @@ width:100%;
 }
 
 #dvwTabs {
-position:relative;
-height:30px;
+  width: 100%;
+  position:relative;
+  height:30px;
 }
 
 #dvwTabContent {
@@ -57,8 +58,8 @@ left:0;
 
 /* Tab menu styles generated via the horitontal menu builder @ www.cssmenubuilder.com */
 .dvwMenu{margin:0 auto; padding:0; height:30px; width:100%; display:block; background:url('topMenuImages.png') repeat-x;}
-.dvwMenu li {padding:0; margin:0; list-style:none; display:inline;}
-.dvwMenu li a{float:left; padding-left:15px; height: 30px; width: 50px; display:block; color:rgb(255,255,255); text-decoration:none; font:12px Verdana, Arial, Helvetica, sans-serif; cursor:pointer; background:url('topMenuImages.png') 0px -30px no-repeat;}
+.dvwMenu li {padding:0; margin:0; list-style:none; display:inline; }
+.dvwMenu li a{ float:left; padding: 0px 15px 0 15px; height: 30px; display:block; color:rgb(255,255,255); text-decoration:none; font:12px Verdana, Arial, Helvetica, sans-serif; cursor:pointer; background:url('topMenuImages.png') 0px -30px no-repeat;}
 .dvwMenu li a span{line-height:30px; float:left; display:block; padding-right:15px; background:url('topMenuImages.png') 100% -30px no-repeat;}
 .dvwMenu li a:hover{background-position:0px -60px; color:rgb(255,255,255);}
 .dvwMenu li a:hover span{background-position:100% -60px;}
@@ -92,6 +93,10 @@ left:0;
   padding: 10px 10px 10px 10px;
 }
 
+div#dvw-opendatalinks {
+  padding-top: 10px;
+}
+
 #dvw-opendatalinks a {
   text-decoration: none !important;
   
@@ -112,4 +117,12 @@ left:0;
   z-index: 10000; 
   opacity: .8; 
   color: #ffffff;
+}
+
+#dvwTabContent div.legend table {
+  width: 25%;
+}
+
+#dvwPie {
+  margin-top: 100px;
 }

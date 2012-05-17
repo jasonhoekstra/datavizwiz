@@ -1,3 +1,5 @@
+/* Tab Functions */
+
 $(document).ready(function(){
   initTabs();
 });
@@ -15,20 +17,22 @@ function initTabs() {
   });
 }
 
+/* Flot Pie and Bar Functions */
+
 function flotPie(paneID, dataset) {
   $.plot($('#' + paneID), dataset
     , {
       series: {
         pie: {
           show: true, 
-          radius: 7/8,  
+          radius: 0.95,  
           label: {
             show: true,
             radius: 2/3,
             formatter: function(label, series){
-              return '<div style="font-size:8pt;text-align:center;padding:2px;color:white;">'
+              return '<div class="dvwPieLabel">'
               +label+
-              '<br/>'
+              '<br/><br/>'
               +Math.round(series.percent)+
               '%</div>';
             },
@@ -38,10 +42,11 @@ function flotPie(paneID, dataset) {
       },
       legend: {
         show: true, 
+        formatter: function(x,y) { alert('test'); },
         labelFormatter: function(label, series) {
           var percent= Math.round(series.percent);
-          var number= series.data[0][1]; //kinda weird, but this is what it takes
-          return('<b>'+label+'</b>: '+number+' ('+ percent + '%)');
+          var number= series.data[0][1];
+          return(''+label+'</td><td>'+number+'</td><td>'+ percent + '%');
         }
       },
       grid: {
@@ -64,7 +69,7 @@ function flotBar(paneID, variable, dataset, tickset) {
   );
 }
 
-/* This file contains specialized DataVizWiz functions for OpenLayers displays. */
+/* OpenLayers Functions */
 
 var selectControl;
 var selectedFeature;
@@ -128,8 +133,6 @@ function onFeatureSelect(feature) {
     $("#dvw-infobox").show();
     $("#dvw-infobox").html(htmlString); 
   }
-        
-
 }
 
 //  *** this fires when you move off a feature ***
@@ -155,7 +158,7 @@ function handleGeoJSON(geodata) {
     strokeColor: "#3366cc",
     strokeWidth: 2,
     strokeOpacity: 0.8,
-    property: "class",
+    property: "class"
   }, {
     context: {
       radius: function(feature) {
@@ -166,10 +169,8 @@ function handleGeoJSON(geodata) {
 
   var selectedStyle = new OpenLayers.Style({
     fillColor: "#cccc33",
-    strokeColor: "#cc66cc",
+    strokeColor: "#cc66cc"
   });
-
-
 
   var vector_layer = new OpenLayers.Layer.Vector("Locations", {
     projection: "EPSG:4326",
@@ -189,8 +190,6 @@ function handleGeoJSON(geodata) {
   vector_layer.addFeatures(vector_data);
         
   // Used to display the dialog popup
-
-
   selectControl = new OpenLayers.Control.SelectFeature(vector_layer,
   {
     hover: true,
@@ -200,6 +199,3 @@ function handleGeoJSON(geodata) {
   map.addControl(selectControl);
   selectControl.activate();
 }
-
-
-

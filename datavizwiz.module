@@ -449,7 +449,6 @@ function _datavizwiz_get_summary_panes($nid) {
  */
 function _datavizwiz_pane_map_openlayers($node, $index, $svid, $options = NULL) {
   drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/OpenLayers.js');
-  drupal_add_js(drupal_get_path('module', 'datavizwiz') . '/scripts/datavizwiz_openlayers.js');  
   drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/theme/default/style.css');
   
   $pane_id = 'dvwmap' . $index;
@@ -534,7 +533,7 @@ function _datavizwiz_pane_flot($node, $index, $type, $options = NULL) {
     foreach ($rows as $row) {
       $row_variable = check_plain($row[$variable]);
       $data_object = new stdClass();
-      $data_object->label = sprintf('%s (%s)', $row_variable, $row["SumTotal"]);
+      $data_object->label = sprintf('%s', $row_variable);
       $data_object->data = intval($row["SumTotal"]);
       $data_object->color = $color_scale[$scale_counter];
       array_push($data_array, $data_object);
@@ -546,40 +545,25 @@ function _datavizwiz_pane_flot($node, $index, $type, $options = NULL) {
       }
     }
     $data = json_encode($data_array);
-    dsm($data);
+    
+    $script = "$(function() { flotPie('" . $pane . "',". $data . ") });";
+    drupal_add_js($script, 'inline');
+      
+  } else {
+    // Type is DVW_TYPE_BAR_FLOT
+    $tickcount=0;
+    foreach ($rows as $row) {
+      $row_variable = check_plain($row[$variable]);
 
-    drupal_add_js('$(function() {
-      $.plot($("#' . $pane .'"), ' . $data . '
-      , { series: { pie: { show: true } },
-        legend: { show: true },
-        grid: { clickable: true } }
-      ); } );
-      ', 'inline');
-    } else {
-      // Type is DVW_TYPE_BAR_FLOT
-      $tickcount=0;
-      foreach ($rows as $row) {
-        $row_variable = check_plain($row[$variable]);
+      $data .= sprintf('[%s,%s],', $tickcount,$row["SumTotal"]);
 
-        $data .= sprintf('[%s,%s],', $tickcount,$row["SumTotal"]);
-
-        $ticks .= sprintf('[%s,"%s"],', $tickcount,$row_variable);
-        $tickcount++;
-      }
-
-    drupal_add_js('$(function() {$.plot(
-    $("#'. $pane .'"),
-    [
-      { label: "' . $variable_displayname . '",
-        data: [' . $data . '], 
-        color: "#08519C",
-        bars: { show: true, barWidth: 0.3, align: "center" }   
-      }
-    ],
-    { xaxis: { ticks: [ '. $ticks .' ] } }
-    );
-    });
-    ', 'inline');
+      $ticks .= sprintf('[%s,"%s"],', $tickcount,$row_variable);
+      $tickcount++;
+    }
+    
+    $script = sprintf("$(function() { flotBar('%s','%s', [%s], [%s]) });", $pane, $variable_displayname, $data, $ticks);
+    drupal_add_js($script, 'inline');
+    
   }
 
   return '<div id="' . $pane .'" style="width:100%;height:' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>';

@@ -187,7 +187,7 @@ function theme_datavizwiz_datatable($node) {
     $page_size = $node->field_dvw_pagesize[0]['value'];
 
     $query = sprintf("
-        SELECT field_name, display_name, sortable, detail_title, detail_link 
+        SELECT field_name, display_name, sortable, detail_title, detail_link, flag 
         FROM {dvw_field_meta} 
         WHERE nid=%s AND visible_summary=1 
         ORDER BY weight_summary", $node->nid);
@@ -201,6 +201,7 @@ function theme_datavizwiz_datatable($node) {
       $id_counter = 1;
       $column_names = '';
       $detail_linked_columns = array();
+      $currency_columns = array();
       foreach ($rows as $field) {
         $header = array();
         $header['data'] = $field['display_name'];
@@ -220,6 +221,10 @@ function theme_datavizwiz_datatable($node) {
         if ($field['detail_link']) {
           array_push($detail_linked_columns, $field['field_name']);
         }
+        
+        if ($field['flag'] == DVW_FLAG_CURRENCY) {
+          array_push($currency_columns, $field['field_name']);
+        }
 
         $header['id'] = 'dvwcol' . $id_counter;
         array_push($headers, $header);
@@ -238,7 +243,7 @@ function theme_datavizwiz_datatable($node) {
       $sql .= tablesort_sql($headers);
       $query = pager_query($sql, $page_size);
 
-      $tablerows = _datavizwiz_get_summaryarray($query, $detail_linked_columns);
+      $tablerows = _datavizwiz_get_summaryarray($query, $detail_linked_columns, $currency_columns);
 
       $output = '<div id="dvw-resultcount">Result count: ' . $recordcount . '</div>';
       $output .= theme_table($headers, $tablerows);
@@ -902,9 +907,7 @@ function _datavizwiz_detail_page($metadata, $table_name, $importerID) {
         drupal_set_title($value);
       } else {
         if ($header['flag'] == DVW_FLAG_CURRENCY && is_numeric($value)) {
-          //TODO:  Find correct format for currency
-          $value = money_format('TODO: Find format!!', $value);
-          
+          $value = '$'.number_format($value, 2, '.', ',');
         }
         
         $value = check_markup($value);
@@ -992,7 +995,7 @@ function _datavizwiz_get_rowarray($dbquery) {
   return $rows;
 }
 
-function _datavizwiz_get_summaryarray($dbquery, $detail_linked_columns) {
+function _datavizwiz_get_summaryarray($dbquery, $detail_linked_columns, $currency_columns) {
   $rows = array();
 
   while ($row = db_fetch_array($dbquery)) {
@@ -1003,6 +1006,13 @@ function _datavizwiz_get_summaryarray($dbquery, $detail_linked_columns) {
     // Link each user defined linked column to the detail page.
     foreach ($detail_linked_columns as $detail_linked_column) {
       $row[$detail_linked_column] = '<a href="?detail=' . $importerID . '">' . $row[$detail_linked_column] . '</a>';
+    }
+    
+    // Link each user defined linked column to the detail page.
+    foreach ($currency_columns as $currency_column) {
+      if (is_numeric($row[$currency_column])) {
+        $row[$currency_column] = '$'.number_format($row[$currency_column], 2, '.', ',');
+      }
     }
     
     array_push($rows, $row);

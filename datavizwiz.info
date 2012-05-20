@@ -6,5 +6,7 @@ dependencies[] = content
 dependencies[] = content_copy
 dependencies[] = text
 dependencies[] = number
+dependencies[] = optionwidgets
+dependencies[] = schema
 dependencies[] = importer
 package = "Data visualization"

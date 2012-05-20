@@ -86,6 +86,11 @@ function datavizwiz_summary_panes_form($frm, $nid) {
     $form['submit'] = array('#type' => 'submit', '#value' => t('Save Order'));    
   }
 
+  $form['spacer'] = array(
+    '#type' => 'markup',
+    '#value' => '<br/><br/><br/>',
+  );
+  
   $form['add_panel'] = array(
   '#type' => 'fieldset', 
   '#title' => t('Add new pane'),
@@ -96,10 +101,10 @@ function datavizwiz_summary_panes_form($frm, $nid) {
   '#title' => t('Pane type'),
   '#type' => 'select',
   '#options' => array(
-    DVW_TYPE_MAP_OPENLAYERS => t('Map - OpenLayers'),
-    DVW_TYPE_PIE_FLOT => t('Graph - Flot Pie'),
-    DVW_TYPE_BAR_FLOT=> t('Graph - Flot Bar'),
-    DVW_TYPE_HTML => t('Freeform - HTML Block'),
+    DVW_TYPE_MAP_OPENLAYERS => t('Map'),
+    DVW_TYPE_PIE_FLOT => t('Pie Graph'),
+    DVW_TYPE_BAR_FLOT=> t('Bar Chart'),
+    DVW_TYPE_HTML => t('Freeform HTML'),
 
     ),
   '#attributes' => array('onchange' => 'submit_edit_form(this.selectedIndex)')
@@ -180,19 +185,19 @@ function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
         '#title' => t('Pane Name'));
       switch (arg(6)) {
         case DVW_TYPE_MAP_OPENLAYERS:
-          drupal_set_title('Add Pane - OpenLayers Map');
+          drupal_set_title(t('Add Pane - Map'));
           $form = _datavizwiz_summary_pane_edit_map_openlayers_form($form, $node);
           break;       
         case DVW_TYPE_PIE_FLOT:
-          drupal_set_title('Add Pane - Pie Chart (Flot)');
+          drupal_set_title(t('Add Pane - Pie Chart'));
           $form = _datavizwiz_summary_pane_edit_flot_form($form, $node, DVW_TYPE_PIE_FLOT);
           break;
         case DVW_TYPE_BAR_FLOT:
-          drupal_set_title('Add Pane - Bar Graph (Flot)');
+          drupal_set_title(t('Add Pane - Bar Graph'));
           $form = _datavizwiz_summary_pane_edit_flot_form($form, $node, DVW_TYPE_BAR_FLOT);
           break;
         case DVW_TYPE_HTML:
-          drupal_set_title('Add Pane - HTML');
+          drupal_set_title(t('Add Pane - Freeform HTML'));
           $form = _datavizwiz_summary_pane_edit_html_form($form);
           break;
       }
@@ -696,16 +701,16 @@ function datavizwiz_sort_detail_form_submit($form, &$form_state) {
 function _datavizwiz_get_pane_type_name($pane_type) {
   switch ($pane_type) {
     case DVW_TYPE_MAP_OPENLAYERS:
-      return 'OpenLayers Map';
+      return t('Map');
       break;
     case DVW_TYPE_PIE_FLOT:
-      return 'Pie Chart (Flot)';
+      return t('Pie Chart');
       break;
     case DVW_TYPE_BAR_FLOT:
-      return 'Bar Graph (Flot)';
+      return t('Bar Graph');
       break;
     case DVW_TYPE_HTML:
-      return 'HTML Pane';
+      return t('Freeform HTML');
       break;
   }
 }

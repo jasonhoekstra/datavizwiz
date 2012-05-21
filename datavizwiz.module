@@ -320,6 +320,7 @@ function datavizwiz_gen_filters(&$form_state, $node) {
         $form[$row['field_name']] = array(
           '#type' => 'textfield', 
           '#title' => $display_name,
+          '#value' => $_GET[$field_name],
         );
         break;
       case DVW_FILTER_DROPDOWN :
@@ -423,8 +424,7 @@ function _datavizwiz_get_where_clause_by_node_id($nid) {
           $where .= sprintf(" AND `%s` LIKE '%%%s%%'", $filter, $variable);
           break;
         case DVW_FILTER_DROPDOWN :
-        case DVW_FILTER_CHECKBOXES :
-          // If this is a dropdown or checkbox filter, add an EQUALS statement
+          // If this is a dropdown, add an EQUALS statement
           $where .= sprintf(" AND `%s`='%s'", $filter, $variable);
           break;
       }

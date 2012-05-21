@@ -87,7 +87,7 @@ function datavizwiz_summary_panes_form($frm, $nid) {
   }
 
   if ($item_count > 0) {
-    $form['submit'] = array('#type' => 'submit', '#value' => t('Save Order'));    
+    $form['submit'] = array('#type' => 'submit', '#value' => t('Save'));    
   }
 
   $form['spacer'] = array(
@@ -186,7 +186,9 @@ function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
   switch ($op) {
     case 'add':      
       $form['pane_name'] = array('#type' => 'textfield',
-        '#title' => t('Pane Name'));
+        '#title' => t('Pane Name'),
+        '#required' => TRUE,
+        );
       switch (arg(6)) {
         case DVW_TYPE_MAP_OPENLAYERS:
           drupal_set_title(t('Add Pane - Map'));
@@ -207,7 +209,12 @@ function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
       }
       $form['operation'] = array('#type' => 'hidden', '#value' => DVW_OP_ADD);
       $form['submit'] = array('#type' => 'submit', '#value' => t('Save Pane'));
-      $form['cancel'] = array('#type' => 'submit', '#value' => t('Cancel'));
+      $form['cancel'] = array(
+        '#type' => 'button',
+        '#value' => t('Cancel'),
+        '#attributes' => array('onClick' => 'history.go(-1); return true;'),
+        '#post_render' => array('_datavizwiz_change_button_type'),
+      );
       
       break;
     case 'delete':
@@ -241,7 +248,13 @@ function _datavizwiz_summary_pane_edit_map_openlayers_form(&$form, $node) {
   
   $form['tos_notice'] = array('#type' => 'markup',
     '#title' => t('Terms of Service'),
-    '#value' => t('<i>Please have read and ensure your web site meets the Terms of Service for the selected map provider.</i><br/><br/><br/>')
+    '#value' => t('<i>Please read and ensure your web site meets the Terms of Service for the selected map provider:</i><br/><br/>
+      <ul>
+        <li><a href="https://developers.google.com/maps/terms" target="_blank">Google Terms of Service</a> (also if a federal agency, see <a href="http://www.google.com/intl/en-us/help/legalnotices_maps.html">U.S. Government Restricted Rights</a>)</li>
+        <li><a href="http://mapbox.com/tos/" target="_blank">MapBox</a> (also if a federal agency, <a href="http://mapbox.com/government/" target="_blank">free usage with this Terms of Service)</a></li>
+        <li><a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a></li>
+      </ul>
+      <br/>')
     );
   
   return $form;
@@ -373,8 +386,7 @@ function datavizwiz_fields_form($frm, $nid) {
               '#options' => array(
                 DVW_FILTER_NONE => t(''), 
                 DVW_FILTER_TEXT => t('Text Search'), 
-                DVW_FILTER_DROPDOWN => t('Drop Down'), 
-                DVW_FILTER_CHECKBOXES => t('Checkboxes')),
+                DVW_FILTER_DROPDOWN => t('Drop Down')),
             );
             break;
           case 'field_name' :
@@ -402,6 +414,8 @@ function datavizwiz_fields_form($frm, $nid) {
 }
 
 function theme_datavizwiz_fields_form($form) {
+  _datavizwiz_add_form_warning_javascript();
+  
   $rows = array();
   
   $row = array(array('header' => true ), 
@@ -535,11 +549,12 @@ function datavizwiz_sort_summary_form($frm, $nid) {
     $form['weights'][$fid]['#attributes']['class'] = 'order-weight';
   }
 
-  $form['submit'] = array('#type' => 'submit', '#value' => t('Save Order'));
+  $form['submit'] = array('#type' => 'submit', '#value' => t('Save'));
   return $form;
 }
 
 function theme_datavizwiz_sort_summary_form($form) {
+  _datavizwiz_add_form_warning_javascript();
   $header = array(t('Field Name'), t('Display Name'), t('Sortable'), t('Link to Detail'), t('Weight'));
 
   $rows = array();
@@ -655,11 +670,12 @@ function datavizwiz_sort_detail_form($frm, $nid) {
     '#attributes' => !$checked_title ? array('checked' => 'false') : '',
   );
 
-  $form['submit'] = array('#type' => 'submit', '#value' => t('Save Order'));
+  $form['submit'] = array('#type' => 'submit', '#value' => t('Save'));
   return $form;
 }
 
 function theme_datavizwiz_sort_detail_form($form) {
+  _datavizwiz_add_form_warning_javascript();
   $header = array(t('Field Name'), t('Display Name'), t('Title'), t('Wide Display'), t('Weight'));
 
   $rows = array();
@@ -784,6 +800,8 @@ function datavizwiz_map_layers_detail_form() {
 }
 
 function theme_datavizwiz_map_layers_detail_form($form) {
+  _datavizwiz_add_form_warning_javascript();
+  
   $header = array(t('Type'), t('Pane Name'), t('Enabled'), t('Delete'));
 
   $rows = array();
@@ -886,4 +904,28 @@ function _datavizwiz_get_field_array($table_name, $none_option = FALSE) {
   }
   
   return $columns;
+}
+
+/**
+ * Adds Javascript to prevent a user from navigating away from a panel without
+ * first saving. 
+ */
+function _datavizwiz_add_form_warning_javascript() {
+  drupal_add_js('$(document).ready(function() {
+      $(":input",document.forms[0]).bind("change", function() { setConfirmUnload(true); }); // Prevent accidental navigation away
+    });
+
+    function setConfirmUnload(on) {
+      window.onbeforeunload = (on) ? unloadMessage : null;
+    }
+
+    function unloadMessage() {
+      return "You have entered new data on this page.  If you navigate away from this page without first saving your data, the changes will be lost.";
+    }', 
+   'inline'); 
+}
+
+function _datavizwiz_change_button_type($markup, $element) {
+    $markup = str_replace('type="submit', 'type="button', $markup);
+    return $markup;
 }

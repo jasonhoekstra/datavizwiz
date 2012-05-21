@@ -35,7 +35,6 @@ define('DVW_OP_DELETE', 2);
 define('DVW_FILTER_NONE', '');
 define('DVW_FILTER_TEXT', 'TEXT');
 define('DVW_FILTER_DROPDOWN', 'DROPDOWN');
-define('DVW_FILTER_CHECKBOXES', 'CHECKBOXES');
 
 /**
  * DataVizWiz type for custom CCK node.

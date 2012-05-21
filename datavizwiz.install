@@ -31,23 +31,23 @@ function datavizwiz_install() {
   
   db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s',NULL,1);",
     DVW_MAP_OPENSTREETMAPS, t('Open Street Maps'));
-  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s',NULL,0);", 
+  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s',NULL,1);", 
     DVW_MAP_GOOGLE, t('Google'));
   /*db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s',NULL,0);", 
     DVW_MAP_BING, t('Bing'));*/ // We'll need a place to insert API key, hold for now
-  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',0);", 
+  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',1);", 
     DVW_MAP_XYZ, t('MapBox - Blue Marble'), 
           '{"layers":["http:\/\/a.tiles.mapbox.com\/v3\/mapbox.blue-marble-topo-bathy-jul\/${z}\/${x}\/${y}.png","http:\/\/b.tiles.mapbox.com\/v3\/mapbox.blue-marble-topo-bathy-jul\/${z}\/${x}\/${y}.png","http:\/\/c.tiles.mapbox.com\/v3\/mapbox.blue-marble-topo-bathy-jul\/${z}\/${x}\/${y}.png","http:\/\/d.tiles.mapbox.com\/v3\/mapbox.blue-marble-topo-bathy-jul\/${z}\/${x}\/${y}.png"]}');
-  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',0);", 
+  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',1);", 
     DVW_MAP_XYZ, t('MapBox - MapBox Streets'), 
           '{"layers":["http:\/\/a.tiles.mapbox.com\/v3\/mapbox.mapbox-streets\/${z}\/${x}\/${y}.png","http:\/\/b.tiles.mapbox.com\/v3\/mapbox.mapbox-streets\/${z}\/${x}\/${y}.png","http:\/\/c.tiles.mapbox.com\/v3\/mapbox.mapbox-streets\/${z}\/${x}\/${y}.png","http:\/\/d.tiles.mapbox.com\/v3\/mapbox.mapbox-streets\/${z}\/${x}\/${y}.png"]}');
-  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',0);",
+  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',1);",
     DVW_MAP_XYZ, t('MapBox - Natural Earth 2'), 
           '{"layers":["http:\/\/a.tiles.mapbox.com\/v3\/mapbox.natural-earth-2\/${z}\/${x}\/${y}.png","http:\/\/b.tiles.mapbox.com\/v3\/mapbox.natural-earth-2\/${z}\/${x}\/${y}.png","http:\/\/c.tiles.mapbox.com\/v3\/mapbox.natural-earth-2\/${z}\/${x}\/${y}.png","http:\/\/d.tiles.mapbox.com\/v3\/mapbox.natural-earth-2\/${z}\/${x}\/${y}.png"]}');
-  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',0);", 
+  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',1);", 
     DVW_MAP_XYZ, t('MapBox - World Bright'), 
           '{"layers":["http:\/\/a.tiles.mapbox.com\/v3\/mapbox.world-bright\/${z}\/${x}\/${y}.png","http:\/\/b.tiles.mapbox.com\/v3\/mapbox.world-bright\/${z}\/${x}\/${y}.png","http:\/\/c.tiles.mapbox.com\/v3\/mapbox.world-bright\/${z}\/${x}\/${y}.png","http:\/\/d.tiles.mapbox.com\/v3\/mapbox.world-bright\/${z}\/${x}\/${y}.png"]}');
-  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',0);", 
+  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',1);", 
     DVW_MAP_XYZ, t('MapBox - World Chester'), 
           '{"layers":["http:\/\/a.tiles.mapbox.com\/v3\/mapbox.mapbox-chester\/${z}\/${x}\/${y}.png","http:\/\/b.tiles.mapbox.com\/v3\/mapbox.mapbox-chester\/${z}\/${x}\/${y}.png","http:\/\/c.tiles.mapbox.com\/v3\/mapbox.mapbox-chester\/${z}\/${x}\/${y}.png","http:\/\/d.tiles.mapbox.com\/v3\/mapbox.mapbox-chester\/${z}\/${x}\/${y}.png"]}');
 }

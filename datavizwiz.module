@@ -42,6 +42,17 @@ define('DVW_FILTER_CHECKBOXES', 'CHECKBOXES');
  */
 define('DVW_NODE_TYPE', 'dvw_dataset');
 
+/** 
+ * DataVizWiz types for mapping layers.  (Also defined in datavizwiz.install.)
+ */
+define('DVW_MAP_OPENSTREETMAPS', 'OPENSTREETMAPS');
+define('DVW_MAP_GOOGLE', 'GOOGLE');
+define('DVW_MAP_BING', 'BING');
+define('DVW_MAP_YAHOO', 'YAHOO');
+define('DVW_MAP_XYZ', 'XYZ');
+define('DVW_MAP_TMS', 'TMS');
+define('DVW_MAP_WMS', 'WMS');
+
 /**
  * Theme function for the displaying the summary panes.
  * 
@@ -185,6 +196,11 @@ function theme_datavizwiz_datatable($node) {
     $table_name = $node->field_dvw_datatable[0]['value'];
     $dataset_metadata = _datavizwiz_get_dataset_metadata($node->nid, array('*'));
     $page_size = $node->field_dvw_pagesize[0]['value'];
+    
+    // If page size is less than 1 (0 specifically), max out the page size.
+    if ($page_size < 1) {
+      $page_size = 9999999;
+    }
 
     $query = sprintf("
         SELECT field_name, display_name, sortable, detail_title, detail_link, flag 
@@ -330,12 +346,14 @@ function datavizwiz_gen_filters(&$form_state, $node) {
   $form['#token'] = FALSE;
   $form['#after_build'] = array('datavizwiz_gen_filters_unset_defaults');
   
+  if (count($rows)) {
   $form['submit'] = array(
     '#type' => 'submit', 
     '#value' => t('Filter'), 
     '#name' => '',
     '#weight' => 100,
     );
+  }
     
     return $form;
 }
@@ -460,24 +478,42 @@ function _datavizwiz_pane_map_openlayers($node, $index, $svid, $options = NULL) 
   if ($options) {
     $opts = json_decode($options);
   }
+  
+  $dbquery = db_query('SELECT type, name, options, enabled FROM {dvw_map_layers} WHERE mlid=%s', $opts->map_type_id);
+  $results = _datavizwiz_get_rowarray($dbquery);
+  
+  if (count($results)==1 && $results[0]['enabled']) {
+    $type = check_plain($results[0]['type']);
+    $map_options = $results[0]['options'];
+    if ($type == DVW_MAP_GOOGLE) {
+      drupal_set_html_head('<script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.6&sensor=false"></script>');
+      drupal_add_css(drupal_get_path('module', 'datavizwiz') . '/libraries/mapping/openlayers/theme/default/google.css');
+    }
+        
+    $querystring = _datavizwiz_get_querystring();
+  
+    $output .= '<div id="' . $pane_id . '" style="width: 100%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>
+  <div id="dvw-infobox"></div>     
+  ';
 
-  $querystring = _datavizwiz_get_querystring();
+    // Sanitize $tablename, CCK input for good measure.
+    $tablename = check_plain($node->field_dvw_datatable[0]['value']);
+    $lat = $opts->latitude;
+    $lon = $opts->longitude;
+
+    // Pass along the summary pane ID so GeoJSON API can pick out the title field.
+    $querystring .= '&ol_id=' . $svid;
+
+    $geoDataURL = "/dvwapi/".$node->nid."/geojson?".$querystring;
+
+    $script = sprintf("$(function() { initOpenLayersMap('%s','%s','%s','%s') });", $pane_id, $type, $map_options, $geoDataURL);
+    drupal_add_js($script, 'inline');
+  } else {
+    $output = 'Mapping layer not found or enabled.';
+  }
   
-  $output .= '<div id="' . $pane_id . '" style="width: 100%; height: ' . $node->field_dvm_summary_pane_height[0]['value'] . 'px"></div>
-<div id="dvw-infobox"></div>     
-';
-    
-  // Sanitize $tablename, CCK input for good measure.
-  $tablename = check_plain($node->field_dvw_datatable[0]['value']);
-  $lat = $opts->latitude;
-  $lon = $opts->longitude;
-  
-  // Pass along the summary pane ID so GeoJSON API can pick out the title field.
-  $querystring .= '&ol_id=' . $svid;
-  
-  $geoDataURL = "/dvwapi/".$node->nid."/geojson?".$querystring;
-  $script = "$(function() { initOpenLayersMap('" . $pane_id . "','" . $geoDataURL . "') });";
-  drupal_add_js($script, 'inline');
+
+
   
   return $output;
 }
@@ -638,6 +674,9 @@ function datavizwiz_theme() {
     'datavizwiz_summary_panes_form' => array(
       'arguments' => array('form' => NULL),
     ),
+    'datavizwiz_map_layers_detail_form' => array(
+      'arguments' => array('form' => NULL),      
+    )
   );
 }
 
@@ -771,6 +810,16 @@ function datavizwiz_menu() {
     'access arguments' => array('adminster datavizwiz'),
     'weight' => -40,
   );
+  
+  /*  Not yet complete
+  $items['admin/settings/datavizwiz'] = array(
+    'title' => 'DataVizWiz Settings',
+    'page callback' => 'datavizwiz_settings_map_layers',
+    'file' => 'includes/datavizwiz.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+    'access callback'  => 'user_access',
+    'access arguments' => array('adminster datavizwiz'),
+  ); */
   
   $items['admin/datavizwiz/edit/%/summary_pane/%/%'] = array(
     'title' => 'Manage Dataset',

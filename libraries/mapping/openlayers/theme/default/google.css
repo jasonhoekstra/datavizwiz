@@ -1,0 +1,13 @@
+/* Hiding the default copywrite as it's displayed in the image layer */
+
+.olLayerGoogleV3.olLayerGoogleCopyright {
+    visibility: hidden;
+}
+
+.olLayerGoogleV3.olLayerGooglePoweredBy {
+   visibility: hidden;
+}
+
+.olLayerGoogleV3.olLayerGooglePoweredBy.gmnoprint {
+    visibility: hidden;
+}

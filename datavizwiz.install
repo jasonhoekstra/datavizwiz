@@ -1,5 +1,15 @@
 <?php
 
+/** 
+ * DataVizWiz types for mapping layers. (Also defined in datavizwiz.module.)
+ */
+define('DVW_MAP_OPENSTREETMAPS', 'OPENSTREETMAPS');
+define('DVW_MAP_GOOGLE', 'GOOGLE');
+//define('DVW_MAP_BING', 'BING');  (Needs API key, future impls)
+define('DVW_MAP_XYZ', 'XYZ');
+//define('DVW_MAP_TMS', 'TMS'); (Future impls)
+//define('DVW_MAP_WMS', 'WMS'); (Future impls)
+
 /**
  * Implements hook_install().
  */
@@ -19,6 +29,27 @@ function datavizwiz_install() {
   );
   drupal_execute("content_copy_import_form", $form_state);
   
+  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s',NULL,1);",
+    DVW_MAP_OPENSTREETMAPS, t('Open Street Maps'));
+  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s',NULL,0);", 
+    DVW_MAP_GOOGLE, t('Google'));
+  /*db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s',NULL,0);", 
+    DVW_MAP_BING, t('Bing'));*/ // We'll need a place to insert API key, hold for now
+  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',0);", 
+    DVW_MAP_XYZ, t('MapBox - Blue Marble'), 
+          '{"layers":["http:\/\/a.tiles.mapbox.com\/v3\/mapbox.blue-marble-topo-bathy-jul\/${z}\/${x}\/${y}.png","http:\/\/b.tiles.mapbox.com\/v3\/mapbox.blue-marble-topo-bathy-jul\/${z}\/${x}\/${y}.png","http:\/\/c.tiles.mapbox.com\/v3\/mapbox.blue-marble-topo-bathy-jul\/${z}\/${x}\/${y}.png","http:\/\/d.tiles.mapbox.com\/v3\/mapbox.blue-marble-topo-bathy-jul\/${z}\/${x}\/${y}.png"]}');
+  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',0);", 
+    DVW_MAP_XYZ, t('MapBox - MapBox Streets'), 
+          '{"layers":["http:\/\/a.tiles.mapbox.com\/v3\/mapbox.mapbox-streets\/${z}\/${x}\/${y}.png","http:\/\/b.tiles.mapbox.com\/v3\/mapbox.mapbox-streets\/${z}\/${x}\/${y}.png","http:\/\/c.tiles.mapbox.com\/v3\/mapbox.mapbox-streets\/${z}\/${x}\/${y}.png","http:\/\/d.tiles.mapbox.com\/v3\/mapbox.mapbox-streets\/${z}\/${x}\/${y}.png"]}');
+  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',0);",
+    DVW_MAP_XYZ, t('MapBox - Natural Earth 2'), 
+          '{"layers":["http:\/\/a.tiles.mapbox.com\/v3\/mapbox.natural-earth-2\/${z}\/${x}\/${y}.png","http:\/\/b.tiles.mapbox.com\/v3\/mapbox.natural-earth-2\/${z}\/${x}\/${y}.png","http:\/\/c.tiles.mapbox.com\/v3\/mapbox.natural-earth-2\/${z}\/${x}\/${y}.png","http:\/\/d.tiles.mapbox.com\/v3\/mapbox.natural-earth-2\/${z}\/${x}\/${y}.png"]}');
+  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',0);", 
+    DVW_MAP_XYZ, t('MapBox - World Bright'), 
+          '{"layers":["http:\/\/a.tiles.mapbox.com\/v3\/mapbox.world-bright\/${z}\/${x}\/${y}.png","http:\/\/b.tiles.mapbox.com\/v3\/mapbox.world-bright\/${z}\/${x}\/${y}.png","http:\/\/c.tiles.mapbox.com\/v3\/mapbox.world-bright\/${z}\/${x}\/${y}.png","http:\/\/d.tiles.mapbox.com\/v3\/mapbox.world-bright\/${z}\/${x}\/${y}.png"]}');
+  db_query("INSERT INTO {dvw_map_layers} (type, name, options, enabled) VALUES ('%s','%s','%s',0);", 
+    DVW_MAP_XYZ, t('MapBox - World Chester'), 
+          '{"layers":["http:\/\/a.tiles.mapbox.com\/v3\/mapbox.mapbox-chester\/${z}\/${x}\/${y}.png","http:\/\/b.tiles.mapbox.com\/v3\/mapbox.mapbox-chester\/${z}\/${x}\/${y}.png","http:\/\/c.tiles.mapbox.com\/v3\/mapbox.mapbox-chester\/${z}\/${x}\/${y}.png","http:\/\/d.tiles.mapbox.com\/v3\/mapbox.mapbox-chester\/${z}\/${x}\/${y}.png"]}');
 }
 
 /**
@@ -188,6 +219,48 @@ function datavizwiz_schema() {
     'primary key' => array('svid'),
   );
   
+  $schema['dvw_map_layers'] = array(
+    'description' => 'Stores information for various map layer providers.',
+    'fields' => array(
+      'mlid' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique field ID.',
+      ),
+      'type' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Type of map layer.',
+       ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'Display name of the mapping layer.',
+       ),        
+      'options' => array(
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'Options for the mapping layer.',
+       ),     
+      'enabled' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Pane order of the summary view',
+       ),
+    ),
+    'indexes' => array(
+      'mlid'    => array('mlid'),
+    ),
+    'primary key' => array('mlid'),
+  );
+
   return $schema;
 }
 

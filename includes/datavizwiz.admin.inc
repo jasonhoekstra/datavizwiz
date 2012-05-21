@@ -40,6 +40,10 @@ function datavizwiz_tab_sort_detail($nid) {
   return drupal_get_form('datavizwiz_sort_detail_form', $nid);
 }
 
+function datavizwiz_settings_map_layers() {
+  return drupal_get_form('datavizwiz_map_layers_detail_form');
+}
+
 // </editor-fold>
 
 // <editor-fold desc="Summary Pane">
@@ -220,6 +224,7 @@ function datavizwiz_summary_pane_edit_form($frm, $nid, $op, $svid) {
 
 function _datavizwiz_summary_pane_edit_map_openlayers_form(&$form, $node) {
   $field_array = _datavizwiz_get_field_array($node->field_dvw_datatable[0]['value'], TRUE);
+  $map_layers = _datavizwiz_get_map_layers();
   
   $form['type'] = array('#type' => 'hidden',
     '#value' => DVW_TYPE_MAP_OPENLAYERS);
@@ -228,6 +233,16 @@ function _datavizwiz_summary_pane_edit_map_openlayers_form(&$form, $node) {
     '#title' => t('Title field'),
     '#options' => $field_array,
   );
+  
+  $form['map_type_id'] = array('#type' => 'select',
+    '#title' => t('Map layer type'),
+    '#options' => $map_layers,
+  );
+  
+  $form['tos_notice'] = array('#type' => 'markup',
+    '#title' => t('Terms of Service'),
+    '#value' => t('<i>Please have read and ensure your web site meets the Terms of Service for the selected map provider.</i><br/><br/><br/>')
+    );
   
   return $form;
 }
@@ -272,7 +287,8 @@ function datavizwiz_summary_pane_edit_form_submit(&$form, &$form_state) {
 
       switch ($pane_type) {
         case DVW_TYPE_MAP_OPENLAYERS:
-          $options = array('title_field' => $form_state['values']['title_field']);
+          $options = array('title_field' => $form_state['values']['title_field'],
+                           'map_type_id' => $form_state['values']['map_type_id']);
           $record->options = json_encode($options);
           break;
         case DVW_TYPE_PIE_FLOT:
@@ -345,7 +361,7 @@ function datavizwiz_fields_form($frm, $nid) {
               '#options' => array(DVW_FLAG_NONE => '', 
                 DVW_FLAG_CURRENCY => 'currency',
                 DVW_FLAG_LATITUDE => 'latitude', 
-                DVW_FLAG_LONGITUDE => 'lonitude',
+                DVW_FLAG_LONGITUDE => 'longitude',
                 ),
               '#default_value' => $value,
             );
@@ -694,6 +710,144 @@ function datavizwiz_sort_detail_form_submit($form, &$form_state) {
     $record->fid = $id;
     drupal_write_record('dvw_field_meta', $record, 'fid');
   }
+}
+
+// </editor-fold>
+
+// <editor-fold desc="Manage Map Layers">
+
+function datavizwiz_map_layers_detail_form() {
+  $sql = sprintf("SELECT mlid, type, name, options, enabled FROM {dvw_map_layers} ORDER BY enabled DESC, name");
+  $result = db_query($sql);
+
+  $form['delete']['#tree'] = TRUE;
+  
+  $item_count=0;
+  while ($tablerow = db_fetch_array($result)) {
+
+    $mlid = $tablerow['mlid'];
+
+    $form[$mlid]['type'] = array(
+      '#type' => 'markup',
+      '#value' => _datavizwiz_get_map_type_name($tablerow['type']),
+    );
+    $form[$mlid]['name'] = array(
+      '#type' => 'markup',
+      '#value' => $tablerow['name'],
+    );
+    $form['enabled'][$mlid] = array(
+      '#type' => 'checkbox',
+      '#default_value' => $tablerow['enabled'],
+    );
+    $form['delete'][$mlid] = array(
+      '#type' => 'image_button',
+      '#name' => 'delete-' . $svid,
+      '#src' => drupal_get_path('module', 'datavizwiz') . '/images/delete.png',
+      '#return_value' => 'delete-' . $svid,
+    );
+    $item_count++;
+  }
+
+  if ($item_count > 0) {
+    $form['submit'] = array('#type' => 'submit', '#value' => t('Save'));    
+  }
+
+  $form['spacer'] = array(
+    '#type' => 'markup',
+    '#value' => '<br/><br/><br/>',
+  );
+  
+  $form['add_map'] = array(
+  '#type' => 'fieldset', 
+  '#title' => t('Add new map layer'),
+  '#collapsible' => FALSE,
+  );
+  
+  $form['add_map']['type'] = array(
+  '#title' => t('Layer type'),
+  '#type' => 'select',
+  '#options' => array(
+    DVW_MAP_BING => t('Bing'),
+    DVW_MAP_GOOGLE => t('Google'),
+    DVW_MAP_OPENSTREETMAPS=> t('Open Street Maps'),
+    DVW_MAP_TMS => t('TMS'),
+    DVW_MAP_WMS => t('WMS'),
+    DVW_MAP_XYZ => t('XYZ'),
+    DVW_MAP_YAHOO => t('Yahoo')
+    ),
+  );
+  
+  $form['add_panel']['add'] = array('#type' => 'submit', '#value' => t('Add Layer'));
+
+  return $form;
+
+}
+
+function theme_datavizwiz_map_layers_detail_form($form) {
+  $header = array(t('Type'), t('Pane Name'), t('Enabled'), t('Delete'));
+
+  $rows = array();
+
+  $item_count = 0;
+  foreach (element_children($form) as $key) {
+    $row = array();
+    if (is_numeric($key)) {
+      $row[] = array('data' => drupal_render($form[$key]['type']));
+      $row[] = array('data' => drupal_render($form[$key]['name']));
+      $row[] = array('data' => drupal_render($form['enabled'][$key]));
+      $row[] = array('data' => drupal_render($form['delete'][$key]));
+
+      $rows[] = array(
+        'data' => $row,
+        'class' => 'draggable',
+      );
+      $item_count++;
+    }
+  }
+
+  if ($item_count > 0) {
+    $output = theme('table', $header, $rows, array('id' => 'field-order'));
+    $output .= drupal_render($form);
+  }
+  
+  
+  $output .= drupal_render($form);
+
+  return $output;
+}
+
+function _datavizwiz_get_map_type_name($type) {
+  switch ($type) {
+    case DVW_MAP_BING :
+      return t('Bing');
+    case DVW_MAP_GOOGLE :
+      return t('Google');
+    case DVW_MAP_OPENSTREETMAPS :
+      return t('Open Street Maps');
+    case DVW_MAP_TMS :
+      return t('TMS');
+    case DVW_MAP_XYZ :
+      return t('XYZ');
+    case DVW_MAP_YAHOO :
+      return t('Yahoo');
+    default :
+      return t('Unknown');
+  }
+}
+
+/** 
+ * Get an array of active mapping layers
+ *  
+ */
+function _datavizwiz_get_map_layers() {
+  $columns = array();
+  $results = db_query('SELECT mlid, name FROM {dvw_map_layers} WHERE enabled=1 ORDER BY name');
+  
+  while ($column = db_fetch_array($results)) {
+    $columns[$column['mlid']] = $column['name'];
+  }
+  
+  return $columns;
 }
 
 // </editor-fold>

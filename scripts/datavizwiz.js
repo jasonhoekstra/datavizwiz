@@ -114,26 +114,52 @@ var selectControl;
 var selectedFeature;
 var map;
 
-function initOpenLayersMap(pane_id, geoDataSource) {
-  var streets = new OpenLayers.Layer.XYZ(
-    "MapBox Streets",
-    [
-    "http://a.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
-    "http://b.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
-    "http://c.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
-    "http://d.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png"
-    ], {
-      sphericalMercator: true,
-      wrapDateLine: true,
-      transitionEffect: "resize",
-      buffer: 1,
-      numZoomLevels: 17
-    }
-    );
-
+function initOpenLayersMap(pane_id, type, options, geoDataSource) {
+  var map_layer;
+  if (options.length) {
+    options = eval('(' + options + ')'); // Convert to JSON object
+  }
+  
+  switch (type) {
+    case 'OPENSTREETMAPS' :
+      map_layer = new OpenLayers.Layer.OSM(
+        {
+          sphericalMercator: true,
+          wrapDateLine: true,
+          transitionEffect: "resize",
+          buffer: 1,
+          numZoomLevels: 17
+        }
+        );      
+      break;
+    case 'XYZ' :
+      map_layer = new OpenLayers.Layer.XYZ(
+        "MapBox Streets",
+        options.layers, {
+          sphericalMercator: true,
+          wrapDateLine: true,
+          transitionEffect: "resize",
+          buffer: 1,
+          numZoomLevels: 17
+        }
+        );
+      break;
+    case 'GOOGLE' :
+      map_layer = new OpenLayers.Layer.Google(
+        {
+          sphericalMercator: true,
+          wrapDateLine: true,
+          transitionEffect: "resize",
+          buffer: 1,
+          numZoomLevels: 20
+        }
+        ); 
+      break;
+  }
+  
     map = new OpenLayers.Map({
     div: pane_id,
-    layers: [streets],
+    layers: [map_layer],
     projection: "EPSG:4326",
     zoom: 4,
     controls: [

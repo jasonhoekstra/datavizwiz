@@ -131,3 +131,12 @@ div#dvw-opendatalinks {
   color:#fff;
   font-weight:bold;
 }
+
+#dvw-tooltip {
+  position: absolute;
+  display: none;
+  border: 1px solid #fdd;
+  padding: 2px;
+  background-color: #fee;
+  opacity: 0.80
+}

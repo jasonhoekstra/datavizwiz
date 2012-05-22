@@ -6,7 +6,7 @@ $(document).ready(function(){
  
 function initTabs() {
   $('#dvwTabs a').bind('click',function(e) {
-    event.preventDefault ? event.preventDefault() : event.returnValue = false;
+    if (typeof event != 'undefined') { event.preventDefault ? event.preventDefault() : event.returnValue = false; }
     var thref = $(this).attr("id").replace(/#/, '');
     thref = 'info' + thref;
     $('#dvwTabs a').removeClass('dvwActive');
@@ -71,16 +71,11 @@ function flotBar(paneID, variable, dataset, tickset) {
   
   var previousPoint = null;
   $("#" + paneID).bind("plothover", function (event, pos, item) {
-    console.log(event);
-    console.log(pos);
-    console.log(item);
-    alert('test');
-    
     if (item) {
         if (previousPoint != item.dataIndex) {
             previousPoint = item.dataIndex;
 
-            $("#tooltip").remove();
+            $("#dvw-tooltip").remove();
             var x = item.datapoint[0].toFixed(2),
                 y = item.datapoint[1].toFixed(2);
 
@@ -89,22 +84,17 @@ function flotBar(paneID, variable, dataset, tickset) {
         }
     }
     else {
-        $("#tooltip").remove();
+        $("#dvw-tooltip").remove();
         previousPoint = null;            
     }
   });
 }
 
 function showTooltip(x, y, contents) {
-  $('<div id="tooltip">' + contents + '</div>').css( {
-      position: 'absolute',
-      display: 'none',
+  alert(contents);
+  $('<div id="dvw-tooltip">' + contents + '</div>').css( {
       top: y + 5,
-      left: x + 5,
-      border: '1px solid #fdd',
-      padding: '2px',
-      'background-color': '#fee',
-      opacity: 0.80
+      left: x + 5
   }).appendTo("body").fadeIn(200);
 }
 
@@ -191,7 +181,10 @@ function initOpenLayersMap(pane_id, type, options, geoDataSource) {
 function onFeatureSelect(feature) {       
   var htmlString = "";
   for (i=0; i<feature.cluster.length; i++) {
-    htmlString = htmlString + feature.cluster[i].attributes.popupContent + "<br/>";
+    console.log(feature.cluster[i].attributes.popupContent);
+    if (feature.cluster[i].attributes.popupContent.length) {
+      htmlString = htmlString + feature.cluster[i].attributes.popupContent + "<br/>";
+    }
   }
   
   if (htmlString != "") {
@@ -207,7 +200,6 @@ function onFeatureUnselect(feature) {
 }
 
 function handleGeoJSON(geodata) {
-  console.log(geodata);
   baseProjection = map.projection; 
   wgs84 = new OpenLayers.Projection("EPSG:4326");
   diff = new OpenLayers.Projection("EPSG:900913");
@@ -251,7 +243,6 @@ function handleGeoJSON(geodata) {
 
   map.addLayer(vector_layer);
   var vector_data = geojson_format.read(geodata);
-  console.log(vector_data);
   vector_layer.addFeatures(vector_data);
         
   // Used to display the dialog popup

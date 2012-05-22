@@ -2,7 +2,6 @@
 
 function datavizwiz_api($nid, $operation) {
   $node = node_load($nid);
-  $rows = _datavizwiz_get_data_array($nid);
   // Since we're returning user controlled open data, allow this to be accessed
   // by cross-site domains.
   drupal_set_header('Access-Control-Allow-Origin: *');
@@ -11,21 +10,25 @@ function datavizwiz_api($nid, $operation) {
   switch (strtolower($operation)) {
     case 'csv':
       if ($node->field_dvw_download_csv[0]['value'] == 1) {
+        $rows = _datavizwiz_get_data_array($nid);
         _datavizwiz_return_csv($rows);
       }
       break;
     case 'geojson':
-      // Skipping the check for geojson as its required for maps and only exposes lat/lons and title
+      // The enable check is done inside the _geojson function due to OpenLayers
+      $geojson_enabled = $node->field_dvw_download_json[0]['value'];
       $latloncols = _datavizwiz_get_latlon_cols($nid);
-      _datavizwiz_return_geojson($rows, $latloncols);
+      _datavizwiz_return_geojson($nid, $latloncols, $geojson_enabled);
       break;
     case 'json':
       if ($node->field_dvw_download_json[0]['value'] == 1) {
+        $rows = _datavizwiz_get_data_array($nid);
         _datavizwiz_return_json($rows);
       }
       break;
     case 'xml':
       if ($node->field_dvw_download_xml[0]['value'] == 1) {
+        $rows = _datavizwiz_get_data_array($nid);
         _datavizwiz_return_xml($rows);
       }
       break;
@@ -76,6 +79,81 @@ function _datavizwiz_get_data_array($nid) {
   }
 }
 
+function _datavizwiz_get_data_array_geojson($nid, $lat_field, $lon_field) {
+  if (!is_numeric($nid)) {
+    die;
+  } // Check for numeric node ID, stop if not
+  $node = node_load($nid);
+  $datatable = $node->field_dvw_datatable[0]['value'];
+
+  //All of our tables from the Importer module are prefixed with import_, if not here, stop processing
+  if (substr($datatable, 0, 7) != 'import_') {
+    die;
+  }
+
+  $query = sprintf("
+      SELECT field_name 
+      FROM {dvw_field_meta} 
+      WHERE nid=%s AND visible_data=1", $node->nid);
+  $colrows = _datavizwiz_get_rowarray(db_query($query));
+  
+  $filters = array();
+  
+  $colnames = $lat_field . ',' . $lon_field . ',';
+  if (count($colrows)) {
+    foreach($colrows as $colrow) {
+      if ($colrow['field_name'] != $lat_field && $colrow['field_name'] != $lon_field) {
+        $colnames .= $colrow['field_name'] . ','; 
+      }
+    }
+    
+    $colnames = substr($colnames, 0, strlen($colnames) - 1);
+
+    $whereclause = _datavizwiz_get_where_clause_by_node_id($nid);
+    $result = db_query(sprintf('SELECT ImporterID as RowID,%s FROM %s %s', $colnames, $datatable, $whereclause));
+ 
+    while ($row = db_fetch_array($result)) {
+      $rows[] = $row;
+    }
+
+    return $rows;
+  } else { 
+    echo 'No columns are defined for data export.';
+    die;
+  }
+}
+
+/**
+ * Specialized function for OpenLayers maps
+ */
+function _datavizwiz_get_data_array_openlayers($nid, $lat_field, $lon_field, $title_field) {
+  if (!is_numeric($nid)) {
+    die;
+  } // Check for numeric node ID, stop if not
+  $node = node_load($nid);
+  $datatable = $node->field_dvw_datatable[0]['value'];
+
+  //All of our tables from the Importer module are prefixed with import_, if not here, stop processing
+  if (substr($datatable, 0, 7) != 'import_') {
+    die;
+  }
+
+  $colnames = $lat_field . ',' . $lon_field;
+  if (strlen($title_field) && $title_field != '(none)') {
+    $colnames .= ',' . $title_field;
+  }
+  
+  $whereclause = _datavizwiz_get_where_clause_by_node_id($nid);
+  $result = db_query(sprintf('SELECT ImporterID as RowID,%s FROM %s %s', $colnames, $datatable, $whereclause));
+
+  while ($row = db_fetch_array($result)) {
+    $rows[] = $row;
+  }
+
+  return $rows;
+}
+
+
 function _datavizwiz_return_csv($rows) {
   drupal_set_header("Content-type: text/csv");
   drupal_set_header('Content-Disposition: attachment; filename="data.csv"');
@@ -84,7 +162,7 @@ function _datavizwiz_return_csv($rows) {
   echo _datavizwiz_export_csv($rows, $colnames);
 }
 
-function _datavizwiz_return_geojson($rows, $latloncols) {
+function _datavizwiz_return_geojson($nid, $latloncols, $geojson_enabled) {
   drupal_set_header("Content-type: application/json");
   
   // If this request is coming from an OpenLayers summary view, we'll get a
@@ -93,65 +171,84 @@ function _datavizwiz_return_geojson($rows, $latloncols) {
   $summary_viewid = check_plain($_GET['ol_id']);
   $title_field = '';
   if (is_numeric($summary_viewid)) {
-    $sql = 'SELECT options FROM {dvw_summary_views} WHERE svid=%s';
-    $result = db_query($sql, $summary_viewid);
+    $sql = 'SELECT options FROM {dvw_summary_views} WHERE svid=%s and nid=%s';
+    $result = db_query($sql, $summary_viewid, $nid);
     $record = db_fetch_object($result);
     if ($record) {
       $options = json_decode($record->options);
       $title_field = $options->title_field;
+      $openlayers_return = TRUE;
+    } else {
+      die; // The request was for OpenLayers and no record found for this
+           // summary view and node ID.
     }
   }
   
-  
-  if (count($latloncols) != 2) {
-    $return = "Latitude and longitude is not defined for this data set.";
-  } else {
-    $latcol = '';
-    $loncol = '';
-    
-    foreach($latloncols as $col) {
-      if ($col['flag'] == DVW_FLAG_LATITUDE) {
-        $latcol = $col['field_name'];
-      }
-      if ($col['flag'] == DVW_FLAG_LONGITUDE) {
-        $loncol = $col['field_name'];
-      }
-    }
-    
-    if ($latcol == '' || $loncol == '') {
+  if ($openlayers_return || $geojson_enabled) {
+    if (count($latloncols) != 2) {
       $return = "Latitude and longitude is not defined for this data set.";
     } else {
-      foreach($rows as $row) {
-        $feature = new stdClass();
-        $feature->type = 'Feature';
+      $latcol = '';
+      $loncol = '';
 
-        $geometry = new stdClass();
-        $geometry->type = 'Point';
-        $geometry->coordinates = array((float) $row[$loncol], (float) $row[$latcol]);
-        $feature->geometry = $geometry;
-
-        $feature->id = $row['RowID'];
-        $properties = new stdClass();
-        
-        if (strlen($title_field)) {
-          if ($row[$title_field] != null) {
-            $properties->popupContent = $row[$title_field];
-          } else {
-            $properties->popupContent = '';
-          }
-          $feature->properties = $properties;
+      foreach($latloncols as $col) {
+        if ($col['flag'] == DVW_FLAG_LATITUDE) {
+          $latcol = $col['field_name'];
         }
-        
-        $geojson[] = $feature;
+        if ($col['flag'] == DVW_FLAG_LONGITUDE) {
+          $loncol = $col['field_name'];
+        }
       }
 
-      $return = new stdClass();
-      $return->type = 'FeatureCollection';
-      $return->features = $geojson;
+      if ($latcol == '' || $loncol == '') {
+        $return = "Latitude and longitude is not defined for this data set.";
+      } else {
+        if ($openlayers_return) {
+          $rows = _datavizwiz_get_data_array_openlayers($nid, $latcol, $loncol, $title_field);
+        } else {
+          $rows = _datavizwiz_get_data_array_geojson($nid, $latcol, $loncol);
+        }
+        
+        foreach($rows as $row) {
+          $feature = new stdClass();
+          $feature->type = 'Feature';
+
+          $geometry = new stdClass();
+          $geometry->type = 'Point';
+          $geometry->coordinates = array((float) $row[$loncol], (float) $row[$latcol]);
+          $feature->geometry = $geometry;
+
+          $feature->id = $row['RowID'];
+          $properties = new stdClass();
+
+          if (strlen($title_field)) {
+            if ($row[$title_field] != null) {
+              $properties->popupContent = $row[$title_field];
+            } else {
+              $properties->popupContent = '';
+            }
+          }
+          
+          foreach($row as $key => $value) {
+            if ($key != $loncol && $key != $latcol && $key != 'RowID') {
+              $properties->$key = $value;
+            }
+          }
+
+          $feature->properties = $properties;
+                      
+          // Here Put Additional Properties.
+
+          $geojson[] = $feature;
+        }
+
+        $return = new stdClass();
+        $return->type = 'FeatureCollection';
+        $return->features = $geojson;
+      }
     }
+    echo json_encode($return);
   }
-  
-  echo json_encode($return);
 }
 
 function _datavizwiz_return_json($rows) {

@@ -912,7 +912,9 @@ function _datavizwiz_get_field_array($table_name, $none_option = FALSE) {
  */
 function _datavizwiz_add_form_warning_javascript() {
   drupal_add_js('$(document).ready(function() {
-      $(":input",document.forms[0]).bind("change", function() { setConfirmUnload(true); }); // Prevent accidental navigation away
+
+      $(":submit").click(function(){ window.onbeforeunload = null; }); // Turn off warning on submit
+      $("input:text,input:checkbox,input:radio,textarea,select",document.forms[0]).bind("change", function() { setConfirmUnload(true); }); // Prevent accidental navigation away    
     });
 
     function setConfirmUnload(on) {

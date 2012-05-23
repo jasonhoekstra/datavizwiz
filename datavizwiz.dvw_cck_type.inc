@@ -2,8 +2,8 @@ $content['type']  = array (
   'name' => 'DataVizWiz Dataset',
   'type' => 'dvw_dataset',
   'description' => 'A Data Visualization Wizard Dataset',
-  'title_label' => 'Title',
-  'body_label' => 'Body',
+  'title_label' => 'Data Set Title',
+  'body_label' => 'Data Set Description',
   'min_word_count' => '0',
   'help' => '',
   'node_options' => 
@@ -13,16 +13,16 @@ $content['type']  = array (
     'sticky' => false,
     'revision' => false,
   ),
-  'show_preview_changes' => 1,
-  'show_diff_inline' => false,
-  'enable_revisions_page' => 1,
+  'show_preview_changes' => 0,
+  'show_diff_inline' => 0,
+  'enable_revisions_page' => 0,
   'old_type' => 'dvw_dataset',
   'orig_type' => '',
   'module' => 'node',
   'custom' => '1',
   'modified' => '1',
   'locked' => '0',
-  'custom_breadcrumbs_show_form_table' => 1,
+  'custom_breadcrumbs_show_form_table' => 0,
 );
 $content['fields']  = array (
   0 => 
@@ -32,8 +32,8 @@ $content['fields']  = array (
     'type' => 'text',
     'widget_type' => 'optionwidgets_select',
     'change' => 'Change basic information',
-    'weight' => '-2',
-    'description' => '',
+    'weight' => '-3',
+    'description' => 'Data table from Importer to create a visualization.  Do not change this value after initially creating your visualization.',
     'default_value' => 
     array (
       0 => 
@@ -105,13 +105,13 @@ return $rows;',
     'type' => 'number_integer',
     'widget_type' => 'number',
     'change' => 'Change basic information',
-    'weight' => '-1',
-    'description' => '',
+    'weight' => '-2',
+    'description' => 'Number of listings to display in the summary table.  0 will display unlimited listings.  Typically, 50-100 is a recommended range to display.',
     'default_value' => 
     array (
       0 => 
       array (
-        'value' => '',
+        'value' => '50',
         '_error_element' => 'default_value_widget][field_dvw_pagesize][0][value',
       ),
     ),
@@ -122,7 +122,7 @@ return $rows;',
       array (
         0 => 
         array (
-          'value' => '',
+          'value' => '50',
           '_error_element' => 'default_value_widget][field_dvw_pagesize][0][value',
         ),
       ),
@@ -180,8 +180,8 @@ return $rows;',
     'type' => 'number_integer',
     'widget_type' => 'number',
     'change' => 'Change basic information',
-    'weight' => 0,
-    'description' => 'Height in pixels of the summary panes',
+    'weight' => '-1',
+    'description' => 'Height in pixels of the summary panes.  500 is a default recommended value.',
     'default_value' => 
     array (
       0 => 
@@ -270,8 +270,8 @@ return $rows;',
     'type' => 'number_integer',
     'widget_type' => 'optionwidgets_onoff',
     'change' => 'Change basic information',
-    'weight' => '1',
-    'description' => '',
+    'weight' => 0,
+    'description' => 'Allows access to CSV open data download from the visualization.',
     'default_value' => 
     array (
       0 => 
@@ -341,8 +341,8 @@ return $rows;',
     'type' => 'number_integer',
     'widget_type' => 'optionwidgets_onoff',
     'change' => 'Change basic information',
-    'weight' => '2',
-    'description' => '',
+    'weight' => '1',
+    'description' => 'Allows access to GeoJSON open data download from the visualization.',
     'default_value' => 
     array (
       0 => 
@@ -427,8 +427,8 @@ return $rows;',
     'type' => 'number_integer',
     'widget_type' => 'optionwidgets_onoff',
     'change' => 'Change basic information',
-    'weight' => '3',
-    'description' => '',
+    'weight' => '2',
+    'description' => 'Allows access to JSON open data download from the visualization.',
     'default_value' => 
     array (
       0 => 
@@ -498,8 +498,8 @@ return $rows;',
     'type' => 'number_integer',
     'widget_type' => 'optionwidgets_onoff',
     'change' => 'Change basic information',
-    'weight' => '4',
-    'description' => 'XML Download',
+    'weight' => '3',
+    'description' => 'Allows access to XML open data download from the visualization.',
     'default_value' => 
     array (
       0 => 
@@ -565,11 +565,10 @@ return $rows;',
 );
 $content['extra']  = array (
   'title' => '-5',
-  'body_field' => '-3',
-  'revision_information' => '6',
-  'author' => '5',
-  'options' => '7',
-  'menu' => '-4',
-  'path' => '8',
-  'custom_breadcrumbs' => '9',
+  'body_field' => '-4',
+  'revision_information' => '8',
+  'author' => '6',
+  'options' => '5',
+  'menu' => '7',
+  'path' => '4',
 );

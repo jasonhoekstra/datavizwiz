@@ -717,16 +717,24 @@ function _datavizwiz_add_javascript($markers) {
 function datavizwiz_nodeapi(&$node, $op, $arg = NULL) {
   switch ($op) {
     case 'insert':
-      if ($node->type == 'dvw_dataset') {
+      if ($node->type == DVW_NODE_TYPE) {
         $table_name = $node->field_dvw_datatable[0]['value'];
         $field_set = _datavizwiz_get_columns_in_table($table_name);
 
         _datavizwiz_add_columns_to_meta_table($node->nid, $field_set);
       }
       break;
+   case 'delete':
+     if ($node->type == DVW_NODE_TYPE) {
+       db_query('DELETE FROM {dvw_field_meta} WHERE nid = %d', $node->nid);
+       db_query('DELETE FROM {dvw_summary_views} WHERE nid = %d', $node->nid);
+     }  
   }
 }
 
+/**
+ * Implementation of hook_form_alter().
+ */
 function datavizwiz_form_alter(&$form, &$form_state, $form_id) {
   if ($form['#token'] == 'dvw_dataset_node_form' && $form_state['submitted'] == FALSE) {
 
@@ -858,7 +866,7 @@ function datavizwiz_menu() {
 
 function _datavizwiz_manage_dataset_menu_access($nid) {
   $node = node_load($nid);
-  if (user_access('adminster datavizwiz') && $node->type == 'dvw_dataset' ) {
+  if (user_access('adminster datavizwiz') && $node->type == DVW_NODE_TYPE ) {
     return true;
   } else {
     return false;

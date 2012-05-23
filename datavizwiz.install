@@ -56,7 +56,17 @@ function datavizwiz_install() {
  * Implements hook_uninstall().
  */
 function datavizwiz_uninstall() {
+  // Uninstall tables created in installation process.
   drupal_uninstall_schema('datavizwiz');
+  
+  // Delete DataVizWiz nodes from database
+  $result = db_query("SELECT nid FROM node where type='%s'", DVW_NODE_TYPE);
+  while ($row = db_fetch_object($result)) {
+      node_delete($row->nid);
+  }
+  
+  // Remove DataVizWiz custom content type
+  node_type_delete(DVW_NODE_TYPE);
 }
 
 /**
